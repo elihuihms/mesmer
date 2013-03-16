@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+
+import sys
+import os
+
+import lib.setup
+import lib.plugin_functions
+import lib.ga_functions_main
+
+from lib.functions import print_msg
+
+def main():
+	_mes_version	= "0.1dev"
+	_mes_build		= "2013.02.26.0"
+		
+	# read the setup file for the algorithm
+	args = lib.setup.read_param_file( sys.argv[1] )
+	
+	# attempt to create the fitting results directory
+	if( not lib.setup.make_results_dir(args) ):
+		sys.exit(1)
+	
+	# attempt to write to the log file
+	path = os.path.abspath( "%s%smesmer_log.txt" % (args.dir,os.sep) )
+	if( not print_msg("""
+	MESMER v. %s build %s
+	(C)2012-2013 Elihu Ihms
+	""" % (_mes_version,_mes_build), path) ):
+		print "ERROR: Couldn't create MESMER log file, aborting."
+		sys.exit(1)	
+		
+	# save the parameters list to the log file
+	print_msg("Arguments:")
+	for k in vars(args):
+		print_msg("\t%s\t:\t%s" % (k,vars(args)[k]))
+	print_msg("")
+	
+	# attempt to load available plugin modules
+	Plugins = lib.plugin_functions.load_plugins('%s/plugins/' % os.path.dirname(os.path.realpath(__file__)))
+	
+	if( len(Plugins) < 1):
+		print "ERROR: No valid data plugins found, aborting."
+		sys.exit(1)	
+	
+	if( None in Plugins ):
+		print "ERROR: One or more plugins failed to load, aborting."
+		sys.exit(1)
+	
+	# load target restraints by passing off to plugins
+	Targets = lib.setup.load_all_targets( args, Plugins )
+	
+	if( None in Targets):
+		print "ERROR: Could not read one or more target files, aborting."
+		sys.exit(1)
+	
+	for t in Targets:
+		if( len(Targets[0].restraints) != len(t.restraints) ):
+			print "ERROR: All targets in titration analysis must have the same number of restraints, aborting."
+			sys.exit(1)
+	
+	# create component database
+	Components = lib.setup.load_all_components( args, Plugins, Targets )
+	
+	if( len(Components) < 1):
+		print "ERROR: No valid components specified, aborting."
+		sys.exit(1)
+	
+	if( None in Components):
+		print "ERROR: Could not read one or more component files, aborting."
+		sys.exit(1)	
+	
+	# Start the algorithm
+	try:
+		ret = lib.ga_functions_main.main( args, Plugins, Targets, Components )
+	except KeyboardInterrupt:
+		print_msg( "\nINFO: User forced quit, exiting.\n" )
+		sys.exit(0)
+	
+	sys.exit(0)
+		
+if( __name__ == "__main__" ):
+	main()
+

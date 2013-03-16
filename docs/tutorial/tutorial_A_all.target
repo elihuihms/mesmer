@@ -1,0 +1,10 @@
+NAME	tutorial_A_all
+
+# calculated SAXS curve for components 00001 + 00008 + 1% noise
+SAXS	1	-scale -offset -file saxs_data/target_saxs_A.dat
+
+# component stoichiometry
+STCH	1	-component TRAP 1 -component AT 1.5
+
+# calculated FRET lifetime curve for components 00001 + 00008 + 1% noise
+CURV	1	-scale -offset -file fret_data/target_fret_A.dat
