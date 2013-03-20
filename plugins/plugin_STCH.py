@@ -154,8 +154,14 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 				sum += (a.data['components'][name] * ratios[i])
 
 	fitness = 0.0
+	
+	# create score from flat harmonic
 	for name in restraint.data['components']:
-		ensemble_data['components'][name] /= sum
+		if( sum == 0.0 ):
+			ensemble_data['components'][name] = 0.0
+		else:
+			ensemble_data['components'][name] /= sum
+
 		fitness += tools.get_flat_harmonic( restraint.data['components'][name], restraint.data['components'][name], ensemble_data['components'][name] )
 				
 	return fitness
