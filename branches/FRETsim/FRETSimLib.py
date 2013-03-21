@@ -1,29 +1,30 @@
 from math import exp,sqrt,pi
 from scipy import integrate,recfromtxt
+from Bio.PDB.PDBParser import PDBParser
 
 def getPDBElements( file, QD_name, QA_name ):
 	"""
-	Reads the specified file and returns an array containing all ATOM records. Ignores anything that's not an ATOM or HETATM record
+	Reads the specified file and returns an array containing all matching ATOM records.
 	"""
+	parser=PDBParser(PERMISSIVE=True,QUIET=True)
+	structure=parser.get_structure("temp", file )
+	
 	donors = []
 	acceptors = []
 	
-	f = open(file, 'r')
-	for line in f:
-		if (line[0:4] == 'ATOM') or (line[0:6] == 'HETATM'):
-			tmp = {'i':int(line[6:11]),'name':line[12:16].strip(),'res':{'num':int(line[22:26]),'type':line[17:20].strip(),'chain':line[21]},'coords':[float(line[30:37]),float(line[38:45]),float(line[46:53])]}
-			
-			if(tmp['name'] == QD_name):
-				donors.append( tmp )
-			if(tmp['name'] == QA_name):
-				acceptors.append( tmp )
-	pass
-	f.close()	
+	for model in structure:
+		for chain in model:
+			for residue in chain:
+				for atom in residue:
+					if( atom.name == QD_name ):
+						donors.append( atom )
+					if( atom.name == QA_name ):
+						acceptors.append( atom )
 
 	return (donors,acceptors)
 pass
 
-def getPDBDistances( Donors, Acceptors ):
+def getPDBDistances( Donors, Acceptors, SkipChain, SkipModel ):
 	"""
 	Provided a set of PDB coordinates for donor and acceptors, builds an array of distances between them
 	Note: excludes 0 distances (where donor == acceptor coordinates)
@@ -31,7 +32,13 @@ def getPDBDistances( Donors, Acceptors ):
 	distances = []
 	for D in Donors:
 		for A in Acceptors:
-			distance = sqrt( (D['coords'][0]-A['coords'][0])**2 + (D['coords'][1]-A['coords'][1])**2 + (D['coords'][2]-A['coords'][2])**2 )
+			if( SkipChain and (D.parent.parent == A.parent.parent) ):
+				break
+			if( SkipModel and (D.parent.parent.parent == A.parent.parent.parent) ):
+				break
+			
+			# calculate the distance between acceptor and donor
+			distance = A-D
 			if( distance > 0.0 ):
 				distances.append(distance)
 	return distances

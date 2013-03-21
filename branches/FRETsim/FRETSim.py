@@ -1,4 +1,4 @@
-#!/Library/Frameworks/Python.framework/Versions/2.7/bin/python
+#!/usr/bin/env python
 
 #
 # E. Ihms - 2012.08.31
@@ -9,7 +9,7 @@
 import sys
 import argparse
 
-from fret_lifetime_lib import *
+from FRETSimLib import *
 
 # parser block
 parser = argparse.ArgumentParser(description="fret_lifetime_sim.py")
@@ -24,6 +24,8 @@ parser.add_argument('-irf', metavar='FILE', default="irf.dat", required=True, he
 parser.add_argument('-out', metavar='FILE', default="output.dat", required=True, help='The file to output the fit to.')
 parser.add_argument('-fA', metavar='float', type=float, default=1.0, help='The fraction of acceptor sites actually labeled with an acceptor dye.')
 parser.add_argument('-Pr', action='store_true', help='Print only the Pr() function and exit.')
+parser.add_argument('-SkipChain', action='store_true', help='Skip acceptor fluorophores in the same chain as the donor.')
+parser.add_argument('-SkipModel', action='store_true', help='Skip acceptor fluorophores in the same model as the donor.')
 args = parser.parse_args()
 
 # Read IRF
@@ -35,8 +37,12 @@ IRF_values = list(irf_I)
 (Donors,Acceptors) = getPDBElements(args.pdb,args.QD,args.QA)
 
 # calculate the distances between donors and acceptors
-Distances = getPDBDistances(Donors,Acceptors)
+Distances = getPDBDistances(Donors,Acceptors,args.SkipChain,args.SkipModel)
 
+if(len(Distances) == 0):
+	print "No valid interatomic distances found for specified atom types '%s' and '%s'" % (args.QD,args.QA)
+	exit(0)
+	
 # Write Pr() to file if requested
 if(args.Pr):
 	PDB_Pr = makePDBPr(Distances,args.dR)
