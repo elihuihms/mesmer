@@ -152,27 +152,29 @@ def load_restraint( restraint, block, target_data ):
 		except ValueError, exc:
 			return (False,["Could not read file \"%s\" - %s" % (args.file, exc)])
 
+	restraint.data['x'] = zip(*values)[0]
+	restraint.data['y'] = zip(*values)[1]
+
 	# set the per-point weighting to be used during fitting
 	if( args.sse ):
 		# X^2 = (Y - Y_fit)^2
-		values[2] = [1.0] * len(values)
+		restraint.data['d'] = [1.0] * len(restraint.data['x'])
 
 	elif( args.relative ):
 		# X^2 = ((Y - Y_fit) / Y)^2
-		values[2] = values[1][:]
+		restraint.data['d'] = restraint.data['y']
 
 	elif( args.poisson ):
 		# X^2 = ((Y - Y_fit) / sqrt(Y))^2
-		values[2] = [ sqrt(y) for y in values[1] ]
+		restraint.data['d'] = [ sqrt(y) for y in restraint.data['y'] ]
 
 	elif(len(values[0]) != 3):
-		# X^2 = ((Y - Y_fit) / dY)^2
 		return (False,["Target data must be of the format: x y dy"])
-
-	restraint.data['x'] = zip(*values)[0]
-	restraint.data['y'] = zip(*values)[1]
-	restraint.data['d'] = zip(*values)[2]
-
+	
+	else:
+		# X^2 = ((Y - Y_fit) / dY)^2
+		restraint.data['d'] = zip(*values)[2]
+	
 	return (True,messages)
 
 def load_attribute( attribute, block, ensemble_data ):
