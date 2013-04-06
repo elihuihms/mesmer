@@ -28,7 +28,7 @@ The first step of MESMER fitting is to generate files containing the pre-calcula
 For the purposes of this tutorial, the component stoichiometries, SAXS profiles, and FRET lifetime curves for 18 different theoretical structures have already been computed. These data are present in the file "component_values.tbl" and the directories "saxs_data", and "fret_data" respectively. The "make_components" utility will combine these data into properly-formatted MESMER component files guided by the provided template: "component_template.txt".
 
 To run make_components, type the following at the command line when inside the "tutorials" directory:
-prompt> ../utilities/make_components -template ./component_template.txt -values ./component_values.tbl -data ./saxs_data -data ./fret_data -out components
+prompt> ../utilities/make_components -template ./component_template.txt -values ./component_values.tbl -data ./saxs_data ./fret_data -out components
 
 This will create the directory "components", and fill it with component files. These files can be inspected in any text editor, as they are simply ASCII text.
 
