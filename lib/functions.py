@@ -55,7 +55,7 @@ def get_input_blocks( file ):
 	try:
 		f = open( file, 'r' )
 	except IOError:
-		return False
+		return None
 				
 	lines = f.readlines()
 	f.close()

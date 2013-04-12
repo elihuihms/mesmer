@@ -37,7 +37,7 @@ class mesComponent:
 						
 		blocks = get_input_blocks(file)
 		
-		if( not blocks ):
+		if( blocks == None ):
 			print_msg("ERROR: Could not read component file \"%s\"." % (file))
 		
 		if( len(blocks) == 0 ):

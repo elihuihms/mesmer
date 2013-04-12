@@ -55,8 +55,8 @@ def main():
 		# generate a named dict that will contain each datafile for the component
 		if(len(l) > 0):
 			a = l.split("\t")
-			data_values[ a[0] ] = a
-			data_files[ a[0] ] = []
+			data_values[ a[0].strip() ] = a
+			data_files[ a[0].strip() ] = []
 			
 	handle.close()
 	
@@ -73,7 +73,7 @@ def main():
 			if( len(data_files[name]) < i ):
 				print "Error: data file for component \"%s\" not found for in directory \"%s\"" % (name,dir)
 				exit(1)
-	
+					
 	# create the component file
 	for name in data_values:
 
@@ -96,7 +96,7 @@ def main():
 			handle.close()
 		
 		# write the compiled datafile
-		path = ("%s%s%s.component" % (args.out,os.sep,name) )
+		path = ("%s%s%s.component" % (args.out,os.sep,name.strip()) )
 		try:
 			handle = open( path, 'w' )
 		except IOError:
