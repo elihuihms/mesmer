@@ -86,6 +86,10 @@ class mesTarget:
 							print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,m))
 						return False
 						
+		if( self.name == '' ):
+			print_msg("ERROR: component file \"%s\" has no NAME attribute." % (file) )
+			return False
+						
 		return True
 						
 	def make_bootstrap( self, plugins, ensemble ):

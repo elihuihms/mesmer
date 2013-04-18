@@ -1,33 +1,54 @@
 """
-Example MESMER plugin
+Creates a MESMER restraint from a general list of data
 
 Target file arguments:
--value <N>
+-file <file>	- Read a file containing whitespace-delimited data instead of from the target file
+-col <n>		- The column of values in the list to use
 
 Component file arguments:
--value <N>
+-file <file>	- Read a file containing whitespace-delimited data instead of from the target file
 """
 
+import shelve
 import argparse
+import os
+import sys
+import scipy
+import scipy.interpolate as interpolate
+import uuid
+
+from StringIO import StringIO
 
 import lib.plugin_tools as tools
-import lib.plugin_objects as objects
 
-name = 'XX_EXAMPLE'
-version = '2013.01.01'
-type = ['TEST']
+name = 'default_LIST'
+version = '2013.xx.xx'
+type = ('LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9')
+
+_db_handle = None
+_ensemble_plot_handle = None
 
 #
 # basic functions
 #
 
 def load( args ):
-	# empty stub
-	pass
+	global _db_handle
+	
+	path ="%s%scomponent_LIST.db" % (args.dir,os.sep)
+	try:
+		_db_handle = shelve.open(path,'c')
+	except:
+		return "Could not create temporary DB."
 
-def unload( ):
-	# empty stub
-	pass
+	return None
+		
+def unload():
+	global _db_handle
+	if (_db_handle != None):
+		_db_handle.close()
+	
+	return None
 
 def info():
 	global name
@@ -55,12 +76,8 @@ def ensemble_state( restraint, target_data , ensemble_data, file_path):
 	filePath		- an optional file path the plugin can save data to
 	"""
 	
-	output = (
-	'Example plugin',
-	'Path is %s' % (file_path)
-	)
-	
-	return (True,output)
+	return (None,None)	
+
 #
 # data handling functions
 #
@@ -77,31 +94,38 @@ def load_restraint( restraint, block, target_data ):
 	restraint	- The empty restraint object to be filled
 	"""
 	global name
+	messages = []
 	
-	# block dictionary format:
-	#
-	# "type"	- string, corresponds to a type handled by this plugin
-	# "header"	- string, containing the first line of the content block
-	# "content"	- list of strings, containing the rest of the content block (if any)
-	# "l_start" - integer, the line index for the start of the content block from the original file
-	# "l_end"	- integer, the line index for the end of the content block from the original file
-	
-	# example header format:
-	# TYPE	SCALE	OPTIONS
-	# TEST	1		-value <N>
-		
 	parser = argparse.ArgumentParser(prog=name,usage='See plugin documentation for parameters')
-	parser.add_argument('-value', metavar='number', help='')
-	
+	parser.add_argument('-file', 												help='An external whitespace-delimited file containing LIST parameters.')
+	parser.add_argument('-col', 	action='store',	type='int',	required=True,	help='The column of data to use as the restraint')
+
 	try:
 		args = parser.parse_args(block['header'].split()[2:])
 	except argparse.ArgumentError, exc:
 		return (False,["Argument error: %s" % exc.message()])
 	
-	target_data['args']		= args
-	restraint.data['value']	= args.value
+	if(args.file):
+		try:
+			f = open(args.file)
+			table = f.readlines()
+			f.close()
+		except:
+			return(False,["Error reading from file \"%s\": " % (file,sys.exc_info()[1])])
+	else:
+		table = block['content']
+		
+	for line in table:
+		line = line.strip()
+		data = [field.strip() for field in line.split()]	
 	
-	return (True,[])
+	restraint.data['values'] = {}
+	for e in data:
+		if( len(e) >= args.col ):
+			key = '.'.join( e[:args.col -1] )
+			restraint.data['values'][key] = e[args.col]
+
+	return (True,messages)
 
 def load_attribute( attribute, block, ensemble_data ):
 	"""
@@ -115,18 +139,40 @@ def load_attribute( attribute, block, ensemble_data ):
 	attribute		- The empty attribute object to be filled
 	"""
 	global name
+	global _db_handle
+	
+	messages = []
 	
 	parser = argparse.ArgumentParser(prog=name,usage='See plugin documentation for parameters')
-	parser.add_argument('-value', metavar='number', help='')
+	parser.add_argument('-file',	help='An external whitespace-delimited file containing LIST parameters.')
 
-	try:
-		args = parser.parse_args(block['header'].split()[1:])
-	except argparse.ArgumentError, exc:
-		return (False,["Argument error: %s" % exc.message()])
-
-	attribute.data['value'] = args.value
+	if(args.file):
+		try:
+			f = open(args.file)
+			table = f.readlines()
+			f.close()
+		except:
+			return(False,["Error reading from file \"%s\": " % (file,sys.exc_info()[1])])
+	else:
+		table = block['content']
+		
+	for line in table:
+		line = line.strip()
+		data = [field.strip() for field in line.split()]	
 	
-	return (True,[])
+	temp = {}
+	for e in data:
+		key = '.'.join( e[:args.col -1] )
+		if(key in attribute.restraint.data['values'].keys()):
+			temp[key] = e[args.col]
+
+	# generate a unique key for storing the attribute table into the db
+	attribute.data['key'] = uuid.uuid1().hex
+
+	# store the spline into the database
+	_db_handle[attribute.data['key']] = temp
+	
+	return (True,messages)
 
 def load_bootstrap( bootstrap, restraint, ensemble_data, target_data ):
 	"""
@@ -138,17 +184,15 @@ def load_bootstrap( bootstrap, restraint, ensemble_data, target_data ):
 	ensemble_data	- The plugin's data storage variable for this ensemble
 	target_data		- The plugin's data storage variable for the target
 	"""
-	
-	bootstrap.data['value'] = restraint.data['value']
-		
+			
 	return (True,[])
 
 def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 	"""
 	Calculates the fitness of a set of attributes against a given restraint
 	
-	Returns a fitness score, ideally a chi-square error (1=good fit, or >1 if bad fit). Less ideally a sum-squared of error. 	
-
+	Returns a fitness score, which is actually the reduced chi-squared goodness-of-fit value between the restraint SAXS profile and the weighted-sum component SAXS profiles (attributes)
+	
 	Arguments:
 	ensemble_data	- The plugin's data storage variable for the ensemble
 	restraint		- The restraint object to be fitted against
@@ -156,16 +200,21 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 	ratios			- The relative weighting (ratio) of each attribute
 	"""
 	
+	global _db_handle
+	
 	assert(len(attributes) == len(ratios))
-	
-	avg = 0.0
-	
-	# calculate the average value
-	for a in attributes:
-		avg = a.data['value']
-		
-	avg = avg / len(avg)
-	
-	return restraint.data['value'] - avg
 
+	n = len(restraint.data['values'])
+	exp_rms = 0.0
+	diffs = [0.0]*n
+	for (i,key) in enumerate(restraint.data['values']):
+		
+		exp_rms += (restraint.data['values'][key])**2
+		avg = 0.0
+		for (j,a) in enumerate(attributes):
+			avg += ratios(j) * _db_handle[ a.data['key'] ][key]
+		
+		diffs[i] = restraint.data['values'][key] - avg
+		
+	return tools.get_rms(diffs) / sqrt(exp_rms/n)
 	

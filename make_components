@@ -42,6 +42,9 @@ def main():
 	except IOError:
 		print "ERROR: Could not open values file %s " % (args.template)
 		exit(1)
+		
+	if (args.data == None):
+		args.data = []
 	
 	# go through the values
 	data_values = {}

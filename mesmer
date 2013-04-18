@@ -10,8 +10,8 @@ import lib.ga_functions_main
 from lib.functions import print_msg
 
 def main():
-	_mes_version	= "0.1dev"
-	_mes_build		= "2013.02.26.0"
+	_mes_version	= "0.2dev"
+	_mes_build		= "2013.04.18.0"
 		
 	# read the setup file for the algorithm
 	args = lib.setup.read_param_file( sys.argv[1] )
@@ -36,45 +36,48 @@ def main():
 	print_msg("")
 	
 	# attempt to load available plugin modules
-	Plugins = lib.plugin_functions.load_plugins('%s/plugins/' % os.path.dirname(os.path.realpath(__file__)))
+	plugins = lib.plugin_functions.load_plugins(args, '%s/plugins/' % os.path.dirname(os.path.realpath(__file__)))
 	
-	if( len(Plugins) < 1):
+	if( len(plugins) < 1):
 		print "ERROR: No valid data plugins found, aborting."
 		sys.exit(1)	
 	
-	if( None in Plugins ):
+	if( None in plugins ):
 		print "ERROR: One or more plugins failed to load, aborting."
 		sys.exit(1)
 	
 	# load target restraints by passing off to plugins
-	Targets = lib.setup.load_all_targets( args, Plugins )
+	targets = lib.setup.load_all_targets( args, plugins )
 	
-	if( None in Targets):
+	if( None in targets):
 		print "ERROR: Could not read one or more target files, aborting."
 		sys.exit(1)
 	
-	for t in Targets:
-		if( len(Targets[0].restraints) != len(t.restraints) ):
+	for t in targets:
+		if( len(targets[0].restraints) != len(t.restraints) ):
 			print "ERROR: All targets in titration analysis must have the same number of restraints, aborting."
 			sys.exit(1)
 	
 	# create component database
-	Components = lib.setup.load_all_components( args, Plugins, Targets )
+	components = lib.setup.load_all_components( args, plugins, targets )
 	
-	if( len(Components) < 1):
+	if( len(components) < 1):
 		print "ERROR: No valid components specified, aborting."
 		sys.exit(1)
 	
-	if( None in Components):
+	if( None in components):
 		print "ERROR: Could not read one or more component files, aborting."
 		sys.exit(1)	
 	
 	# Start the algorithm
 	try:
-		ret = lib.ga_functions_main.main( args, Plugins, Targets, Components )
+		ret = lib.ga_functions_main.main( args, plugins, targets, components )
 	except KeyboardInterrupt:
 		print_msg( "\nINFO: User forced quit, exiting.\n" )
 		sys.exit(0)
+		
+	# finished, unload plugins
+	lib.plugin_functions.unload_plugins( plugins )
 	
 	sys.exit(0)
 		

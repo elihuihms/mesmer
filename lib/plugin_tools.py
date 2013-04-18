@@ -1,3 +1,4 @@
+import math
 import random
 import scipy.interpolate
 import scipy.optimize
@@ -178,7 +179,13 @@ def make_bootstrap_sample( x, y, x_fit, y_fit ):
 		bootstrap[i] += random.choice(residual)
 	
 	return bootstrap
-	
+
+def get_rms( a ):
+	sum = 0.0
+	for f in a.itervalues():
+		sum += a*a
+	return math.sqrt( sum / len(a) )
+		
 	
 	
 	

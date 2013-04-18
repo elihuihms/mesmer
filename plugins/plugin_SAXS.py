@@ -13,19 +13,54 @@ Component file arguments:
 """
 
 import argparse
+import os
+import shelve
 import scipy
 import scipy.interpolate as interpolate
+import uuid
 
 from StringIO import StringIO
 
 import lib.plugin_tools as tools
-import lib.plugin_objects as objects
 
 name = 'default_SAXS'
 version = '2013.xx.xx'
-type = ['SAXS']
+type = ('SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9')
 
+_db_handle = None
 _ensemble_plot_handle = None
+
+#
+# basic functions
+#
+
+def load( args ):
+	global _db_handle
+	
+	path ="%s%scomponent_SAXS.db" % (args.dir,os.sep)
+	try:
+		_db_handle = shelve.open(path,'c')
+	except:
+		return "Could not create temporary DB."
+
+	return None
+		
+def unload():
+	global _db_handle
+	if (_db_handle != None):
+		_db_handle.close()
+	
+	return None
+
+def info():
+	global name
+	global version
+	global types
+	print "Plugin: \"%s\"" % name
+	print "\tversion: \"%s\"" % version
+	print "\tdata types:"
+	for t in types:
+		print "\t\t%s" % t
 
 #
 # output functions
@@ -176,6 +211,8 @@ def load_attribute( attribute, block, ensemble_data ):
 	attribute		- The empty attribute object to be filled
 	"""
 	global name
+	global _db_handle
+	
 	messages = []
 	
 	parser = argparse.ArgumentParser(prog=name,usage='See plugin documentation for parameters')
@@ -202,11 +239,17 @@ def load_attribute( attribute, block, ensemble_data ):
 
 	# attempt to interpolate the XY values against the target restraint X values
 	try:
-		attribute.data['spline'] = interpolate.splrep( zip(*values)[0], zip(*values)[1] )
-		interpolate.splev( attribute.restraint.data['x'], attribute.data['spline'] )
+		temp = interpolate.splrep( zip(*values)[0], zip(*values)[1] )
+		interpolate.splev( attribute.restraint.data['x'],temp )
 	except TypeError:
 		return (False,["Could not interpolate the component's SAXS curve to the target's"])
 
+	# generate a unique key for storing the attribute value into the db
+	attribute.data['key'] = uuid.uuid1().hex
+
+	# store the spline into the database
+	_db_handle[attribute.data['key']] = temp
+	
 	return (True,messages)
 
 def load_bootstrap( bootstrap, restraint, ensemble_data, target_data ):
@@ -239,12 +282,14 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 	ratios			- The relative weighting (ratio) of each attribute
 	"""
 	
+	global _db_handle
+	
 	assert(len(attributes) == len(ratios))
 
 	n = len(restraint.data['x'])
 	
 	# average the attribute profiles
-	fit = tools.make_weighted_vector( [interpolate.splev(restraint.data['x'], a.data['spline']) for a in attributes], ratios )
+	fit = tools.make_weighted_vector( [interpolate.splev(restraint.data['x'], _db_handle[a.data['key']]) for a in attributes], ratios )
 	
 	# determine the scaling and/or offset coefficients
 	if(target_data['args'].scale and target_data['args'].bg):
