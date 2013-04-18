@@ -39,8 +39,7 @@ class mesComponent:
 		
 		if( blocks == None ):
 			print_msg("ERROR: Could not read component file \"%s\"." % (file))
-		
-		if( len(blocks) == 0 ):
+		elif( len(blocks) == 0 ):
 			print_msg("ERROR: Component file \"%s\" contains no recognizable data." % (file))
 
 		# make a checklist of the requested target restraints (by plugin name) each component must satisfy
@@ -89,6 +88,10 @@ class mesComponent:
 						for m in messages:
 							print_msg("ERROR: plugin \"%s\" reported: %s" % (p.name,m))
 						return False
+						
+		if( self.name == '' ):
+			print_msg("ERROR: component file \"%s\" has no NAME attribute." % (file) )
+			return False
 						
 		# go through our checklist and ensure that all target restraint types are present
 		for (k,v) in checklist.iteritems():

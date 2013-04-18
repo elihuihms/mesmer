@@ -9,13 +9,33 @@ Component file arguments:
 """
 
 import argparse
-
 import lib.plugin_tools as tools
-import lib.plugin_objects as objects
 
 name = 'default_STCH'
 version = '2013.xx.xx'
-type = ['STCH']
+type = ('STCH','STCH0','STCH1','STCH2','STCH3','STCH4','STCH5','STCH6','STCH7','STCH8','STCH9')
+
+#
+# basic functions
+#
+
+def load( args ):
+	# empty stub
+	pass
+
+def unload( ):
+	# empty stub
+	pass
+
+def info():
+	global name
+	global version
+	global types
+	print "Plugin: \"%s\"" % name
+	print "\tversion: \"%s\"" % version
+	print "\tdata types:"
+	for t in types:
+		print "\t\t%s" % t
 
 #
 # output functions

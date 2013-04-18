@@ -3,18 +3,18 @@ import os
 import imp
 import glob
 
-def load_plugins( dir ):
+def load_plugins( args, dir ):
 	"""Finds all MESMER plugin (plugin_*.py) files in the provided directory, and loads them"""
 	
 	files = glob.glob( '%s/plugin_*.py' % dir )
 	
 	plugins = []
 	for f in files:
-	    plugins.append( load_mesmer_plugin(f) )
+	    plugins.append( load_mesmer_plugin(args, f) )
 	
 	return plugins
 
-def load_mesmer_plugin( path ):
+def load_mesmer_plugin( args, path ):
 	"""
 	Import the python module at the specified path.
 	
@@ -30,18 +30,41 @@ def load_mesmer_plugin( path ):
 		print "ERROR: Could not discover plugin at path \"%s\"." % (path)
 		return None
 	
-	plugin = imp.load_module(name, file, filename, data)
-	file.close()
+	try:
+		plugin = imp.load_module(name, file, filename, data)
+	except:
+		print "ERROR: Could not import plugin \"%s\". Reason: %s" % (name,sys.exc_info()[1])
+		return None
+	finally:
+		file.close()
 	
-	#try:
-	#	plugin = imp.load_module(name, file, filename, data)
-	#except:
-	#	print "ERROR: Could not import plugin \"%s\". Reason: %s" % (name,sys.exc_info()[1])
-	#	return None
-	#finally:
-	#	file.close()
+	try:
+		ret = plugin.load( args )
+	except:
+		print "ERROR: Plugin \"%s\" load() failed: %s" % (name,sys.exc_info()[1])
+		return None
+	
+	if( ret != None ):
+		print "ERROR: Plugin \"%s\" reported a problem on load(): %s" % (name,ret)
+		return None
+	
+	# did the user request information about a plugin?
+	if (args.plugin == plugin.name) or (args.plugin == name):
+		plugin.info()
+		sys.exit(0)			
 		
 	return plugin
+	
+def unload_plugins( plugins ):
+	for p in plugins:
+		try:
+			ret = p.unload()
+		except:
+			print "ERROR: Plugin \"%s\" unload() failed: %s" % (p.name,sys.exc_info()[1])
+			continue
+				
+		if( ret != None ):
+			print "ERROR: Plugin \"%s\" reported a problem on unload(): %s" % (p.name,ret)
 	
 #
 # UNUSED FUNCTIONS BELOW THIS LINE

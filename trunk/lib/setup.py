@@ -71,6 +71,7 @@ def read_param_file( path ):
 	group5.add_argument('-force',		action='store_true',default=False,									help='Enable overwriting of previous output directories.')
 	group5.add_argument('-threads',		action='store',		default=1,		type=int,		metavar='N',	help='Number of multiprocessing threads to use.')
 	group5.add_argument('-dbm',			action='store_true',default=False,									help='Use a component database instead of maintaining in memory (much slower, significantly reduced memory footprint')
+	group5.add_argument('-plugin',		action='store',										metavar='NAME',	help='Print information about the specified plugin and exit.')
 		
 	args = parser.parse_args()
 	
@@ -153,7 +154,7 @@ def load_all_components( args, plugins, targets ):
 		return [None]
 	
 	if( args.dbm ):
-		print_msg("INFO: Loading %i component files to temporary database." % (len(files)))
+		print_msg("INFO: Loading %i component files to temporary database:" % (len(files)))
 	
 		path = "%s%scomponents.db" % (tempfile.mkdtemp(),os.sep)
 		try:
@@ -162,12 +163,13 @@ def load_all_components( args, plugins, targets ):
 			print_msg("ERROR: Could not create component database file \"%s\"." % (path) )
 			return [None]
 	else:
-		print_msg("INFO: Loading %i component files into memory." % (len(files)))
+		print_msg("INFO: Loading %i component files:" % (len(files)))
 		components = {}
 		
 	names = [''] * len(files)
+	divisor = int(max(len(files)/80,1))
 	for (i,f) in enumerate(files):
-		if( i % 100 == 0 ):
+		if( i % divisor == 0 ):
 			sys.stdout.write('#')
 			sys.stdout.flush()
 			
