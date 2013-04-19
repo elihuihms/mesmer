@@ -11,6 +11,7 @@ Component file arguments:
 
 import shelve
 import argparse
+import math
 import os
 import sys
 import scipy
@@ -64,7 +65,7 @@ def info():
 # output functions
 #
 
-def ensemble_state( restraint, target_data , ensemble_data, file_path):
+def ensemble_state( restraint, target_data, ensembles, file_path):
 	"""
 	Prints the status of the plugin for the current generation and target
 	
@@ -76,7 +77,20 @@ def ensemble_state( restraint, target_data , ensemble_data, file_path):
 	filePath		- an optional file path the plugin can save data to
 	"""
 	
-	return (None,None)	
+	try:
+		f = open( file_path, 'w' )
+	except IOError:
+		return (False,'Could not open file \"%s\" for writing' % file_path)
+	
+	f.write("# (identifiers)\texp\tfit\tres")
+	for key in ensembles[0]['values']:
+		tmp = key.replace('.',"\t")
+		res = restraint.data['values'][key] - ensembles[0]['values'][key]
+		f.write("%s\t%f\t%f\t%f\n" % (tmp,restraint.data['values'][key],ensembles[0]['values'][key],res) )
+	
+	f.close()
+	
+	return (None,[])	
 
 #
 # data handling functions
@@ -97,13 +111,15 @@ def load_restraint( restraint, block, target_data ):
 	messages = []
 	
 	parser = argparse.ArgumentParser(prog=name,usage='See plugin documentation for parameters')
-	parser.add_argument('-file', 												help='An external whitespace-delimited file containing LIST parameters.')
-	parser.add_argument('-col', 	action='store',	type='int',	required=True,	help='The column of data to use as the restraint')
+	parser.add_argument('-file', 	action='store',								help='An external whitespace-delimited file containing LIST parameters.')
+	parser.add_argument('-col', 	action='store',	type=int,	required=True,	help='The column of data to use as the restraint')
 
 	try:
 		args = parser.parse_args(block['header'].split()[2:])
 	except argparse.ArgumentError, exc:
 		return (False,["Argument error: %s" % exc.message()])
+		
+	restraint.data['args'] = args
 	
 	if(args.file):
 		try:
@@ -114,17 +130,18 @@ def load_restraint( restraint, block, target_data ):
 			return(False,["Error reading from file \"%s\": " % (file,sys.exc_info()[1])])
 	else:
 		table = block['content']
-		
+	
+	data = []
 	for line in table:
 		line = line.strip()
-		data = [field.strip() for field in line.split()]	
+		data.append( [field.strip() for field in line.split()] )
 	
 	restraint.data['values'] = {}
 	for e in data:
 		if( len(e) >= args.col ):
-			key = '.'.join( e[:args.col -1] )
-			restraint.data['values'][key] = e[args.col]
-
+			key = '.'.join( e[:args.col] )
+			restraint.data['values'][key] = float(e[args.col])
+			
 	return (True,messages)
 
 def load_attribute( attribute, block, ensemble_data ):
@@ -144,7 +161,12 @@ def load_attribute( attribute, block, ensemble_data ):
 	messages = []
 	
 	parser = argparse.ArgumentParser(prog=name,usage='See plugin documentation for parameters')
-	parser.add_argument('-file',	help='An external whitespace-delimited file containing LIST parameters.')
+	parser.add_argument('-file', 	action='store',								help='An external whitespace-delimited file containing LIST parameters.')
+
+	try:
+		args = parser.parse_args(block['header'].split()[1:])
+	except argparse.ArgumentError, exc:
+		return (False,["Argument error: %s" % exc.message()])
 
 	if(args.file):
 		try:
@@ -156,15 +178,18 @@ def load_attribute( attribute, block, ensemble_data ):
 	else:
 		table = block['content']
 		
+	data = []
 	for line in table:
 		line = line.strip()
-		data = [field.strip() for field in line.split()]	
+		data.append( [field.strip() for field in line.split()] )
+
+	col = attribute.restraint.data['args'].col
 	
 	temp = {}
 	for e in data:
-		key = '.'.join( e[:args.col -1] )
-		if(key in attribute.restraint.data['values'].keys()):
-			temp[key] = e[args.col]
+		key = '.'.join( e[:col] )
+		if( key in attribute.restraint.data['values'].keys() ):
+			temp[key] = float(e[col])
 
 	# generate a unique key for storing the attribute table into the db
 	attribute.data['key'] = uuid.uuid1().hex
@@ -184,7 +209,21 @@ def load_bootstrap( bootstrap, restraint, ensemble_data, target_data ):
 	ensemble_data	- The plugin's data storage variable for this ensemble
 	target_data		- The plugin's data storage variable for the target
 	"""
-			
+	
+	n = len(ensemble_data['values'])
+	exp = [0.0]*n
+	fit = [0.0]*n
+	for (i,key) in enumerate(ensemble_data['values'].keys()):
+		exp[i] = restraint.data['values'][key]	
+		fit[i] = ensemble_data['values'][key]
+
+	tmp = tools.make_bootstrap_sample( exp, fit )
+	bootstrap.data['values'] = ensemble_data['values']
+	
+	# docs say that if the ensemble dict is not modified, iteration order will be unchanged!
+	for (i,key) in enumerate(ensemble_data['values'].keys()):
+		bootstrap.data['values'][key] = tmp[i]
+	
 	return (True,[])
 
 def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
@@ -203,6 +242,9 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 	global _db_handle
 	
 	assert(len(attributes) == len(ratios))
+	
+	if(not 'values' in ensemble_data.keys()):
+		ensemble_data['values'] = {}
 
 	n = len(restraint.data['values'])
 	exp_rms = 0.0
@@ -212,9 +254,10 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 		exp_rms += (restraint.data['values'][key])**2
 		avg = 0.0
 		for (j,a) in enumerate(attributes):
-			avg += ratios(j) * _db_handle[ a.data['key'] ][key]
+			avg += ratios[j] * _db_handle[ a.data['key'] ][key]
 		
 		diffs[i] = restraint.data['values'][key] - avg
+		ensemble_data['values'][key] = avg
 		
-	return tools.get_rms(diffs) / sqrt(exp_rms/n)
+	return tools.get_rms(diffs) / math.sqrt(exp_rms/n)
 	

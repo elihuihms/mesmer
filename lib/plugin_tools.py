@@ -156,16 +156,43 @@ def make_weighted_vector( vectors, weights ):
 			sum[j] += v[j] * weights[i]
 	
 	return sum
-	
-def make_bootstrap_sample( x, y, x_fit, y_fit ):
+
+def make_bootstrap_sample( exp, fit ):
 	"""
 	Return a bootstrap estimate dataset for an experimental curve and associated best estimate
 	
 	Returns the bootstrap sample list of datapoints
 	
 	Arguments:
-	y		- list of floats, the experimetnal dataset
-	y_fit	- list of floats, the best estimate
+	exp	- list of floats, the experimental dataset
+	fit	- list of floats, the best estimate
+	"""
+	
+	n = len(exp)
+	assert(n == len(fit))
+
+	residuals = [0.0]*n
+	bootstrap = [0.0]*n
+	for i in range(n):
+		residuals[i] = exp[i] - fit[i]
+		bootstrap[i] = fit[i]
+	
+	for i in range(n):
+		bootstrap[i] += random.choice(residuals)
+		
+	return bootstrap
+
+def make_interpolated_bootstrap_sample( x, y, x_fit, y_fit ):
+	"""
+	Return a bootstrap estimate dataset for an experimental X/Y curve and associated best X/Y estimate
+	
+	Returns the bootstrap sample list of datapoints
+	
+	Arguments:
+	x		- list of floats, the experimental independent var
+	y		- list of floats, the experimental dependent var
+	x_fit	- list of floats, the fit dataset independent var
+	y_fit	- list of floats, the fit dataset dependent var
 	"""
 
 	n = len(y)
@@ -181,12 +208,12 @@ def make_bootstrap_sample( x, y, x_fit, y_fit ):
 	return bootstrap
 
 def get_rms( a ):
+	"""
+	Calculate the Root Mean Square of a list
+	"""
+	
 	sum = 0.0
-	for f in a.itervalues():
-		sum += a*a
+	for f in a:
+		sum += f**2
 	return math.sqrt( sum / len(a) )
-		
-	
-	
-	
 	

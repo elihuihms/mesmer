@@ -73,30 +73,24 @@ def print_plugin_state( args, counter, plugins, targets, ensembles):
 	"""
 	
 	output = []
-	for p in plugins:
-		
-		for t in targets:
-			for r in t.restraints:
-				
-				path = os.path.abspath( "%s%srestraints_%s_%s_%05i.out" % (args.dir,os.sep,t.name,r.type,counter) )
-				
+	for t in targets:
+		for r in t.restraints:
+			path = os.path.abspath( "%s%srestraints_%s_%s_%05i.out" % (args.dir,os.sep,t.name,r.type,counter) )
+	
+			for p in plugins:				
 				if(r.type in p.type):
-				
 					# build the ensemble data list from all ensembles
 					all_ensemble_data = []
 					for e in ensembles:
 						all_ensemble_data.append(e.plugin_data[t.name][r.type])
 				
 					# retrieve
-					(error,data) = p.ensemble_state(r, t.plugin_data[r.type], all_ensemble_data, path)
+					(error,messages) = p.ensemble_state(r, t.plugin_data[r.type], all_ensemble_data, path)
 					
-					if( error == None):
-						break
-					elif( not error ):
-						output.append( data )
-					else:
-						print "Plugin \"%s\" returned an error: %s" % data
-						
+					if( error != None):
+						for m in messages:
+							print "Plugin \"%s\" returned an error: %s" % m
+							
 					break
 	
 	return True
