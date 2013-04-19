@@ -96,7 +96,7 @@ def show_best_plot(x,y,yfit,diff):
 	
 	return
 
-def ensemble_state( restraint, target_data , ensemble_data, file_path):
+def ensemble_state( restraint, target_data , ensembles, file_path):
 	"""
 		Prints the status of the plugin for the current generation and target
 		
@@ -104,7 +104,7 @@ def ensemble_state( restraint, target_data , ensemble_data, file_path):
 		
 		Arguments:
 		target_data		- list of data the plugin has saved for the target
-		ensemble_data	- list of data the plugin has saved for every ensemble in the run, ordered by overall fitness
+		ensembles	- list of data the plugin has saved for every ensemble in the run, ordered by overall fitness
 		filePath		- an optional file path the plugin can save data to
 		"""
 	
@@ -114,12 +114,12 @@ def ensemble_state( restraint, target_data , ensemble_data, file_path):
 		return (False,'Could not open file \"%s\" for writing' % file_path)
 
 	f.write("# Best scoring ensemble fit\n" )
-	f.write("# scale: %.3e\n" % (ensemble_data[0]['scale']) )
-	f.write("# offset: %.3e\n" % (ensemble_data[0]['offset']) )
+	f.write("# scale: %.3e\n" % (ensembles[0]['scale']) )
+	f.write("# offset: %.3e\n" % (ensembles[0]['offset']) )
 	f.write("#x\ty_exp\ty_fit\n" )
 
 	# print the fit for the best-scoring ensemble
-	y_fit = tools.interpolate_curve( restraint.data['x'], ensemble_data[0]['x'], ensemble_data[0]['y'] )
+	y_fit = tools.interpolate_curve( restraint.data['x'], ensembles[0]['x'], ensembles[0]['y'] )
 
 	residuals = []
 	for (i,x) in enumerate(restraint.data['x']):
