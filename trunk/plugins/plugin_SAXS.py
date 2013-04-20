@@ -28,7 +28,7 @@ version = '2013.xx.xx'
 type = ('SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9')
 
 _db_handle = None
-_ensemble_plot_handle = None
+_plot_handles = {}
 
 #
 # basic functions
@@ -66,34 +66,37 @@ def info():
 # output functions
 #
 
-def show_best_plot(x,y,yfit,diff):
+def show_best_plot(id,x,y,yfit,diff):
 
-	global _ensemble_plot_handle
+	global _plot_handles
 	
 	import matplotlib.pyplot as plot
 	
-	if(_ensemble_plot_handle == None):
-		_ensemble_plot_handle = {}
-
-	a = plot.axes()
-	plot.title('Best MESMER fit to SAXS data')
+	if(not id in _plot_handles.keys()):
+		_plot_handles[id] = {}
+		_plot_handles[id]['counter'] = 0
+		_plot_handles[id]['fig'] = plot.figure()
+	
+	plot.figure(_plot_handles[id]['fig'].number)
+	_plot_handles[id]['fig'].clear()
+	_plot_handles[id]['main'] = _plot_handles[id]['fig'].add_axes([0.1,0.1,0.8,0.8])
+	plot.title("Best MESMER fit to \"%s\" data" % id)
 	plot.yscale('log')
 	plot.ylabel('I(q), intensity')
 	plot.xlabel(r'$q, \AA^{-1}$')		
 	
-	_ensemble_plot_handle['exp'] = plot.plot(x, y, 'ro' )
-	_ensemble_plot_handle['fit'] = plot.plot(x, yfit )
+	_plot_handles[id]['exp'] = plot.plot(x, y, 'ro' )
+	_plot_handles[id]['fit'] = plot.plot(x, yfit )
 
-	a = plot.axes([0.5,0.5,0.35,0.35])
+	_plot_handles[id]['inset'] = _plot_handles[id]['fig'].add_axes([0.5,0.5,0.35,0.35])
 	plot.title('Residuals')
 	plot.yscale('linear')
 	plot.ylabel(r'$I(q)_{exp} / I(q)_{fit}$')
-	_ensemble_plot_handle['diff'] = plot.plot(x, diff)
-	plot.setp(a, xlim=(0,0.2) )
+	_plot_handles[id]['diff'] = plot.plot(x, diff, 'ro' )
+	plot.setp(_plot_handles[id]['inset'], xlim=(0,0.2) )
 	
-	plot.ion()
 	plot.draw()
-	
+
 	return
 
 def ensemble_state( restraint, target_data , ensembles, file_path):
@@ -134,7 +137,7 @@ def ensemble_state( restraint, target_data , ensembles, file_path):
 
 	# generate a plot figure if necessary
 	if(target_data['args'].plot):
-		show_best_plot( restraint.data['x'], restraint.data['y'], y_fit, residuals )
+		show_best_plot( restraint.type, restraint.data['x'], restraint.data['y'], y_fit, residuals )
 	
 	return (None,None)	
 

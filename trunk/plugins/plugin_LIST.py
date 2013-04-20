@@ -4,6 +4,9 @@ Creates a MESMER restraint from a general list of data
 Target file arguments:
 -file <file>	- Read a file containing whitespace-delimited data instead of from the target file
 -col <n>		- The column of values in the list to use
+-sse			- Fitness is reported as a sum square of error
+-harm			- Fitness is reported as sum deviation from a flat-bottomed harmonic potential for each term (intervals should be provided in -col N+1 column)
+-Q				- Fitness is reported as a quality (Q) factor, normalized against the RMS of the experimental data
 
 Component file arguments:
 -file <file>	- Read a file containing whitespace-delimited data instead of from the target file
@@ -27,7 +30,44 @@ version = '2013.xx.xx'
 type = ('LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9')
 
 _db_handle = None
-_ensemble_plot_handle = None
+_plot_handles = {}
+
+#
+# custom functions
+#
+
+def plot( id, exp, fit ):
+	global _plot_handles
+	
+	try:
+		import matplotlib.pyplot as plot
+	except:
+		print "Could not load matplotlib!"
+		return
+	
+	if(not id in _plot_handles.keys()):
+		_plot_handles[id] = {}
+		_plot_handles[id]['fig'] = plot.figure()
+	
+	plot.figure(_plot_handles[id]['fig'].number)
+	_plot_handles[id]['fig'].clear()
+	_plot_handles[id]['main'] = _plot_handles[id]['fig'].add_axes([0.1,0.1,0.8,0.8])
+	plot.title("Best MESMER fit to \"%s\" data" % id)
+	plot.yscale('log')
+	plot.ylabel('I(q), intensity')
+	plot.xlabel(r'$q, \AA^{-1}$')		
+	
+	temp1 = [0.0]*len(exp)
+	temp2 = [0.0]*len(exp)
+	for (i,key) in enumerate(exp):
+		temp1[i] = exp[key]
+		temp2[i] = fit[key]
+	
+	_plot_handles['exp'] = plot.plot(temp1, temp2, 'ro' )
+
+	plot.draw()
+	
+	return
 
 #
 # basic functions
@@ -76,19 +116,22 @@ def ensemble_state( restraint, target_data, ensembles, file_path):
 	ensemble_data	- list of data the plugin has saved for every ensemble in the run, ordered by overall fitness
 	filePath		- an optional file path the plugin can save data to
 	"""
+	global _ensemble_plot_handles
 	
 	try:
 		f = open( file_path, 'w' )
 	except IOError:
 		return (False,'Could not open file \"%s\" for writing' % file_path)
 	
-	f.write("# (identifiers)\texp\tfit\tres")
+	f.write("# (identifiers)\texp\tfit\tres\n")
 	for key in ensembles[0]['values']:
 		tmp = key.replace('.',"\t")
 		res = restraint.data['values'][key] - ensembles[0]['values'][key]
 		f.write("%s\t%f\t%f\t%f\n" % (tmp,restraint.data['values'][key],ensembles[0]['values'][key],res) )
-	
 	f.close()
+	
+	if(restraint.data['args'].plot):
+		plot( restraint.type, restraint.data['values'], ensembles[0]['values'] )
 	
 	return (None,[])	
 
@@ -113,6 +156,10 @@ def load_restraint( restraint, block, target_data ):
 	parser = argparse.ArgumentParser(prog=name,usage='See plugin documentation for parameters')
 	parser.add_argument('-file', 	action='store',								help='An external whitespace-delimited file containing LIST parameters.')
 	parser.add_argument('-col', 	action='store',	type=int,	required=True,	help='The column of data to use as the restraint')
+	parser.add_argument('-sse', 	action='store_true',						help='Calculate fitness as a simple (normalized) sum square of error')
+	parser.add_argument('-harm', 	action='store_true',						help='Calculate fitness from a flat-bottomed harmonic, using the interval present in -col N+1')
+	parser.add_argument('-Q', 		action='store_true',		default=True,	help='Calculate fitness as an Q factor (quality factor).')
+	parser.add_argument('-plot', 	action='store_true',						help='Create a plot window at each generation showing fit to data')
 
 	try:
 		args = parser.parse_args(block['header'].split()[2:])
@@ -137,11 +184,19 @@ def load_restraint( restraint, block, target_data ):
 		data.append( [field.strip() for field in line.split()] )
 	
 	restraint.data['values'] = {}
+	restraint.data['intervals'] = {} # only used in -harm
 	for e in data:
 		if( len(e) >= args.col ):
 			key = '.'.join( e[:args.col] )
 			restraint.data['values'][key] = float(e[args.col])
-			
+		
+			# save error/interval information
+			if( args.harm != None ):
+				if( len(e) >= args.harm ):
+					restraint.data['intervals'][key] = float(e[args.harm])
+				else:
+					return(False,["Error determining harmonic interval from \"%s\". Line in question looks like: \"%s\""%(file,e)])
+							
 	return (True,messages)
 
 def load_attribute( attribute, block, ensemble_data ):
@@ -240,24 +295,48 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 	"""
 	
 	global _db_handle
-	
+
 	assert(len(attributes) == len(ratios))
-	
+	n = len(restraint.data['values'])
+		
 	if(not 'values' in ensemble_data.keys()):
 		ensemble_data['values'] = {}
+		
+	if( restraint.data['args'].sse ):
+		sum = 0.0
+		for key in restraint.data['values']:
+			avg = 0.0
+			for (j,a) in enumerate(attributes):
+				avg += ratios[j] * _db_handle[ a.data['key'] ][key]
+			sum += (restraint.data['values'][key] - avg)**2
+			
+		return sum
+		
+	elif( restraint.data['args'].harm ):
+		sum = 0.0
+		for key in restraint.data['values']:
+			avg = 0.0
+			for (j,a) in enumerate(attributes):
+				avg += ratios[j] * _db_handle[ a.data['key'] ][key]
+			sum += tools.get_flat_harmonic( restrain.data['values'][key], restrain.data['intervals'][key], avg)
+			
+		return sum
 
-	n = len(restraint.data['values'])
-	exp_rms = 0.0
-	diffs = [0.0]*n
-	for (i,key) in enumerate(restraint.data['values']):
+	elif( restraint.data['args'].Q ):
+		# Calculate quality (Q) factor
+		# Described in Cornilescu et al. (1998) J. Am. Chem. Soc.
+
+		exp_rms = 0.0
+		diffs = [0.0]*n
 		
-		exp_rms += (restraint.data['values'][key])**2
-		avg = 0.0
-		for (j,a) in enumerate(attributes):
-			avg += ratios[j] * _db_handle[ a.data['key'] ][key]
-		
-		diffs[i] = restraint.data['values'][key] - avg
-		ensemble_data['values'][key] = avg
-		
-	return tools.get_rms(diffs) / math.sqrt(exp_rms/n)
+		for (i,key) in enumerate(restraint.data['values']):
+			exp_rms += (restraint.data['values'][key])**2
+			avg = 0.0
+			for (j,a) in enumerate(attributes):
+				avg += ratios[j] * _db_handle[ a.data['key'] ][key]
+			
+			diffs[i] = restraint.data['values'][key] - avg
+			ensemble_data['values'][key] = avg
+			
+		return tools.get_rms(diffs) / math.sqrt(exp_rms/n)
 	
