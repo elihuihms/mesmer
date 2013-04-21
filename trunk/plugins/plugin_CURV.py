@@ -280,7 +280,7 @@ def load_bootstrap( bootstrap, restraint, ensemble_data, target_data ):
 		"""
 	
 	bootstrap.data['x'] = restraint.data['x']
-	bootstrap.data['y'] = tools.make_bootstrap_sample( restraint.data['x'], restraint.data['y'], ensemble_data['x'], ensemble_data['y'] )
+	bootstrap.data['y'] = tools.make_interpolated_bootstrap_sample( restraint.data['x'], restraint.data['y'], ensemble_data['x'], ensemble_data['y'] )
 	bootstrap.data['d'] = restraint.data['d']
 	
 	return (True,[])
