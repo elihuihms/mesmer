@@ -318,7 +318,7 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 			avg = 0.0
 			for (j,a) in enumerate(attributes):
 				avg += ratios[j] * _db_handle[ a.data['key'] ][key]
-			sum += tools.get_flat_harmonic( restrain.data['values'][key], restrain.data['intervals'][key], avg)
+			sum += tools.get_flat_harmonic( restraint.data['values'][key], restraint.data['intervals'][key], avg)
 			
 		return sum
 
@@ -337,6 +337,6 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 			
 			diffs[i] = restraint.data['values'][key] - avg
 			ensemble_data['values'][key] = avg
-			
+
 		return tools.get_rms(diffs) / math.sqrt(exp_rms/n)
-	
+	cd

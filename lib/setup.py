@@ -163,24 +163,24 @@ def load_all_components( args, plugins, targets ):
 			print_msg("ERROR: Could not create component database file \"%s\"." % (path) )
 			return [None]
 	else:
-		print_msg("INFO: Loading %i component files:" % (len(files)))
+		print_msg("INFO: Found %i component files." % (len(files)))
 		components = {}
 		
 	names = [''] * len(files)
-	divisor = int(max(len(files)/80,1))
+	divisor = int(max(len(files)/100,1))
 	for (i,f) in enumerate(files):
 		if( i % divisor == 0 ):
-			sys.stdout.write('#')
+			sys.stdout.write("\rComponent loading progress: %i%%" % (100.*i/len(files)+1) )
 			sys.stdout.flush()
 			
 		temp = mesComponent()
 	
 		if( not temp.load(f,plugins,targets) ):
-			print_msg("ERROR: Could not load component file \"%s\"." % (f))
+			print_msg("\nERROR: Could not load component file \"%s\"." % (f))
 			return [None]
 		
 		if( temp.name in names ):
-			print_msg("ERROR: Component file \"%s\" has the same NAME as a previous component." % (f))
+			print_msg("\nERROR: Component file \"%s\" has the same NAME as a previous component." % (f))
 			return [None]
 		
 		# add the component to the component database
