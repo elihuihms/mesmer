@@ -101,7 +101,12 @@ def get_ratio_errors( args, components, plugins, targets, ensembles ):
 		else:
 			# perform component ratio uncertainty analysis via bootstrap estimates				
 
+			divisor = max(int(args.boots/100),1)
 			for i in range(args.boots):
+		
+				if(i % divisor == 0):
+					sys.stdout.write("\r\tBootstrap progress: %i%%" % (100.*i/args.boots+1) )
+					sys.stdout.flush()
 		
 				# make estimation of target restraints via bootstrapping
 				estimates = []
@@ -112,11 +117,13 @@ def get_ratio_errors( args, components, plugins, targets, ensembles ):
 					e.optimized[t.name] = False
 			
 				# optimize the component ratios
-				optimized = mp_optimize_ratios( args, components, plugins, estimates, [e] )
+				optimized = mp_optimize_ratios( args, components, plugins, estimates, [e], print_status=False )
 				
 				for t in targets:
 					ratios[t.name].append( optimized[0].ratios[t.name] )
-
+		
+		sys.stdout.write("\n")
+		
 		# calculate the component ratio mean and standard deviation for each target
 		temp = {}
 		for t in targets:

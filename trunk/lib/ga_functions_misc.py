@@ -64,7 +64,7 @@ def evolve_ensembles( args, components, ensembles ):
 
 	return
 	
-def optimize_ratios( args, components, plugins, targets, ensembles, q ):
+def optimize_ratios( args, components, plugins, targets, ensembles, q, print_status=True ):
 	"""
 	Optimizes the component ratios of the provided ensembles.
 	The actual algorithm used to achieve optimization is dependent upon the Ralgorithm element of the provided MESMER parameters dict
@@ -86,9 +86,16 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q ):
 	def wrapper( ratios ):					
 		return sum(e.get_fitness( components, plugins, t, ratios ).itervalues())
 
+	n2 = len(targets)
+	n1 = len(ensembles)
+	divisor = int(max(n1/100,1))
 	for t in targets:
-		for e in ensembles:
-
+		for (i,e) in enumerate(ensembles):
+			
+			if(i % divisor == 0) and (print_status):
+				sys.stdout.write("\r\tComponent ratio optimization progress: %i%%" % (100.*i/(n1*n2)+1) )
+				sys.stdout.flush()
+			
 			if(e.optimized[t.name]):
 				continue
 			elif( args.Ralgorithm == 0 ):			
@@ -129,7 +136,7 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q ):
 	q.put(ensembles)
 	return
 	
-def mp_optimize_ratios( args, components, plugins, targets, ensembles ):
+def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_status=True ):
 	"""
 	A multiprocessing wrapper for the function optimize_ratios.
 	See that function's docstrings for more information.
@@ -142,7 +149,7 @@ def mp_optimize_ratios( args, components, plugins, targets, ensembles ):
 
 	procs = []
 	for i in range( args.threads ):
-		p = Process(target=optimize_ratios, args=(args,components,plugins,targets,ensembles[ chunksize * i : chunksize * (i +1) ],q))
+		p = Process(target=optimize_ratios, args=(args,components,plugins,targets,ensembles[ chunksize * i : chunksize * (i +1) ],q,print_status))
 		procs.append( p )
 		p.start()
 	
