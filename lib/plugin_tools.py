@@ -157,7 +157,7 @@ def make_weighted_vector( vectors, weights ):
 	
 	return sum
 
-def make_bootstrap_sample( exp, fit ):
+def make_bootstrap_sample( x, x_fit ):
 	"""
 	Return a bootstrap estimate dataset for an experimental curve and associated best estimate
 	
@@ -168,18 +168,18 @@ def make_bootstrap_sample( exp, fit ):
 	fit	- list of floats, the best estimate
 	"""
 	
-	n = len(exp)
-	assert(n == len(fit))
+	n = len(x)
+	assert(n == len(x_fit))
 
 	residuals = [0.0]*n
 	bootstrap = [0.0]*n
 	for i in range(n):
-		residuals[i] = exp[i] - fit[i]
-		bootstrap[i] = fit[i]
+		residuals[i] = x[i] - x_fit[i]
+		bootstrap[i] = x_fit[i]
 	
 	for i in range(n):
 		bootstrap[i] += random.choice(residuals)
-		
+	
 	return bootstrap
 
 def make_interpolated_bootstrap_sample( x, y, x_fit, y_fit ):
