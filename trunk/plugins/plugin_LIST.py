@@ -306,9 +306,10 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 		sum = 0.0
 		for key in restraint.data['values']:
 			avg = 0.0
-			for (j,a) in enumerate(attributes):
-				avg += ratios[j] * _db_handle[ a.data['key'] ][key]
+			for (i,a) in enumerate(attributes):
+				avg += ratios[i] * _db_handle[ a.data['key'] ][key]
 			sum += (restraint.data['values'][key] - avg)**2
+			ensemble_data['values'][key] = avg
 			
 		return sum
 		
@@ -316,9 +317,10 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 		sum = 0.0
 		for key in restraint.data['values']:
 			avg = 0.0
-			for (j,a) in enumerate(attributes):
-				avg += ratios[j] * _db_handle[ a.data['key'] ][key]
+			for (i,a) in enumerate(attributes):
+				avg += ratios[i] * _db_handle[ a.data['key'] ][key]
 			sum += tools.get_flat_harmonic( restraint.data['values'][key], restraint.data['intervals'][key], avg)
+			ensemble_data['values'][key] = avg
 			
 		return sum
 
@@ -328,15 +330,21 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 
 		exp_rms = 0.0
 		diffs = [0.0]*n
-		
-		for (i,key) in enumerate(restraint.data['values']):
+		for key in restraint.data['values']:
 			exp_rms += (restraint.data['values'][key])**2
-			avg = 0.0
-			for (j,a) in enumerate(attributes):
-				avg += ratios[j] * _db_handle[ a.data['key'] ][key]
+
+			# create the ensemble average
+			avg = 0.0			
+			for (i,a) in enumerate(attributes):
+				avg += ratios[i] * _db_handle[ a.data['key'] ][key]
 			
 			diffs[i] = restraint.data['values'][key] - avg
 			ensemble_data['values'][key] = avg
-
+	
+		if(exp_rms==0):
+			print "ERROR: experimental RMS = 0, setting to 1E-9"
+			print restraint.data['values']
+			print diffs
+			exp_rms = 1E-9
+			
 		return tools.get_rms(diffs) / math.sqrt(exp_rms/n)
-	cd
