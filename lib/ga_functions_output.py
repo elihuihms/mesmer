@@ -95,6 +95,45 @@ def print_plugin_state( args, counter, plugins, targets, ensembles):
 	
 	return True
 
+def write_component_stats( args, counter, ensembles ):
+	"""
+	Write component correlations from the provided ensembles to file
+	
+	Returns: True on success, False on failure
+	
+	Arguments:
+	args		- MESMER argument parameters
+	ensembles	- List of ensembles
+	"""
+
+	correlations = get_component_correlations( ensembles )
+
+	path = os.path.abspath( "%s%scomponent_correlations_%05i.tbl" % (args.dir,os.sep,counter) )
+
+	try:
+		f = open( path, 'w' )
+	except IOError:
+		print "ERROR: Could not write component correlation table to file \"%s\"" % (path)
+		return False
+
+	# print table header
+	for name in correlations:
+		f.write("\t%s" % name,)
+	f.write("\n")
+	
+	for name1 in correlations:
+		f.write("%s\t" % name1)
+		for name2 in correlations:
+			if( name2 in correlations[name1] ):
+				f.write("%0.1f\t" % (correlations[name1][name2]))
+			else:
+				f.write("0.0\t")
+		f.write("\n")		
+
+	f.close()
+		
+	return True
+
 def write_ensemble_stats( args, counter, targets, ensembles ):
 	"""
 	Write statistics from the ensemble component ratios to file
@@ -114,7 +153,7 @@ def write_ensemble_stats( args, counter, targets, ensembles ):
 	try:
 		f = open( path, 'w' )
 	except IOError:
-		print "ERROR: Could not write final ratio statistics to file \"%s\"" % (path)
+		print "ERROR: Could not write component ratio statistics to file \"%s\"" % (path)
 		return False
 	
 	f.write( "%s\tPrevalence\tAverage\t\tStdev\n" % (''.rjust(32)) )

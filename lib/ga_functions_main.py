@@ -62,6 +62,9 @@ def main( args, plugins, targets, components ):
 		print_generation_state( args, ensemble_stats, restraint_stats )
 
 		if(args.Pstats):
+			# print component correlations from the current ensembles
+			write_component_stats( args, generation_counter, best_scored )
+
 			# print collected information on the current ensembles
 			write_ensemble_stats( args, generation_counter, targets, best_scored )
 		

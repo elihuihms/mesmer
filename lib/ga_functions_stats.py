@@ -40,6 +40,38 @@ def get_ratio_stats( targets, ensembles ):
 	
 	return component_weights
 	
+def get_component_correlations( ensembles ):
+	"""
+	Generate an NxN correlation table of the components present in the ensemble population
+	
+	Arguments:
+	ensembles	- list of ensembles to generate the correlation map for
+	"""
+	
+	# generate an initial dict of components
+	tmp = {}
+	for e in ensembles:
+		for name in e.component_names:
+			if (name in tmp):
+				tmp[name] +=1
+			else:
+				tmp[name] = 1
+	
+	component_counts = sorted(tmp, key=tmp.get)
+	n = len(ensembles)
+	correlations = {}
+	for name1 in component_counts:
+		correlations[name1] = {}
+		for e in ensembles:
+			for name2 in e.component_names:
+				if( name1 in e.component_names):
+					if( name2 in correlations[name1] ):
+						correlations[name1][name2] += (1.0/n)
+					else:
+						correlations[name1][name2] = (1.0/n)
+					
+	return correlations
+					
 def get_restraint_stats( args, targets, ensembles ):
 	"""
 	Generate the per-restraint scores for the provided ensembles
