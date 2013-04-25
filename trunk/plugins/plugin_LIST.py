@@ -268,15 +268,15 @@ def load_bootstrap( bootstrap, restraint, ensemble_data, target_data ):
 	n = len(ensemble_data['values'])
 	exp = [0.0]*n
 	fit = [0.0]*n
-	for (i,key) in enumerate(ensemble_data['values'].keys()):
-		exp[i] = restraint.data['values'][key]	
+	for (i,key) in enumerate(ensemble_data['values']):
+		exp[i] = restraint.data['values'][key]
 		fit[i] = ensemble_data['values'][key]
 
-	tmp = tools.make_bootstrap_sample( exp, fit )
-	bootstrap.data['values'] = ensemble_data['values']
-	
+	tmp = tools.make_bootstrap_sample( exp, fit )	
+
 	# docs say that if the ensemble dict is not modified, iteration order will be unchanged!
-	for (i,key) in enumerate(ensemble_data['values'].keys()):
+	bootstrap.data['values'] = {}
+	for (i,key) in enumerate(ensemble_data['values']):
 		bootstrap.data['values'][key] = tmp[i]
 	
 	return (True,[])
@@ -340,11 +340,5 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 			
 			diffs[i] = restraint.data['values'][key] - avg
 			ensemble_data['values'][key] = avg
-	
-		if(exp_rms==0):
-			print "ERROR: experimental RMS = 0, setting to 1E-9"
-			print restraint.data['values']
-			print diffs
-			exp_rms = 1E-9
 			
 		return tools.get_rms(diffs) / math.sqrt(exp_rms/n)
