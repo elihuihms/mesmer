@@ -164,8 +164,8 @@ def make_bootstrap_sample( x, x_fit ):
 	Returns the bootstrap sample list of datapoints
 	
 	Arguments:
-	exp	- list of floats, the experimental dataset
-	fit	- list of floats, the best estimate
+	x		- list of floats, the experimental dataset
+	x_fit	- list of floats, the best estimate
 	"""
 	
 	n = len(x)
