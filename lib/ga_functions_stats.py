@@ -40,7 +40,7 @@ def get_ratio_stats( targets, ensembles ):
 	
 	return component_weights
 	
-def get_component_correlations( ensembles ):
+def get_component_correlations( args, ensembles ):
 	"""
 	Generate an NxN correlation table of the components present in the ensemble population
 	
@@ -56,9 +56,16 @@ def get_component_correlations( ensembles ):
 				tmp[name] +=1
 			else:
 				tmp[name] = 1
+
+	n = len(ensembles)				
+	# filter out all components that are lightly-populated
+	for name,count in tmp.items():
+		if(tmp[name]/n*100 < args.Pmin):
+			del tmp[name]	
 	
+	# sort by prevalence
 	component_counts = sorted(tmp, key=tmp.get)
-	n = len(ensembles)
+
 	correlations = {}
 	for name1 in component_counts:
 		correlations[name1] = {}

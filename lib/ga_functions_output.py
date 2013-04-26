@@ -106,7 +106,7 @@ def write_component_stats( args, counter, ensembles ):
 	ensembles	- List of ensembles
 	"""
 
-	correlations = get_component_correlations( ensembles )
+	correlations = get_component_correlations( args, ensembles )
 
 	path = os.path.abspath( "%s%scomponent_correlations_%05i.tbl" % (args.dir,os.sep,counter) )
 
