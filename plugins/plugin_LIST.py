@@ -328,17 +328,17 @@ def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):
 		# Calculate quality (Q) factor
 		# Described in Cornilescu et al. (1998) J. Am. Chem. Soc.
 
-		exp_rms = 0.0
+		exp_sum = 0.0
 		diffs = [0.0]*n
-		for key in restraint.data['values']:
-			exp_rms += (restraint.data['values'][key])**2
+		for (i,key) in enumerate(restraint.data['values']):
+			exp_sum += (restraint.data['values'][key])**2
 
 			# create the ensemble average
 			avg = 0.0			
-			for (i,a) in enumerate(attributes):
-				avg += ratios[i] * _db_handle[ a.data['key'] ][key]
+			for (j,a) in enumerate(attributes):
+				avg += ratios[j] * _db_handle[ a.data['key'] ][key]
 			
 			diffs[i] = restraint.data['values'][key] - avg
 			ensemble_data['values'][key] = avg
-			
-		return tools.get_rms(diffs) / math.sqrt(exp_rms/n)
+
+		return tools.get_rms(diffs) / math.sqrt(exp_sum/n)
