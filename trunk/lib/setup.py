@@ -59,7 +59,7 @@ def read_param_file( path ):
 	group3.add_argument('-boots',		action='store',		default=200,	type=int,		metavar='N',	help='The number of bootstrap samples for component weighting error analysis. 0=no error analysis')
 
 	group4 = parser.add_argument_group('Output options')
-	group4.add_argument('-Pstats',		action='store_true',default=True,					help='Print ensemble information at each generation.')
+	group4.add_argument('-Pstats',		action='store_true',default=False,					help='Print ensemble information at each generation.')
 	group4.add_argument('-Pbest',		action='store_true',default=False,					help='Print best ensemble information at each generation.')
 	group4.add_argument('-Popt',		action='store_true',default=False,					help='Print optimization convergence status for all ensembles.')
 	group4.add_argument('-Pextra',		action='store_true',default=False,					help='Print extra restraint-specific information.')
