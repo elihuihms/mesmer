@@ -76,9 +76,9 @@ def plot( id, exp, fit ):
 def load( args ):
 	global _db_handle
 	
-	path ="%s%scomponent_LIST.db" % (args.dir,os.sep)
+	path ="%s%scomponent_LIST" % (args.dir,os.sep)
 	try:
-		_db_handle = shelve.open(path,'c')
+		_db_handle = shelve.open(path,'c',protocol=2)
 	except:
 		return "Could not create temporary DB."
 
@@ -160,6 +160,7 @@ def load_restraint( restraint, block, target_data ):
 	parser.add_argument('-harm', 	action='store_true',						help='Calculate fitness from a flat-bottomed harmonic, using the interval present in -col N+1')
 	parser.add_argument('-Q', 		action='store_true',		default=True,	help='Calculate fitness as an Q factor (quality factor).')
 	parser.add_argument('-plot', 	action='store_true',						help='Create a plot window at each generation showing fit to data')
+	parser.add_argument('-strict',	action='store_true',						help='Check each attribute file to ensure there are no missing LIST elements') 
 
 	try:
 		args = parser.parse_args(block['header'].split()[2:])
@@ -216,7 +217,7 @@ def load_attribute( attribute, block, ensemble_data ):
 	messages = []
 	
 	parser = argparse.ArgumentParser(prog=name,usage='See plugin documentation for parameters')
-	parser.add_argument('-file', 	action='store',								help='An external whitespace-delimited file containing LIST parameters.')
+	parser.add_argument('-file',	action='store',	help='An external whitespace-delimited file containing LIST parameters.')
 
 	try:
 		args = parser.parse_args(block['header'].split()[1:])
@@ -246,6 +247,12 @@ def load_attribute( attribute, block, ensemble_data ):
 		if( key in attribute.restraint.data['values'].keys() ):
 			temp[key] = float(e[col])
 
+	# cross-check keys if necessary
+	if( attribute.restraint.data['args'].strict ):
+		for key in attribute.restraint.data['values']:
+			if( not key in temp.keys() ):
+				return (False,["Strict key checking failed for key \"%s\"" % (key)])
+			
 	# generate a unique key for storing the attribute table into the db
 	attribute.data['key'] = uuid.uuid1().hex
 
@@ -278,7 +285,7 @@ def load_bootstrap( bootstrap, restraint, ensemble_data, target_data ):
 	bootstrap.data['values'] = {}
 	for (i,key) in enumerate(ensemble_data['values']):
 		bootstrap.data['values'][key] = tmp[i]
-	
+
 	return (True,[])
 
 def calc_fitness( restraint, target_data, ensemble_data, attributes, ratios ):

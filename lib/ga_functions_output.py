@@ -115,19 +115,22 @@ def write_component_stats( args, counter, ensembles ):
 	except IOError:
 		print "ERROR: Could not write component correlation table to file \"%s\"" % (path)
 		return False
+		
+	# sort by prevalence, return the names of the components
+	names = sorted(correlations, key=correlations.get, reverse=True)
 
 	# print table header
-	for name in correlations:
+	for name in names:
 		f.write("\t%s" % name,)
 	f.write("\n")
 	
-	for name1 in correlations:
+	for name1 in names:
 		f.write("%s\t" % name1)
-		for name2 in correlations:
+		for name2 in names:
 			if( name2 in correlations[name1] ):
-				f.write("%0.1f\t" % (correlations[name1][name2]))
+				f.write("%0.3f\t" % correlations[name1][name2])
 			else:
-				f.write("0.0\t")
+				f.write("%0.3f\t" % 0.0)
 		f.write("\n")		
 
 	f.close()
@@ -153,11 +156,12 @@ def write_ensemble_stats( args, counter, targets, ensembles ):
 	try:
 		f = open( path, 'w' )
 	except IOError:
-		print "ERROR: Could not write component ratio statistics to file \"%s\"" % (path)
+		print "ERROR: Could not write ensemble statistics to file \"%s\"" % (path)
 		return False
 	
 	f.write( "%s\tPrevalence\tAverage\t\tStdev\n" % (''.rjust(32)) )
 	
+	# go through each target
 	for t in stats:
 		f.write( "\t%s\n" % (t) )
 

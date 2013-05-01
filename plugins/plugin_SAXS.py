@@ -37,7 +37,7 @@ _plot_handles = {}
 def load( args ):
 	global _db_handle
 	
-	path ="%s%scomponent_SAXS.db" % (args.dir,os.sep)
+	path ="%s%scomponent_SAXS" % (args.dir,os.sep)
 	try:
 		_db_handle = shelve.open(path,'c')
 	except:

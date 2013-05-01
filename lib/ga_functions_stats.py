@@ -14,29 +14,28 @@ def get_ratio_stats( targets, ensembles ):
 	targets		- list of mesTargets ensembles have been fitted against
 	ensembles	- list of ensembles to run error estimation on
 	"""
-	unique = get_unique_ensembles( ensembles )
+	#unique = get_unique_ensembles( ensembles )
 	
 	# make a list of the components observed in the unique ensembles
-	components = []
-	for e in unique:
-		for c in e.component_names:
-			if( not c in components ):
-				components.append( c )
-			else:
-				break
-				
-	# go through *all* ensembles and get the relative weighting for that component
+	#components = []
+	#for e in unique:
+	#	for c in e.component_names:
+	#		if( not c in components ):
+	#			components.append( c )
+	#		else:
+	#			break
+
+	# go through *all* ensembles and obtain weights for each component
 	component_weights = {}
 	for t in targets:
 		component_weights[t.name] = {}
 		
-		for c in components:
-			component_weights[t.name][c] = []
-			
-			for e in ensembles:
-				if(c in e.component_names): 
-					i = e.component_names.index(c)
+		for e in ensembles:
+			for (i,c) in enumerate(e.component_names):
+				if( c in component_weights[t.name] ):
 					component_weights[t.name][c].append( e.ratios[t.name][i] )
+				else:
+					component_weights[t.name][c] = [ e.ratios[t.name][i] ]
 	
 	return component_weights
 	
@@ -49,34 +48,37 @@ def get_component_correlations( args, ensembles ):
 	"""
 	
 	# generate an initial dict of components
-	tmp = {}
+	component_counts = {}
 	for e in ensembles:
 		for name in e.component_names:
-			if (name in tmp):
-				tmp[name] +=1
+			if (name in component_counts):
+				component_counts[name] +=1
 			else:
-				tmp[name] = 1
+				component_counts[name] = 1
 
 	n = len(ensembles)				
 	# filter out all components that are lightly-populated
-	for name,count in tmp.items():
-		if(tmp[name]/n*100 < args.Pmin):
-			del tmp[name]	
+	for name,count in component_counts.items():
+		if(float(component_counts[name])/n*100 < args.Pmin):
+			del component_counts[name]
 	
-	# sort by prevalence
-	component_counts = sorted(tmp, key=tmp.get)
-
+	# initialize correlation table	
 	correlations = {}
 	for name1 in component_counts:
 		correlations[name1] = {}
-		for e in ensembles:
-			for name2 in e.component_names:
-				if( name1 in e.component_names):
-					if( name2 in correlations[name1] ):
-						correlations[name1][name2] += (1.0/n)
-					else:
-						correlations[name1][name2] = (1.0/n)
-					
+		for name2 in component_counts:
+			correlations[name1][name2] = 0
+	
+	# WHY DOES THIS NOT WORK?
+	# correlations = dict.fromkeys( component_counts, dict.fromkeys(component_counts,0) )
+	
+	# count all examples of the correlation between components in the ensemble pool
+	for e in ensembles:
+		for name1 in component_counts:
+			for name2 in component_counts:
+				if(name1 in e.component_names) and (name2 in e.component_names):
+					correlations[name1][name2] += 1.0/n
+	
 	return correlations
 					
 def get_restraint_stats( args, targets, ensembles ):
@@ -105,8 +107,8 @@ def get_restraint_stats( args, targets, ensembles ):
 	#  replace the return dict values with the best ensemble restraint score, mean and stdev
 	for r in targets[0].restraints:
 		for t in targets:
-			temp = mean_stdv( stats[r.type][t.name] )
-			stats[r.type][t.name] = (ensembles[0].fitness[t.name][r.type],temp[0],temp[1])
+			(mean,stdev) = mean_stdv( stats[r.type][t.name] )
+			stats[r.type][t.name] = (ensembles[0].fitness[t.name][r.type],mean,stdev)
 	
 	return stats
 
@@ -143,9 +145,9 @@ def get_ratio_errors( args, components, plugins, targets, ensembles ):
 			divisor = max(int(args.boots/100),1)
 			for i in range(args.boots):
 		
-				if(i % divisor == 0):
-					sys.stdout.write("\r\tBootstrap progress: %i%%" % (100.*i/args.boots+1) )
-					sys.stdout.flush()
+				#if(i % divisor == 0):
+					#sys.stdout.write("\r\tBootstrap progress: %i%%" % (100.*i/args.boots+1) )
+					#sys.stdout.flush()
 		
 				# make estimation of target restraints via bootstrapping
 				estimates = []
