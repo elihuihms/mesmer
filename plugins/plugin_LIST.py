@@ -65,7 +65,9 @@ def plot( id, exp, fit ):
 	
 	_plot_handles['exp'] = plot.plot(temp1, temp2, 'ro' )
 
-	plot.draw()
+	plot.ion()
+	plot.show()
+	plot.ioff()
 	
 	return
 

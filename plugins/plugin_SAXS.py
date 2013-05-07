@@ -95,7 +95,9 @@ def show_best_plot(id,x,y,yfit,diff):
 	_plot_handles[id]['diff'] = plot.plot(x, diff, 'ro' )
 	plot.setp(_plot_handles[id]['inset'], xlim=(0,0.2) )
 	
-	plot.draw()
+	plot.ion()
+	plot.show()
+	plot.ioff()
 
 	return
 

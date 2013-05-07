@@ -55,11 +55,11 @@ def read_param_file( path ):
 	group3.add_argument('-Rforce'	,	action='store_true',default=False,									help='Force ensemble ratio reoptimization at every generation.')
 	group3.add_argument('-Ralgorithm',	action='store',		default=3,	type=int,	choices=[0,1,2,3,4,5,6],	metavar='N',	help='Algorithm to use for optimal component ratios (0-6), 0=no ratio optimization')
 	group3.add_argument('-Rprecision',	action='store',		default=0.01,	type=float,		metavar='F',	help='Precision of weighting algorithm')
-	group3.add_argument('-Rn',			action='store',		default=0,		type=int,		metavar='N',	help='Number of weighting algorithm iterations')
+	group3.add_argument('-Rn',			action='store',		default=-1,		type=int,		metavar='N',	help='Number of weighting algorithm iterations')
 	group3.add_argument('-boots',		action='store',		default=200,	type=int,		metavar='N',	help='The number of bootstrap samples for component weighting error analysis. 0=no error analysis')
 
 	group4 = parser.add_argument_group('Output options')
-	group4.add_argument('-Pstats',		action='store_true',default=False,					help='Print ensemble information at each generation.')
+	group4.add_argument('-Pstats',		action='store_true',default=True,					help='Print ensemble information at each generation.')
 	group4.add_argument('-Pbest',		action='store_true',default=False,					help='Print best ensemble information at each generation.')
 	group4.add_argument('-Popt',		action='store_true',default=False,					help='Print optimization convergence status for all ensembles.')
 	group4.add_argument('-Pextra',		action='store_true',default=False,					help='Print extra restraint-specific information.')
@@ -76,7 +76,7 @@ def read_param_file( path ):
 	args = parser.parse_args()
 	
 	# argument error checking and defaults
-	if (args.Rn < 1):
+	if (args.Rn < 0):
 		args.Rn = args.size * 10
 	
 	return args
