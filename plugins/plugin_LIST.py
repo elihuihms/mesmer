@@ -26,7 +26,7 @@ from StringIO import StringIO
 import lib.plugin_tools as tools
 
 name = 'default_LIST'
-version = '2013.xx.xx'
+version = '2013.05.10'
 type = ('LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9')
 
 _db_handle = None
@@ -45,6 +45,8 @@ def plot( id, exp, fit ):
 		print "Could not load matplotlib!"
 		return
 	
+	plot.ion()
+	
 	if(not id in _plot_handles.keys()):
 		_plot_handles[id] = {}
 		_plot_handles[id]['fig'] = plot.figure()
@@ -53,9 +55,8 @@ def plot( id, exp, fit ):
 	_plot_handles[id]['fig'].clear()
 	_plot_handles[id]['main'] = _plot_handles[id]['fig'].add_axes([0.1,0.1,0.8,0.8])
 	plot.title("Best MESMER fit to \"%s\" data" % id)
-	plot.yscale('log')
-	plot.ylabel('I(q), intensity')
-	plot.xlabel(r'$q, \AA^{-1}$')		
+	plot.ylabel('Fit Value')
+	plot.xlabel('Experimental Value')		
 	
 	temp1 = [0.0]*len(exp)
 	temp2 = [0.0]*len(exp)
@@ -65,8 +66,7 @@ def plot( id, exp, fit ):
 	
 	_plot_handles['exp'] = plot.plot(temp1, temp2, 'ro' )
 
-	plot.ion()
-	plot.show()
+	plot.draw()
 	plot.ioff()
 	
 	return

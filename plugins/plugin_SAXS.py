@@ -24,7 +24,7 @@ from StringIO import StringIO
 import lib.plugin_tools as tools
 
 name = 'default_SAXS'
-version = '2013.xx.xx'
+version = '2013.05.10'
 type = ('SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9')
 
 _db_handle = None
@@ -70,7 +70,13 @@ def show_best_plot(id,x,y,yfit,diff):
 
 	global _plot_handles
 	
-	import matplotlib.pyplot as plot
+	try:
+		import matplotlib.pyplot as plot
+	except:
+		print "Could not load matplotlib!"
+		return
+	
+	plot.ion()
 	
 	if(not id in _plot_handles.keys()):
 		_plot_handles[id] = {}
@@ -95,8 +101,7 @@ def show_best_plot(id,x,y,yfit,diff):
 	_plot_handles[id]['diff'] = plot.plot(x, diff, 'ro' )
 	plot.setp(_plot_handles[id]['inset'], xlim=(0,0.2) )
 	
-	plot.ion()
-	plot.show()
+	plot.draw()
 	plot.ioff()
 
 	return
@@ -174,14 +179,6 @@ def load_restraint( restraint, block, target_data ):
 		return (False,["Argument error: %s" % exc.message()])
 		
 	target_data['args'] = args
-	
-	# check that plotting library is available
-	if( args.plot ):
-		try:
-			import matplotlib.pyplot
-		except:
-			args.plot = False
-			messages.append("Could not import matplotlib, disabling -plot option")
 
 	# attempt to load the SAXS profile			
 	if(args.file == None):
