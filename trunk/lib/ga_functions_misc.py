@@ -145,7 +145,10 @@ def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_sta
 	"""
 
 	q = Queue()
-	chunksize = int(math.ceil(args.ensembles / float(args.threads)))
+	chunksize = int(math.ceil(len(ensembles) / float(args.threads)))
+
+	# randomize ensemble order so threads should finish processing their chunks in about the same time
+	random.shuffle( ensembles )
 
 	procs = []
 	for i in range( args.threads ):
