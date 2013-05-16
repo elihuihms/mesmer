@@ -106,7 +106,7 @@ def write_component_stats( args, counter, ensembles ):
 	ensembles	- List of ensembles
 	"""
 
-	correlations = get_component_correlations( args, ensembles )
+	(names,relative,absolute) = get_component_correlations( args, ensembles )
 
 	path = os.path.abspath( "%s%scomponent_correlations_%05i.tbl" % (args.dir,os.sep,counter) )
 
@@ -116,22 +116,27 @@ def write_component_stats( args, counter, ensembles ):
 		print "ERROR: Could not write component correlation table to file \"%s\"" % (path)
 		return False
 		
-	# sort by prevalence, return the names of the components
-	names = sorted(correlations, key=correlations.get, reverse=True)
-
 	# print table header
 	for name in names:
 		f.write("\t%s" % name,)
 	f.write("\n")
 	
+	toggle = 0
 	for name1 in names:
 		f.write("%s\t" % name1)
 		for name2 in names:
-			if( name2 in correlations[name1] ):
-				f.write("%0.3f\t" % correlations[name1][name2])
+			
+			# toggle from absolute to relative correlation
+			if( name2 == name1 ):
+				toggle = 1
+				
+			if(toggle > 0):
+				f.write("%0.3f\t" % relative[name1][name2])
 			else:
-				f.write("%0.3f\t" % 0.0)
+				f.write("%0.3f\t" % absolute[name1][name2])
+				
 		f.write("\n")		
+		toggle = 0
 
 	f.close()
 		
