@@ -31,7 +31,7 @@ def read_param_file( path ):
 	
 	# argument groups are just used for more attractive formatting when help is invoked
 	argparse.ArgumentParser.convert_arg_line_to_args = convert_arg_line_to_args
-	parser = argparse.ArgumentParser(usage='mesmer [options]', fromfile_prefix_chars='@')
+	parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
 	group0 = parser.add_argument_group('Target and component files')
 	group0.add_argument('-target',		action='append',	required=True,					metavar='FILE',	help='MESMER target file')

@@ -62,24 +62,30 @@ def get_component_correlations( args, ensembles ):
 		if(float(component_counts[name])/n*100 < args.Pmin):
 			del component_counts[name]
 	
-	# initialize correlation table	
-	correlations = {}
-	for name1 in component_counts:
-		correlations[name1] = {}
-		for name2 in component_counts:
-			correlations[name1][name2] = 0
-	
+	names = sorted(component_counts, key=component_counts.get, reverse=True)
+		
 	# WHY DOES THIS NOT WORK?
 	# correlations = dict.fromkeys( component_counts, dict.fromkeys(component_counts,0) )
 	
+	# initialize correlation table	
+	relative_correlations = {}
+	absolute_correlations = {}
+	for name1 in names:
+		relative_correlations[name1] = {}
+		absolute_correlations[name1] = {}
+		for name2 in names:
+			relative_correlations[name1][name2] = 0
+			absolute_correlations[name1][name2] = 0
+		
 	# count all examples of the correlation between components in the ensemble pool
 	for e in ensembles:
-		for name1 in component_counts:
-			for name2 in component_counts:
+		for name1 in names:
+			for name2 in names:
 				if(name1 in e.component_names) and (name2 in e.component_names):
-					correlations[name1][name2] += 1.0/n
+					relative_correlations[name1][name2] += 1.0/component_counts[name1]
+					absolute_correlations[name1][name2] += 1.0/n
 	
-	return correlations
+	return (names,relative_correlations,absolute_correlations)
 					
 def get_restraint_stats( args, targets, ensembles ):
 	"""

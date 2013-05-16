@@ -1,0 +1,155 @@
+#!/usr/bin/perl
+
+#
+# Author: Elihu Ihms (c) 2012
+#
+
+use File::Basename;
+use File::Spec;
+
+#
+# default options for settings
+#
+
+$gnuplot = '/usr/bin/gnuplot';
+$terminal = 'aqua';
+$plotargs = ();
+
+#
+# get any specified vars
+#
+
+if( $#ARGV == -1 )
+{
+	print "Usage: curv_fit_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] <component_correlations_N.tbl>\n";
+	exit;
+}
+
+while ( $argcounter <= $#ARGV )
+{
+	if ( $ARGV[ $argcounter ] eq "-term" || $ARGV[ $argcounter ] eq "-t" )
+	{
+		$terminal = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-out" || $ARGV[ $argcounter ] eq "-o" )
+	{
+		$output = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-arg" )
+	{
+		push( @plotargs, $ARGV[ $argcounter +1 ] );
+		$argcounter++;
+	}
+	else
+	{
+		$path = $ARGV[ $argcounter ];
+		$path = File::Spec->rel2abs( $path );
+		
+		if( ! -f $path)
+		{
+			print "Bad option or fit file specified: \"$ARGV[ $argcounter ]\"\n";
+			exit;
+		}
+	}
+	$argcounter++;
+}
+
+#
+# done with argument parsing
+#
+
+# parse the file and convert it to gnuplot format
+open FILE , "<$path" or die $!;
+@lines = <FILE>;
+close FILE;
+
+open FILE, ">correlation_plot.tmp" or die $!;
+
+chomp(@lines);
+@components = split("\t",$lines[0]);
+
+if( $#lines < 2){
+	print "Correlation table is empty.\n";
+	exit;
+}
+
+for ($row = 1; $row <=$#lines; $row++)
+{
+	@array = split("\t", $lines[ $row ]);
+	for($col = 1; $col <=$#array; $col++){
+		print FILE $array[$col]."\t";
+	}
+	print FILE "\n";
+}
+close FILE;
+
+$title = basename( $path );
+$title =~ s/\_/\\\_/g;
+
+# open the pipe to GNUPLOT and make it hot
+open( GNUPLOT, "| $gnuplot");
+select GNUPLOT;
+$| = 1;
+select STDOUT;
+
+print GNUPLOT <<EOPLOT;
+	set terminal $terminal enhanced
+EOPLOT
+if( $output ne '' ){
+	print GNUPLOT "set output \"$output\"\n";
+}
+
+print GNUPLOT <<EOPLOT;
+reset
+set encoding iso_8859_1
+set title '$title'
+
+set size square
+set view map
+set palette define(0 'white', 1 'black')
+set cbrange [0:1]
+unset cbtics
+
+unset key
+set tic scale 0
+set xlabel "Component"
+set ylabel "Component"
+
+EOPLOT
+
+print GNUPLOT "set xrange[-0.5:".($#components -0.5)."]\n";
+print GNUPLOT "set yrange[-0.5:".($#components -0.5)."]\n";
+#print GNUPLOT "set xtics out nomirror rotate by 45 offset -1.5 (";
+print GNUPLOT "set xtics out nomirror rotate by 90 (";
+$counter = -1;
+foreach $component (@components)
+{
+	if( $counter > -1 ){ print GNUPLOT ","; }
+	print GNUPLOT "'$component' $counter";
+	$counter++;
+}
+print GNUPLOT ")\n";
+print GNUPLOT "set ytics out nomirror (";
+$counter = -1;
+foreach $component (@components)
+{
+	if( $counter > -1 ){ print GNUPLOT ","; }
+	print GNUPLOT "'$component' $counter";
+	$counter++;
+}
+print GNUPLOT ")\n";
+
+print GNUPLOT <<EOPLOT;
+splot 'correlation_plot.tmp' matrix with image
+
+EOPLOT
+
+close( GNUPLOT );
+
+
+
+
+
+
