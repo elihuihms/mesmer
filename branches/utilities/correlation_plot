@@ -126,6 +126,7 @@ print GNUPLOT "set xtics out nomirror rotate by 90 (";
 $counter = -1;
 foreach $component (@components)
 {
+	$component =~ s/\_/\\\_/g;
 	if( $counter > -1 ){ print GNUPLOT ","; }
 	print GNUPLOT "'$component' $counter";
 	$counter++;
@@ -135,6 +136,7 @@ print GNUPLOT "set ytics out nomirror (";
 $counter = -1;
 foreach $component (@components)
 {
+	#$component =~ s/\_/\\\_/g;
 	if( $counter > -1 ){ print GNUPLOT ","; }
 	print GNUPLOT "'$component' $counter";
 	$counter++;

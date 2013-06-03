@@ -2,10 +2,21 @@ import math
 import random
 import scipy.interpolate
 import scipy.optimize
+from scipy.weave import inline
 
 def get_sse( y, y_fit ):
 	"""
 	Get the sum squared of error between y and y_fit
+	"""
+	
+	code=\
+	"""
+		int i;
+		float sum;
+		for (i=0; i<n; i++)
+			sum += pow(y[i] - y_fit[i],2);
+			
+		return sum;
 	"""
 	
 	n = len(y)
@@ -24,9 +35,26 @@ def get_chisq_reduced( y, dy, y_fit ):
 	dy		- list of floats, the experimental uncertainty (sigma) for each datapoint
 	y_fit	- list of floats, the fitted values
 	"""
+			
+	code=\
+	"""
+		int i;
+		int n;
+		float sum = 0.0;
 		
-	n = len(y)
-	
+		n = y.length();
+		for (i=0; i<n; i++)
+		{
+			if( dy[i] == 0 )
+				continue;
+			
+			sum += pow((y[i] - y_fit[i]) / dy[i],2);
+		}
+			
+		return_val = sum/(n -1);
+	"""
+
+	n = len(y)	
 	sum = 0.0
 	for i in range( n ):
 		if(dy[i] == 0.0):

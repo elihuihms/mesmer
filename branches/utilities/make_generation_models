@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+
+import argparse
+import glob
+import os
+import sys
+
+parser = argparse.ArgumentParser(usage='make_generation_models [options]')
+
+parser.add_argument('-input',	action='store',				required=True, 	default='MESMER_Results',		metavar='<DIR>/ensemble_statistics_N.tbl',	help='MESMER ensemble statistics file or directory')
+parser.add_argument('-pdbs',	action='store',				required=True,									metavar='<DIR>',							help='Directory containing named PDBs')
+parser.add_argument('-start',	action='store',	type=int,					default=0,						metavar='N',								help='First generation to build model ensembles for')
+parser.add_argument('-end',		action='store',	type=int,					default=-1,						metavar='N',								help='Last generation to build model ensembles for')
+parser.add_argument('-step',	action='store',	type=int,					default=1,						metavar='N',								help='')
+parser.add_argument('-Pmin',	action='store',	type=float,					default=5,						metavar='5',								help='Don\'t include components with a prevalence less than this amount')
+
+args = parser.parse_args()
+
+# obtain the list of ensemble statistics files
+if( os.path.isdir(args.input) ):
+	temp = glob.glob("%s%sensemble_statistics_*.tbl" % (args.input,os.sep) )
+	temp.sort()
+	
+	if(args.end < 0):
+		args.end = len(temp)
+		
+	files = []
+	for (i,file) in enumerate(temp):
+		if (i > args.start) and (i < args.end) and (i % args.step == 0):
+			files.append( file )
+			
+elif( os.access(args.input, os.R_OK) ):
+	files = [args.input]
+else:
+	print "ERROR: Could not read -input option \"%s\"" % (args.input)
+	sys.exit()
+	
+if( not os.path.isdir(args.pdbs) ):
+	print "ERROR: -pdb option dir \"%s\" does not exist" % (args.pdbs)
+	sys.exit()
+
+for file in files:
+	f = open( file, 'r' )
+	lines = f.readlines()
+	f.close()
+	
+	print file
+	
+	# drop the first two (header) lines
+	lines = lines[2:]
+	
+	pdbs = []
+	for line in lines:
+		line = line.strip()
+		fields = line.split()
+		
+		if( float(fields[1]) < args.Pmin ):
+			continue
+		
+		print "\t%s\t%s\t%s\t%s" % (fields[0],fields[1],fields[3],fields[4])
+		
+		pdb = "%s%s%s.pdb" % (args.pdbs,os.sep,fields[0])
+		
+		if( os.access(pdb, os.R_OK) ):
+			pdbs.append( pdb )
+		else:
+			print "\tWARNING: Could not read pdb \"%s\"" % (pdb)
+		
+	if( len(pdbs) > 0 ):
+		f = open( "ensemble_models_%s.pdb" % (file[-9:-4]), 'w' )
+	else:
+		f = None
+		print "\tWARNING: No components found in \"%s\"" % (file)
+		
+	for (i,model) in enumerate(pdbs):
+		f.write("MODEL        %d\n%s\nENDMDL\n" % (i+1, open(model, 'r').read().strip()) )
+		
+	if( f != None ):
+		f.close()
+		
+	print ""

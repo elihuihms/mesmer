@@ -183,21 +183,21 @@ def load_restraint( restraint, block, target_data ):
 	# attempt to load the SAXS profile			
 	if(args.file == None):
 		try:
-			values = scipy.genfromtxt( StringIO( ''.join(block['content'])) )
+			values = scipy.genfromtxt( StringIO( ''.join(block['content'])), unpack=True )
 		except ValueError, exc:
 			return (False,["Could not parse SAXS data in target file - %s " % (exc)])
 	else:
 		try:
-			values = scipy.genfromtxt(args.file)
+			values = scipy.genfromtxt(args.file, unpack=True)
 		except ValueError, exc:
 			return (False,["Could not read file \"%s\" - %s" % (args.file, exc)])
 			
-	if(len(values[0]) != 3):
+	if(len(values) != 3):
 		return (False,["Target SAXS data must be of the format: x y dy"])
-	
-	restraint.data['x'] = zip(*values)[0]
-	restraint.data['y'] = zip(*values)[1]
-	restraint.data['d'] = zip(*values)[2]
+
+	restraint.data['x'] = values[0]
+	restraint.data['y'] = values[1]
+	restraint.data['d'] = values[2]
 
 	return (True,messages)
 
@@ -227,21 +227,21 @@ def load_attribute( attribute, block, ensemble_data ):
 
 	if(args.file == None):
 		try:
-			values = scipy.genfromtxt( StringIO( ''.join(block['content'])) )
+			values = scipy.genfromtxt( StringIO( ''.join(block['content'])), unpack=True )
 		except ValueError, exc:
 			return (False,["Could not parse SAXS data in component file - %s" % (exc)])
 	else:
 		try:
-			values = scipy.genfromtxt(args.file)
+			values = scipy.genfromtxt(args.file, unpack=True)
 		except ValueError, exc:
 			return (False,["Could not read file \"%s\" - %s" % (args.file, exc)])
 
-	if(len(values[0]) != 2):
+	if(len(values) != 2):
 		return (False,["Component SAXS data must be of the format: x y"])
 
 	# attempt to interpolate the XY values against the target restraint X values
 	try:
-		temp = interpolate.splrep( zip(*values)[0], zip(*values)[1] )
+		temp = interpolate.splrep( values[0], values[1] )
 		interpolate.splev( attribute.restraint.data['x'],temp )
 	except TypeError:
 		return (False,["Could not interpolate the component's SAXS curve to the target's"])
