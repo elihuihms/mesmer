@@ -180,17 +180,17 @@ def load_restraint( restraint, block, target_data ):
 
 	if(args.file == None):
 		try:
-			values = scipy.genfromtxt( StringIO( ''.join(block['content'])) )
+			values = scipy.genfromtxt( StringIO( ''.join(block['content'])), unpack=True )
 		except ValueError, exc:
 			return (False,["Could not parse 2D data in target file - %s " % (exc)])
 	else:
 		try:
-			values = scipy.genfromtxt(args.file)
+			values = scipy.genfromtxt(args.file, unpack=True)
 		except ValueError, exc:
 			return (False,["Could not read file \"%s\" - %s" % (args.file, exc)])
 
-	restraint.data['x'] = zip(*values)[0]
-	restraint.data['y'] = zip(*values)[1]
+	restraint.data['x'] = values[0]
+	restraint.data['y'] = values[1]
 
 	# set the per-point weighting to be used during fitting
 	if( args.sse ):
@@ -205,12 +205,12 @@ def load_restraint( restraint, block, target_data ):
 		# X^2 = ((Y - Y_fit) / sqrt(Y))^2
 		restraint.data['d'] = [ sqrt(y) for y in restraint.data['y'] ]
 
-	elif(len(values[0]) != 3):
+	elif(len(values) != 3):
 		return (False,["Target data must be of the format: x y dy"])
 	
 	else:
 		# X^2 = ((Y - Y_fit) / dY)^2
-		restraint.data['d'] = zip(*values)[2]
+		restraint.data['d'] = values[2]
 	
 	return (True,messages)
 
@@ -240,12 +240,12 @@ def load_attribute( attribute, block, ensemble_data ):
 
 	if(args.file == None):
 		try:
-			values = scipy.genfromtxt( StringIO( ''.join(block['content'])) )
+			values = scipy.genfromtxt( StringIO( ''.join(block['content'])), unpack=True )
 		except ValueError, exc:
 			return (False,["Could not parse 2D data in component file - %s" % (exc)])
 	else:
 		try:
-			values = scipy.genfromtxt(args.file)
+			values = scipy.genfromtxt(args.file, unpack=True)
 		except ValueError, exc:
 			return (False,["Could not read file \"%s\" - %s" % (args.file, exc)])
 
@@ -254,7 +254,7 @@ def load_attribute( attribute, block, ensemble_data ):
 
 	# attempt to interpolate the XY values against the target restraint X values
 	try:
-		temp = interpolate.splrep( zip(*values)[0], zip(*values)[1] )
+		temp = interpolate.splrep( values[0], values[1] )
 		interpolate.splev( attribute.restraint.data['x'], temp )
 	except TypeError:
 		return (False,["Could not interpolate the component's curve data to the target's"])
