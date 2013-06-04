@@ -99,8 +99,8 @@ def main( args, plugins, targets, components ):
 			print_msg(  "\nMaximum ensemble score is less than Fmin, exiting." )
 			loop = False
 			
-		if( ensemble_stats['total'][2] < args.Smin ):
-			print_msg(  "\nEnsemble score deviation is less than Smin, exiting." )
+		if( (ensemble_stats['total'][2]/ensemble_stats['total'][1]) < args.Smin ):
+			print_msg(  "\nEnsemble score RSD is less than Smin, exiting." )
 			loop = False
 			
 		if (args.Gmax > -1) and (generation_counter >= args.Gmax):

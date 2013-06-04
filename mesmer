@@ -11,7 +11,7 @@ from lib.functions import print_msg
 
 def main():
 	_mes_version	= "0.3dev"
-	_mes_build		= "2013.05.10.0"
+	_mes_build		= "2013.06.04.0"
 		
 	# read the setup file for the algorithm
 	args = lib.setup.read_param_file( sys.argv[1] )
