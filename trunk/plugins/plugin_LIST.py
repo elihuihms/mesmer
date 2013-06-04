@@ -1,12 +1,12 @@
 """
-Creates a MESMER restraint from a general list of data
+Creates a MESMER restraint from a general list of data (NOEs, Pseudocontact shifts, etc.)
 
 Target file arguments:
--file <file>	- Read a file containing whitespace-delimited data instead of from the target file
+-file <file>	- Read a separate file containing whitespace-delimited data instead of the target file
 -col <n>		- The column of values in the list to use
--sse			- Fitness is reported as a sum square of error
--harm			- Fitness is reported as sum deviation from a flat-bottomed harmonic potential for each term (intervals should be provided in -col N+1 column)
--Q				- Fitness is reported as a quality (Q) factor, normalized against the RMS of the experimental data
+-sse			- Report fitness as a sum square of error
+-harm			- Report fitness as sum deviation from a flat-bottomed harmonic potential for each term (intervals should be provided in -col N+1 column)
+-Q				- Report fitness as a quality (Q) factor, normalized against the RMS of the experimental data
 
 Component file arguments:
 -file <file>	- Read a file containing whitespace-delimited data instead of from the target file
@@ -19,6 +19,7 @@ import os
 import sys
 import scipy
 import scipy.interpolate as interpolate
+import tempfile
 import uuid
 
 from StringIO import StringIO
@@ -30,6 +31,7 @@ version = '2013.05.10'
 type = ('LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9')
 
 _db_handle = None
+_db_path = None
 _plot_handles = {}
 
 #
@@ -77,10 +79,11 @@ def plot( id, exp, fit ):
 
 def load( args ):
 	global _db_handle
+	global _db_path
 	
-	path ="%s%scomponent_LIST" % (args.dir,os.sep)
+	_db_path ="%s%s%s%s" % (tempfile.gettempdir(),os.sep,uuid.uuid1().hex,'.db')
 	try:
-		_db_handle = shelve.open(path,'c',protocol=2)
+		_db_handle = shelve.open(_db_path,'c',protocol=2)
 	except:
 		return "Could not create temporary DB."
 
@@ -88,8 +91,11 @@ def load( args ):
 		
 def unload():
 	global _db_handle
+	global _db_path
+	
 	if (_db_handle != None):
 		_db_handle.close()
+		os.unlink(_db_path)
 	
 	return None
 

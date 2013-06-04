@@ -17,6 +17,7 @@ import os
 import shelve
 import scipy
 import scipy.interpolate as interpolate
+import tempfile
 import uuid
 
 from StringIO import StringIO
@@ -28,6 +29,7 @@ version = '2013.05.10'
 type = ('SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9')
 
 _db_handle = None
+_db_path = None
 _plot_handles = {}
 
 #
@@ -36,10 +38,11 @@ _plot_handles = {}
 
 def load( args ):
 	global _db_handle
+	global _db_path
 	
-	path ="%s%scomponent_SAXS" % (args.dir,os.sep)
+	_db_path ="%s%s%s%s" % (tempfile.gettempdir(),os.sep,uuid.uuid1().hex,'.db')
 	try:
-		_db_handle = shelve.open(path,'c')
+		_db_handle = shelve.open(_db_path,'c')
 	except:
 		return "Could not create temporary DB."
 
@@ -47,9 +50,12 @@ def load( args ):
 		
 def unload():
 	global _db_handle
+	global _db_path
+	
 	if (_db_handle != None):
 		_db_handle.close()
-	
+		os.unlink(_db_path)
+		
 	return None
 
 def info():

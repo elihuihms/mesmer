@@ -19,6 +19,7 @@ import os
 import shelve
 import scipy
 import scipy.interpolate as interpolate
+import tempfile
 import uuid
 
 from math import sqrt
@@ -31,6 +32,7 @@ version = '2013.05.10'
 type = ('CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9')
 
 _db_handle = None
+_db_path = None
 _plot_handles = {}
 
 #
@@ -39,10 +41,11 @@ _plot_handles = {}
 
 def load( args ):
 	global _db_handle
+	global _db_path
 	
-	path ="%s%scomponent_CURV" % (args.dir,os.sep)
+	_db_path ="%s%s%s%s" % (tempfile.gettempdir(),os.sep,uuid.uuid1().hex,'.db')
 	try:
-		_db_handle = shelve.open(path,'c')
+		_db_handle = shelve.open(_db_path,'c')
 	except:
 		return "Could not create temporary DB."
 
@@ -50,8 +53,11 @@ def load( args ):
 		
 def unload():
 	global _db_handle
+	global _db_path
+	
 	if (_db_handle != None):
 		_db_handle.close()
+		os.unlink(_db_path)
 	
 	return None
 
