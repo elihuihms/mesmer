@@ -31,21 +31,17 @@ def load_mesmer_plugin( args, path ):
 		return None
 	
 	try:
-		plugin = imp.load_module(name, file, filename, data)
+		module = imp.load_module(name, file, filename, data)
 	except:
-		print "ERROR: Could not import plugin \"%s\". Reason: %s" % (name,sys.exc_info()[1])
+		print "ERROR: Could not import plugin module \"%s\". Reason: %s" % (name,sys.exc_info()[1])
 		return None
 	finally:
 		file.close()
 	
 	try:
-		ret = plugin.load( args )
+		plugin = module.plugin( args )
 	except:
-		print "ERROR: Plugin \"%s\" load() failed: %s" % (name,sys.exc_info()[1])
-		return None
-	
-	if( ret != None ):
-		print "ERROR: Plugin \"%s\" reported a problem on load(): %s" % (name,ret)
+		print "ERROR: Could not load plugin \"%s\": %s" % (name,sys.exc_info()[1])
 		return None
 	
 	# did the user request information about a plugin?
@@ -58,13 +54,14 @@ def load_mesmer_plugin( args, path ):
 def unload_plugins( plugins ):
 	for p in plugins:
 		try:
-			ret = p.unload()
+			(ok,messages) = p.unload()
 		except:
 			print "ERROR: Plugin \"%s\" unload() failed: %s" % (p.name,sys.exc_info()[1])
 			continue
 				
-		if( ret != None ):
-			print "ERROR: Plugin \"%s\" reported a problem on unload(): %s" % (p.name,ret)
+		if( not ok ):
+			for m in messages:
+					print "ERROR: Plugin \"%s\" reported a problem on unload(): %s" % (p.name,m)
 	
 #
 # UNUSED FUNCTIONS BELOW THIS LINE
