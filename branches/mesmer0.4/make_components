@@ -1,0 +1,113 @@
+#!/usr/bin/env python
+
+#
+# Creates MESMER component files
+#
+
+import sys
+import os
+import glob
+import argparse
+
+def main():
+	
+	parser = argparse.ArgumentParser(usage='make_conformers [options]')
+
+	parser.add_argument('-template',	action='store',		required=True,			metavar='FILE',	help='Component template file')
+	parser.add_argument('-values',		action='store',		required=True,			metavar='FILE',	help='Component values table file')
+	parser.add_argument('-data',		action='store',		nargs='*',				metavar='DIR(s)',	help='Component data file directory')	
+	parser.add_argument('-out',			action='store',		default='components',	metavar='DIR',	help='Output directory name')	
+	args = parser.parse_args()
+
+	if os.path.isdir(args.out):
+		print "ERROR: component output directory \"%s\" already exists." % (args.out)
+		return False
+
+	try:
+		os.mkdir(args.out)
+	except OSError:
+		print "ERROR: Couldn't create component output directory \"%s\"." % (args.out)
+		return False
+
+	try:
+		handle = open( args.template, 'r' )
+	except IOError:
+		print "ERROR: Could not open template file %s " % (args.template)
+		exit(1)
+	template = handle.read()
+	handle.close()
+		
+	try:
+		handle = open( args.values, 'r' )
+	except IOError:
+		print "ERROR: Could not open values file %s " % (args.template)
+		exit(1)
+		
+	if (args.data == None):
+		args.data = []
+	
+	# go through the values
+	data_values = {}
+	data_files = {}
+	for l in handle.readlines():
+		
+		# skip comments
+		if(l[0] == '#'):
+			continue
+			
+		# generate a named dict that will contain each datafile for the component
+		if(len(l) > 0):
+			a = l.split("\t")
+			data_values[ a[0].strip() ] = a
+			data_files[ a[0].strip() ] = []
+			
+	handle.close()
+	
+	# build a list of the files in the provided directories and match them up with the component names
+	for (i,dir) in enumerate(args.data):
+		
+		for file in glob.glob( "%s%s*" % (dir,os.sep) ):
+			name = os.path.basename(os.path.splitext(file)[0])
+			if( name in data_files ):
+				data_files[name].append( file )
+		
+		# make sure that we've added a file to each component file list this round
+		for name in data_files:
+			if( len(data_files[name]) < i ):
+				print "Error: data file for component \"%s\" not found for in directory \"%s\"" % (name,dir)
+				exit(1)
+					
+	# create the component file
+	for name in data_values:
+
+		new = template[:]
+		
+		# replace all of the value fields first
+		for (i,s) in enumerate(data_values[name]):
+			new = new.replace("%s%i" % ('$',i), s.strip() )
+		
+		# embed the datafiles
+		for (i,f) in enumerate( data_files[name] ):
+		
+			try:
+				handle = open( f, 'r' )
+			except IOError:
+				print "ERROR: Could not open component datafile \"%s\"" % (f)
+				exit(1)
+				
+			new = new.replace("%s%i" % ('%',i+1,), handle.read() )
+			handle.close()
+		
+		# write the compiled datafile
+		path = ("%s%s%s.component" % (args.out,os.sep,name.strip()) )
+		try:
+			handle = open( path, 'w' )
+		except IOError:
+			print "ERROR: Could not write to component file \"%s\" " % (path)
+			exit(1)
+		
+		handle.write( new )
+		handle.close()
+	
+if( __name__ == "__main__" ):
+	main()
