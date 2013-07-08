@@ -253,7 +253,7 @@ class plugin( plugin_db ):
 
 		# determine the scaling and/or offset coefficients
 		if(target_data['args'].scale and target_data['args'].offset):
-			(ensemble_data['scale'],ensemble_data['bg_offset']) = tools.get_curve_transforms( list(restraint.data['y']) , restraint.data['d'], fit[:] )
+			(ensemble_data['scale'],ensemble_data['offset']) = tools.get_curve_transforms( list(restraint.data['y']) , restraint.data['d'], fit[:] )
 		elif(target_data['args'].scale):
 			ensemble_data['scale'] = tools.get_scale( restraint.data['y'], restraint.data['d'], fit[:] )
 			ensemble_data['offset'] = 0.0
