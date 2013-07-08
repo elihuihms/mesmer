@@ -10,7 +10,7 @@ import lib.ga_functions_main
 from lib.functions import print_msg
 
 def main():
-	_mes_version	= "0.3dev"
+	_mes_version	= "0.4a"
 	_mes_build		= "2013.06.04.0"
 		
 	# read the setup file for the algorithm
@@ -70,11 +70,7 @@ def main():
 		sys.exit(1)	
 	
 	# Start the algorithm
-	try:
-		ret = lib.ga_functions_main.main( args, plugins, targets, components )
-	except KeyboardInterrupt:
-		print_msg( "\nINFO: User forced quit, exiting.\n" )
-		sys.exit(0)
+	ret = lib.ga_functions_main.main( args, plugins, targets, components )
 		
 	# finished, unload plugins
 	lib.plugin_functions.unload_plugins( plugins )
@@ -82,5 +78,8 @@ def main():
 	sys.exit(0)
 		
 if( __name__ == "__main__" ):
-	main()
-
+	try:
+		main()
+	except KeyboardInterrupt:
+		print_msg( "\nINFO: User forced quit, exiting.\n" )
+		sys.exit(0)
