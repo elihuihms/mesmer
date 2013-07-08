@@ -14,7 +14,7 @@ def main():
 	_mes_build		= "2013.06.04.0"
 		
 	# read the setup file for the algorithm
-	args = lib.setup.read_param_file( sys.argv[1] )
+	args = lib.setup.read_param_file()
 	
 	# attempt to create the fitting results directory
 	if( not lib.setup.make_results_dir(args) ):
