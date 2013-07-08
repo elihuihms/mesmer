@@ -9,6 +9,7 @@ Component file arguments:
 """
 
 import argparse
+
 from lib.plugin_primitives import plugin_basic
 import lib.plugin_tools as tools
 

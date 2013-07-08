@@ -4,8 +4,8 @@ Creates a MESMER restraint from SAXS data
 Target file arguments:
 -file <file>	- Read a file containing X Y DY data instead of from the target file
 -scale			- Allow scaling of the ensemble profile to better match the target profile
--offset			- Allow the plugin to remove an arbitrary offset to the target data (e.g. poor buffer subtraction or mismatch)
--bg			- Allow a small amount of offset (determine at high q) to better match the target profile
+-bg				- Allow the plugin to remove an arbitrary offset to the target data (e.g. poor buffer subtraction or mismatch)
+-offset			- Allow a small amount of offset (determine at high q) to better match the target profile
 -plot			- Open a plot window showing best fit at each generation
 
 Component file arguments:
@@ -13,12 +13,8 @@ Component file arguments:
 """
 
 import argparse
-import os
-import shelve
 import scipy
 import scipy.interpolate as interpolate
-import tempfile
-import uuid
 
 from StringIO import StringIO
 

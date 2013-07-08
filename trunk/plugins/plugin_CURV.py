@@ -15,12 +15,8 @@
 	"""
 
 import argparse
-import os
-import shelve
 import scipy
 import scipy.interpolate as interpolate
-import tempfile
-import uuid
 
 from StringIO import StringIO
 
@@ -229,9 +225,6 @@ class plugin( plugin_db ):
 		attribute.data['key'] = self.put(data=temp)
 
 		return (True,messages)
-		
-	# generate a unique key for storing the attribute value into the db
-	attribute.data['key'] = uuid.uuid1().hex
 
 	def load_bootstrap( self, bootstrap, restraint, ensemble_data, target_data ):
 		"""
