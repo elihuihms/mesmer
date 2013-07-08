@@ -16,11 +16,11 @@ prompt> tar -xvf mesmer_<version>.tgz
 
 MESMER is now ready to use. For convenience, the MESMER executable and various utilities can be added to the user's PATH via the .cshrc or .bash_profile files present in the user's home directory.
 
-For bash shells, append this to your .bash_profile (replace the /path/to/mesmer with the actual location of MESMER):
-export PATH=$PATH:/path/to/mesmer/mesmer
+For bash shells, append this to your .bash_profile (replace the /path/to/mesmer_folder with the actual location of the MESMER directory):
+export PATH=$PATH:/path/to/mesmer_folder
 
 For csh or tcsh shells, append this to your .cshrc:
-set PATH = ($PATH /path/to/mesmer/mesmer)
+set PATH = ($PATH /path/to/mesmer_folder)
 
 ### GENERATION OF COMPONENT FILES ###
 The first step of MESMER fitting is to generate files containing the pre-calculated attributes (stoichiometries, SAXS profiles, FRET distances, etc.) of all possible components. The MESMER utility make_components collects these attributes and generates properly-formatted input files.
@@ -61,12 +61,12 @@ NOTE: By default, MESMER will save all a log of its progress and other output fi
 NOTE: To see a list of all available MESMER options along with a brief description of each, invoke MESMER with only the "-h" (help) option.
 
 ### FITTING SAXS DATA ###
-For a meaningful MESMER run, typically the iterative process of offspring generation and optimization should be continued until all ensembles fit the experimental data equally well or nearly so. This can be done by specifying by the "-Smin <#>" (Standard deviation minimum) option. This will cause the genetic algorithm to exit only when the standard deviation of the ensemble's scoring function is at or below the specified value.
+For a meaningful MESMER run, typically the iterative process of offspring generation and optimization should be continued until all ensembles fit the experimental data equally well or nearly so. This can be done by specifying by the "-Smin <#>" (Standard relative deviation minimum) option. This will cause the genetic algorithm to exit only when the relative standard error (RSD) of the ensemble population is at or below the specified value.
 
-To run MESMER until all ensembles have a total fitness score (in this example the chi-square fit to the target SAXS profile) standard deviation of 0.1 or less, invoke MESMER as follows:
-prompt> ../mesmer -size 3 -Smin 0.1 -target ./tutorial_A_saxs.target -components ./components -name tutorial_1
+To run MESMER until all ensembles have a total fitness score (in this example the chi-square fit to the target SAXS profile) standard deviation of 5% of the average fitness score (or less), invoke MESMER as follows:
+prompt> ../mesmer -size 3 -Smin 0.05 -target ./tutorial_A_saxs.target -components ./components -name tutorial_1
 
-You may wish to go get a coffee, depending on the processing power of the machine MESMER is running on. If you have a computer with multiple cores or processors, you will likely see a significant decrease in computation time by using the "-threads <#>" command to specify the number of parallel processing threads you wish to use. You can also change the ensemble population size by using the "-ensembles <#>" command (the default is 1000 ensembles, which is likely excessive when using only 18 different components.)
+You may wish to go get a coffee, depending on the processing power of the machine MESMER is running on. If you have a computer with multiple cores or processors, you will likely see a significant decrease in computation time by using the "-threads <#>" command to specify the number of parallel processing threads you wish to use. You can also change the ensemble population size by using the "-ensembles <#>" command (the default is 1000 ensembles, which is excessive when using only 18 different components.)
 
 ### INTERPRETING MESMER OUTPUT ###
 If you open the last "ensemble_statistics_NNNNN.tbl" file present in the output folder "tutorial_1" created by the above MESMER run, you should see some statistics about the components present in the ensemble population at MESMER's final generation. The "Prevalence" value is the percentage that the component appears in the total ensemble population (100% = is present in all ensembles, 0% = present in no ensembles). This is important because it is often the case that multiple components can provide equal or similar fitness to their respective ensembles (they may be indistinguishable from each other, for example). The "Average" value is the average weight of that component in its ensembles (a larger average indicates that it is more heavily weighted in the ensemble averaged data used to fit the experimental data). Finally, the "Stdev" column is the variation in the component weighting across the ensemble population.
@@ -75,7 +75,7 @@ The synthetic target "tutorial_A_saxs.target" used in the above run is the equal
 
 ### FITTING MULTIPLE DATATYPES ###
 MESMER can simultaneously fit any number of experimental datasets, provided the user has generated the necessary predicted data for each component. The "tutorial_A_all.target" contains the average component stoichiometry, a SAXS profile, and a CURV (non-specific 2D dataset) containing fluoresence lifetime data from components 00000 and 00014, with added 1% noise. MESMER will automatically detect these different data types, and will load the appropriate plugin to generate ensemble fits from the available components. For example:
-prompt> ../mesmer -size 3 -Smin 0.1 -target ./tutorial_A_all.target -components ./components -name tutorial_2
+prompt> ../mesmer -size 3 -Smin 0.05 -target ./tutorial_A_all.target -components ./components -name tutorial_2
 
 An examination of the last ensemble statistics file generated by MESMER should reveal that only the components 00000 and 00014 are conclusively identified in the ensemble population.
 
@@ -92,6 +92,6 @@ MESMER can also calculate the uncertainty in component ratios of a given ensembl
 Depending on the restraint type, MESMER can also save the experimental data and MESMER's fit results for the best-scoring ensemble through the use of the "-Pextra" (Print extra) option. This will notify MESMER plugins to print and/or save any extra information that may be useful for the user to the log file or results directory. Files generated by plugins will follow this format: restraints_(target name)_(restraint type)_NNNNN.out
 
 To generate these various output files, and apply all the elements covered in the tutorial, run MESMER with these options:
-prompt> ../mesmer -size 3 -Smin 0.1 -target ./tutorial_A_all.target -target ./tutorial_B_all.target -components ./components -Pstats -Pbest -Pextra -name tutorial_3
+prompt> ../mesmer -size 3 -Smin 0.05 -target ./tutorial_A_all.target -target ./tutorial_B_all.target -components ./components -Pstats -Pbest -Pextra -name tutorial_3
 
 

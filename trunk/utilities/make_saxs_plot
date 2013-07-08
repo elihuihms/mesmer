@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+
+#
+# make_saxs_plot - uses gnuplot to make a figure containing experimental data and a MESMER fit
+# Author: Elihu Ihms (c) 2012
+#
+
+use File::Basename;
+use File::Spec;
+
+#
+# default options for settings
+#
+
+$terminal = 'aqua';
+$plotargs = ();
+
+#
+# get any specified vars
+#
+
+if( $#ARGV == -1 )
+{
+	print "Usage: make_saxs_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] <MESMER_fit_file.fit>\n";
+	exit;
+}
+
+while ( $argcounter <= $#ARGV )
+{
+	if ( $ARGV[ $argcounter ] eq "-term" || $ARGV[ $argcounter ] eq "-t" )
+	{
+		$terminal = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-out" || $ARGV[ $argcounter ] eq "-o" )
+	{
+		$output = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-inc" )
+	{
+		$wait = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-arg" )
+	{
+		push( @plotargs, $ARGV[ $argcounter +1 ] );
+		$argcounter++;
+	}
+	else
+	{
+		$path = $ARGV[ $argcounter ];
+		$path = File::Spec->rel2abs( $path );
+		
+		if( ! -f $path)
+		{
+			print "Bad option or fit file specified: \"$ARGV[ $argcounter ]\"\n";
+			exit;
+		}
+	}
+	$argcounter++;
+}
+
+#
+# done with argument parsing
+#
+
+$title = basename( $path );
+$title =~ s/\_/\\\_/g;
+
+# open the pipe to GNUPLOT and make it hot
+open( GNUPLOT, "| /usr/bin/gnuplot");
+select GNUPLOT;
+$| = 1;
+select STDOUT;
+
+print GNUPLOT <<EOPLOT;
+	set terminal $terminal enhanced
+EOPLOT
+if( $output ne '' ){
+	print GNUPLOT "set output \"$output\"\n";
+}
+
+print GNUPLOT <<EOPLOT;
+reset
+set encoding iso_8859_1
+set title '$title'
+set key left bottom
+
+set multiplot
+
+set size 1,1
+set origin 0,0
+
+set xlabel "q (\305^{-1})"
+set ylabel "I(q), Intensity"
+set logscale y
+#set yrange [:2000]
+
+plot '$path' using 1:2 with points pt 6 lc rgb '#000000' title 'Experimental data', '$path' using 1:3 with lines lt -1 lc rgb '#FF0000' title 'MESMER fit'
+
+set size 0.5,0.5
+set origin 0.45,0.45
+
+set title ' '
+unset xlabel
+
+unset logscale
+set ylabel "I(q)_{exp} / I(q)_{fit}"
+#set yrange [0.8:1.2]
+
+plot '$file' using 1:(\$2/\$3) with points pt 6 lc rgb '#FF0000' notitle
+
+EOPLOT
+
+close( GNUPLOT );

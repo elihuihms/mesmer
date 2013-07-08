@@ -21,7 +21,7 @@ $plotargs = ();
 
 if( $#ARGV == -1 )
 {
-	print "Usage: curv_fit_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] <component_correlations_N.tbl>\n";
+	print "Usage: make_correlation_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] <component_correlations_N.tbl>\n";
 	exit;
 }
 

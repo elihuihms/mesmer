@@ -255,7 +255,7 @@ def load_attribute( attribute, block, ensemble_data ):
 		except ValueError, exc:
 			return (False,["Could not read file \"%s\" - %s" % (args.file, exc)])
 
-	if(len(values[0]) != 2):
+	if(len(values) != 2):
 		return (False,["Component 2D data must be of the format: x y"])
 
 	# attempt to interpolate the XY values against the target restraint X values

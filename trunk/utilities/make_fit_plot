@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 #
-# saxs_fit_plot - uses gnuplot to make a figure containing experimental data and a MESMER fit
+# list_fit_plot - uses gnuplot to make a figure containing experimental data and a MESMER fit
 # Author: Elihu Ihms (c) 2012
 #
 
@@ -21,7 +21,7 @@ $plotargs = ();
 
 if( $#ARGV == -1 )
 {
-	print "Usage: list_fit_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] <MESMER_fit_file.out>\n";
+	print "Usage: list_fit_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] <restraints_.out>\n";
 	exit;
 }
 

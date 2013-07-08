@@ -1,0 +1,147 @@
+#!/usr/bin/env python
+
+import argparse
+import scipy
+import matplotlib as mpl
+
+parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
+
+group0 = parser.add_argument_group('Table specification')
+group0.add_argument('-table', 	required=True,								help='A file containing tab-delimited statistics of the available components')
+group0.add_argument('-Ncol',	default=0,		metavar='N',	type=int,	help='The column containing the component names')
+group0.add_argument('-xCol',	default=1,		metavar='N',	type=int,	help='The column containing the desired component attribute')
+group0.add_argument('-yCol',	default=2,		metavar='N',	type=int,	help='The column to use as y-axis data')
+
+group1 = parser.add_argument_group('Plot options')
+group1.add_argument('-title',					default='',				help='The title for the output figure')
+group1.add_argument('-xLabel',					default='',				help='The label for the x-axis')
+group1.add_argument('-yLabel',					default='',				help='The label for the y-axis')
+group1.add_argument('-backend',					default='Agg',	metavar='Agg',	help='Specify the graphics backend for MPL (only used w/ the -nogui option)')
+group1.add_argument('-plotArgs',	nargs=2,	action='append',	default=[],	metavar='',	help='Specify arguments for matplotlib as ARG VALUE')
+group1.add_argument('-plotProp',	nargs=2,	action='append',	default=[],	metavar='',	help='Set properties for the figure as ARG VALUE')
+group1.add_argument('-figsize',		nargs=2,	default=[6,6],	type=int,	metavar='N',	help='Set figure size and ratio: X Y')
+group1.add_argument('-axes',		nargs=4,	default=None,	type=int,	metavar='N',	help='The scales for the axes: xmin, xmax, ymin, ymax')
+group1.add_argument('-pointScale',				default=20,		type=int,	metavar='20',	help='Change the scaling of the attribute scatter plot points')
+group1.add_argument('-lineWidth',				default=3,		type=int,	metavar='3.0',	help='Change the width of the selected component plot circles')
+group1.add_argument('-specColor',	nargs=3,	default=[1.0,0.5,0.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the specification overlay')
+group1.add_argument('-statColor',	nargs=3,	default=[0.0,0.5,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the ensemble statistics overlay')
+
+group2 = parser.add_argument_group('Overlay options')
+group2.add_argument('-spec',	default=None,	metavar='<SPEC>',		help='A specification file')
+group2.add_argument('-stats',	default=None,	metavar='<STATS>',		help='A MESMER ensemble statistics file')
+
+group3 = parser.add_argument_group('Output options')
+group3.add_argument('-nogui', 	action='store_true',	default=False,	help='Don\'t display image.')
+group3.add_argument('-figure', 					default=None,	help='The file to write the resulting figure to.')
+
+args = parser.parse_args()
+
+# generate master data lists
+tmp = scipy.genfromtxt( args.table, usecols=(args.Ncol,args.xCol,args.yCol), dtype=str, unpack=True )
+
+n = len(tmp[0])
+tbl_names = list(tmp[0])
+tbl_xvals = [0.0]*n
+tbl_yvals = [0.0]*n
+for i in range(len(tmp[0])):
+	tbl_xvals[i] = float(tmp[1][i])
+	tbl_yvals[i] = float(tmp[2][i])
+
+if( args.spec ):
+	tmp = scipy.genfromtxt( args.spec, usecols=(0,1), dtype=str, unpack=True )
+	tmp = (list(tmp[0]),list(tmp[1]))
+
+	tbl_weights = [0.0]*n
+	for i in range(len(tmp[0])):
+		try:
+			k = tbl_names.index(tmp[0][i])
+		except:
+			print "Target specification contains a component (%s) that does not exist in the attribute table." % tmp[0][i]
+			exit()
+		tbl_weights[k] = float(tmp[1][i])
+
+if( args.stats ):
+	c_xvals = []
+	c_yvals = []
+	c_prevl = []
+	c_weigh = []
+
+	f = open( args.stats, 'r' )
+	line = f.readline()
+	line = f.readline()
+	while(line):
+		line = f.readline().strip()
+		if(line == ''):
+			break
+
+		arr = line.split()
+		try:
+			k = tbl_names.index(arr[0])
+		except:
+			print "Ensemble statistics file contains a component (%s) that does not exist in the attribute table." % arr[0]
+			exit()
+		c_xvals.append( tbl_xvals[k] )
+		c_yvals.append( tbl_yvals[k] )
+		c_prevl.append( float(arr[1]) )
+		c_weigh.append( float(arr[3]) )
+
+# set up the plot figure
+if(args.nogui) and (args.figure):
+	mpl.use( args.backend )
+
+import matplotlib.pyplot as plot
+plot.figure(1, figsize=(args.figsize[0],args.figsize[1]))
+
+if( args.spec ):
+	# sort values by weight, so that more heavily-weighted values will be on top
+	o = scipy.argsort( tbl_weights )
+	x = scipy.take(tbl_xvals,o)
+	y = scipy.take(tbl_yvals,o)
+	w = scipy.take(tbl_weights,o)
+	c = [None]*n
+	m = max(w)
+	for i in range(n):
+		a = 0.5
+		if(w[i]/m>0.15): # 10% alpha cutoff for clarity
+			a = 1.0
+		c[i] = (w[i]/m*args.specColor[0],w[i]/m*args.specColor[1],w[i]/m*args.specColor[2],a)
+	plot.scatter( x, y, facecolors=c, edgecolors='none', s=args.pointScale, zorder=1 )
+
+else:
+	plot.scatter( tbl_xvals, tbl_yvals, facecolor=(0,0,0,0.5), edgecolors='none', s=args.pointScale, zorder=1 )
+
+if( args.stats ):
+	o = scipy.argsort( c_prevl )
+	x = scipy.take(c_xvals,o)
+	y = scipy.take(c_yvals,o)
+	w = scipy.take(c_weigh,o)
+	w = scipy.take(c_prevl,o)
+	c = [None]*len(p)
+	s = [None]*len(p)
+	for i in range(len(p)):
+		c[i] = (p[i]/100.0*args.statColor[0],p[i]/100.0*args.statColor[1],p[i]/100.0*args.statColor[2])
+		s[i] = w[i]*30*args.pointScale
+
+	plot.scatter( x, y, edgecolors=c, s=s, zorder=2, facecolors='none', linewidth=args.lineWidth )
+
+for (arg,val) in args.plotArgs:
+	mpl.rcParams[ arg ] = val
+
+# set plot options
+plot.suptitle( args.title )
+plot.xlabel( args.xLabel )
+plot.ylabel( args.yLabel )
+if(args.axes):
+	plot.axis( args.axes )
+
+#t = {}
+#for (arg,val) in args.plotProp:
+#	t[arg] = val
+#	plot.setp( *t )
+
+if(args.figure):
+	print "Plotting figure \"%s\"" % args.figure
+	plot.savefig( args.figure )
+
+if(not args.nogui) or (not args.figure):
+	plot.show()
