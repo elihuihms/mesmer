@@ -12,14 +12,14 @@ from lib.functions import print_msg
 def main():
 	_mes_version	= "0.4a"
 	_mes_build		= "2013.06.04.0"
-		
-	# read the setup file for the algorithm
-	args = lib.setup.read_param_file()
-	
+
+	# obtain the parameters for the run
+	args = lib.setup.parse_param_arguments()
+
 	# attempt to create the fitting results directory
 	if( not lib.setup.make_results_dir(args) ):
 		sys.exit(1)
-	
+
 	# attempt to write to the log file
 	path = os.path.abspath( "%s%smesmer_log.txt" % (args.dir,os.sep) )
 	if( not print_msg("""
@@ -27,56 +27,56 @@ def main():
 	(C)2012-2013 Elihu Ihms
 	""" % (_mes_version,_mes_build), path) ):
 		print "ERROR: Couldn't create MESMER log file, aborting."
-		sys.exit(1)	
-		
+		sys.exit(1)
+
 	# save the parameters list to the log file
 	print_msg("Arguments:")
 	for k in vars(args):
 		print_msg("\t%s\t:\t%s" % (k,vars(args)[k]))
 	print_msg("")
-	
+
 	# attempt to load available plugin modules
 	plugins = lib.plugin_functions.load_plugins(args, '%s/plugins/' % os.path.dirname(os.path.realpath(__file__)))
-	
+
 	if( len(plugins) < 1):
 		print "ERROR: No valid data plugins found, aborting."
-		sys.exit(1)	
-	
+		sys.exit(1)
+
 	if( None in plugins ):
 		print "ERROR: One or more plugins failed to load, aborting."
 		sys.exit(1)
-	
+
 	# load target restraints by passing off to plugins
 	targets = lib.setup.load_all_targets( args, plugins )
-	
+
 	if( None in targets):
 		print "ERROR: Could not read one or more target files, aborting."
 		sys.exit(1)
-	
+
 	for t in targets:
 		if( len(targets[0].restraints) != len(t.restraints) ):
 			print "ERROR: All targets in titration analysis must have the same number of restraints, aborting."
 			sys.exit(1)
-	
+
 	# create component database
 	components = lib.setup.load_all_components( args, plugins, targets )
-	
+
 	if( len(components) < 1):
 		print "ERROR: No valid components specified, aborting."
 		sys.exit(1)
-	
+
 	if( None in components):
 		print "ERROR: Could not read one or more component files, aborting."
-		sys.exit(1)	
-	
+		sys.exit(1)
+
 	# Start the algorithm
 	ret = lib.ga_functions_main.main( args, plugins, targets, components )
-		
+
 	# finished, unload plugins
 	lib.plugin_functions.unload_plugins( plugins )
-	
+
 	sys.exit(0)
-		
+
 if( __name__ == "__main__" ):
 	try:
 		main()
