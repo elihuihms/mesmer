@@ -34,7 +34,7 @@ class plugin( plugin_db ):
 	# custom functions
 	#
 
-	def plot( self, id, exp, fit ):
+	def showplot( self, id, exp, fit ):
 
 		try:
 			import matplotlib.pyplot as plot
@@ -93,11 +93,11 @@ class plugin( plugin_db ):
 		for key in ensembles[0]['values']:
 			tmp = key.replace('.',"\t")
 			res = restraint.data['values'][key] - ensembles[0]['values'][key]
-			f.write("%s\t%f\t%f\t%f\n" % (tmp,restraint.data['values'][key],ensembles[0]['values'][key],res) )
+			f.write("%s\t%.3E\t%.3E\t%.3E\n" % (tmp,restraint.data['values'][key],ensembles[0]['values'][key],res) )
 		f.close()
 
 		if(restraint.data['args'].plot):
-			plot( restraint.type, restraint.data['values'], ensembles[0]['values'] )
+			self.showplot( restraint.type, restraint.data['values'], ensembles[0]['values'] )
 
 		return (True,[])
 

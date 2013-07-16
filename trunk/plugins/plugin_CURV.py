@@ -15,8 +15,10 @@
 	"""
 
 import argparse
+import math
 import scipy
 import scipy.interpolate as interpolate
+import scipy.optimize as optimize
 
 from StringIO import StringIO
 
@@ -26,12 +28,12 @@ import lib.plugin_tools as tools
 class plugin( plugin_db ):
 
 	name = 'default_CURV'
-	version = '2013.06.04'
-	type = ('CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9')
+	version = '2013.07.16'
+	type = ('CURV','SAXS','DEER','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9')
 
 	_plot_handles = {}
 
-	def show_best_plot(self,id,x,y,yfit,diff):
+	def showplot(self,id,x,y,yfit,saxs=False):
 
 		try:
 			import matplotlib.pyplot as plot
@@ -50,15 +52,31 @@ class plugin( plugin_db ):
 		self._plot_handles[id]['fig'].clear()
 		self._plot_handles[id]['main'] = self._plot_handles[id]['fig'].add_axes([0.1,0.1,0.8,0.8])
 		plot.title("Best MESMER fit to \"%s\" data" % id)
-		plot.ylabel('Y')
-		plot.xlabel('X')
+
+		if(saxs):
+			plot.yscale('log')
+			plot.ylabel('I(q), intensity')
+			plot.xlabel(r'$q, \AA^{-1}$')
+		else:
+			plot.ylabel('Y')
+			plot.xlabel('X')
 
 		self._plot_handles[id]['exp'] = plot.plot(x, y, 'ro' )
 		self._plot_handles[id]['fit'] = plot.plot(x, yfit )
-
 		self._plot_handles[id]['inset'] = self._plot_handles[id]['fig'].add_axes([0.5,0.5,0.35,0.35])
+
+		diff = [0.0]*len(y)
+		if(saxs):
+			plot.yscale('linear')
+			plot.ylabel(r'$I(q)_{exp} / I(q)_{fit}$')
+			for i in range(len(y)):
+				diff[i] = y[i] / yfit[i]
+		else:
+			plot.ylabel(r'$Y_{exp} - Y_{fit}$')
+			for i in range(len(y)):
+				diff[i] = y[i] - yfit[i]
+
 		plot.title('Residuals')
-		plot.ylabel(r'$Y_{exp} - Y_{fit}$')
 		self._plot_handles[id]['diff'] = plot.plot(x, diff, 'ro' )
 		plot.setp(self._plot_handles[id]['inset'], xlim=(0,0.2) )
 
@@ -85,23 +103,28 @@ class plugin( plugin_db ):
 			return (False,['Could not open file \"%s\" for writing' % file_path])
 
 		f.write("# Best scoring ensemble fit\n" )
-		f.write("# scale: %.3e\n" % (ensembles[0]['scale']) )
-		f.write("# offset: %.3e\n" % (ensembles[0]['offset']) )
+		if(ensembles[0]['scale'] != 1):
+			f.write("# scale: %.3E\n" % (ensembles[0]['scale']) )
+		if(ensembles[0]['offset'] != 0):
+			f.write("# offset: %.3E\n" % (ensembles[0]['offset']) )
+		if('saxs_offset' in ensembles[0]):
+			f.write("# saxs offset: %.3E\n" % (ensembles[0]['saxs_offset']) )
+		if('lambda' in ensembles[0]):
+			f.write("# modulation depth: %.3E\n" % (ensembles[0]['lambda']) )
+
 		f.write("#x\ty_exp\ty_fit\n" )
 
 		# print the fit for the best-scoring ensemble
 		y_fit = tools.interpolate_curve( restraint.data['x'], ensembles[0]['x'], ensembles[0]['y'] )
 
-		residuals = []
 		for (i,x) in enumerate(restraint.data['x']):
-			f.write( "%.3f\t%.3f\t%.3f\n" % (x,restraint.data['y'][i],y_fit[i]) )
-			residuals.append( restraint.data['y'][i] - y_fit[i] )
+			f.write( "%.3E\t%.3E\t%.3E\n" % (x,restraint.data['y'][i],y_fit[i]) )
 
 		f.close()
 
 		# generate a plot figure if necessary
 		if(target_data['args'].plot):
-			show_best_plot( restraint.type, restraint.data['x'], restraint.data['y'], y_fit, residuals )
+			self.showplot( restraint.type, restraint.data['x'], restraint.data['y'], y_fit, target_data['args'].saxs )
 
 		return (True,[])
 
@@ -130,6 +153,8 @@ class plugin( plugin_db ):
 		parser.add_argument('-sse', action='store_true', help='Use no point weighting while fitting')
 		parser.add_argument('-relative', action='store_true', help='Use relative weighting instead of explicit dy data')
 		parser.add_argument('-poisson', action='store_true', help='Use poisson weighting instead of explicit dy data')
+		parser.add_argument('-saxs', nargs='?', type=float, const=-1, help='Treat experimental curve as SAXS data.')
+		parser.add_argument('-deer', action='store_true', help='Treat experimental curve as DEER data, fit by optimizing the modulation depth')
 		parser.add_argument('-plot', action='store_true', help='Create a plot window at each generation showing fit to data')
 
 		try:
@@ -156,6 +181,10 @@ class plugin( plugin_db ):
 		restraint.data['x'] = values[0]
 		restraint.data['y'] = values[1]
 
+		# argument consistency checks
+		if( args.deer and (args.scale or args.offset) ):
+			return (False,["Scaling or Offset options not available when fitting DEER data"])
+
 		# set the per-point weighting to be used during fitting
 		if( args.sse ):
 			# X^2 = (Y - Y_fit)^2
@@ -167,7 +196,7 @@ class plugin( plugin_db ):
 
 		elif( args.poisson ):
 			# X^2 = ((Y - Y_fit) / sqrt(Y))^2
-			restraint.data['d'] = [ sqrt(y) for y in restraint.data['y'] ]
+			restraint.data['d'] = [ math.sqrt(y) for y in restraint.data['y'] ]
 
 		elif(len(values) != 3):
 			return (False,["Target data must be of the format: x y dy"])
@@ -212,14 +241,14 @@ class plugin( plugin_db ):
 				return (False,["Could not read file \"%s\" - %s" % (args.file, exc)])
 
 		if(len(values) != 2):
-			return (False,["Component 2D data must be of the format: x y"])
+			return (False,["Component data must be at least of the format: x y"])
 
 		# attempt to interpolate the XY values against the target restraint X values
 		try:
 			temp = interpolate.splrep( values[0], values[1] )
 			interpolate.splev( attribute.restraint.data['x'], temp )
 		except TypeError:
-			return (False,["Could not interpolate the component's curve data to the target's"])
+			return (False,["Could not interpolate the component's curve data to the target's. Perhaps the x values are not sorted?"])
 
 		# save the spline to the database
 		attribute.data['key'] = self.put(data=temp)
@@ -261,7 +290,7 @@ class plugin( plugin_db ):
 		n = len(restraint.data['x'])
 
 		# average the attribute profiles
-		fit = tools.make_weighted_vector( [interpolate.splev(restraint.data['x'], self.get(a.data['key'])) for a in attributes], ratios )
+		fit = tools.make_weighted_avg( [interpolate.splev(restraint.data['x'], self.get(a.data['key'])) for a in attributes], ratios )
 
 		# determine the scaling and/or offset coefficients
 		if(target_data['args'].scale and target_data['args'].offset):
@@ -269,19 +298,49 @@ class plugin( plugin_db ):
 		elif(target_data['args'].scale):
 			ensemble_data['scale'] = tools.get_scale( restraint.data['y'], restraint.data['d'], fit[:] )
 			ensemble_data['offset'] = 0.0
-		elif(target_data['args'].bg):
+		elif(target_data['args'].offset):
 			ensemble_data['scale'] = 1.0
 			ensemble_data['offset'] = tools.get_offset( restraint.data['y'], fit[:] )
 		else:
 			ensemble_data['scale'] = 1.0
 			ensemble_data['offset'] = 0.0
 
-		# apply the scaling and offset coefficients to the dataset
-		for i in range(n):
-			fit[i] = (fit[i] * ensemble_data['scale']) + ensemble_data['offset']
+		# are we fitting DEER data? - use modulation depth to obtain chisq
+		if(target_data['args'].deer):
+
+			def f( l ):
+				diff = 0.0
+				for i in range(n):
+					diff += (1-l + l*fit[i] - restraint.data['y'][i])**2 / restraint.data['d'][i]**2
+				return (1/n) * diff
+
+			(ensemble_data['lambda'],chisq) = optimize.brent( f, full_output=True )[0:2]
+
+			for i in range(n):
+				fit[i] = (1-ensemble_data['lambda'] + ensemble_data['lambda']*fit[i])
+		else:
+			# apply the scaling and offset coefficients to the dataset
+			for i in range(n):
+				fit[i] = (fit[i] * ensemble_data['scale']) + ensemble_data['offset']
+
+		# apply additional small SAXS offset if requested
+		if(target_data['args'].saxs):
+			# determine starting q value index if not already calculated
+			if( not 'saxs_offset_n' in target_data):
+				for i in range(n):
+					if( restraint.data['x'][i] > target_data['args'].saxs ):
+						target_data['saxs_offset_n'] = i
+						break
+
+			ensemble_data['saxs_offset'] = tools.get_offset( restraint.data['y'], fit, target_data['saxs_offset_n'] )
+			for i in range(n):
+				fit[i] = fit[i] + ensemble_data['saxs_offset']
 
 		# Save all of these parameters to the ensemble_data object for future retrieval
 		ensemble_data['x'] = restraint.data['x']
 		ensemble_data['y'] = fit
+
+		if(target_data['args'].deer):
+			return chisq
 
 		return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], fit )

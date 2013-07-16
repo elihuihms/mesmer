@@ -7,8 +7,8 @@ import scipy
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-table', 	required=True,								help='A file containing tab-delimited statistics of the available components')
-parser.add_argument('-Ncol',	default=0,		metavar='N',	type=int,	help='The column containing the component names')
-parser.add_argument('-Dcol',	default=1,		metavar='N',	type=int,	help='The column containing the desired component attribute')
+parser.add_argument('-nCol',	default=0,		metavar='N',	type=int,	help='The column containing the component names')
+parser.add_argument('-dCol',	default=1,		metavar='N',	type=int,	help='The column containing the desired component attribute')
 parser.add_argument('-mean',	default=None,					type=float,	help='The value to use as the center of the distribution. Defaults to the mean of the selected dataset.')
 parser.add_argument('-stdev',	default=None,					type=float,	help='The width of the distribution. Defaults to the standard deviation of the selected dataset.')
 parser.add_argument('-uniform',	default=False,	action='store_true',		help='Use a uniform instead of gaussian distribution.')
@@ -20,7 +20,7 @@ args = parser.parse_args()
 
 # table 0 = names
 # table 1 = data values
-table = scipy.genfromtxt( args.table, usecols=(args.Ncol,args.Dcol), dtype=str, unpack=True )
+table = scipy.genfromtxt( args.table, usecols=(args.nCol,args.dCol), dtype=str, unpack=True )
 n = len(table[0])
 names = list(table[0])
 
