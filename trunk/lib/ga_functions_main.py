@@ -38,14 +38,6 @@ def main( args, plugins, targets, components ):
 		print_msg( "\nGeneration %i" % (generation_counter) )
 		sys.stdout.flush()
 
-#		n = sys.getsizeof(cPickle.dumps(targets)) / 1024.
-#		print "Targets: %ik" % n
-#		n = sys.getsizeof(cPickle.dumps(components)) / 1024.
-#		print "Components: %ik" % n
-#		n = sys.getsizeof(cPickle.dumps(parents)) / 1024.
-#		print "Ensembles: %ik" % n
-#		sys.stdout.flush()
-
 		# create clones of the parents, and subject to genetic modification
 		offspring = copy.deepcopy(parents)
 

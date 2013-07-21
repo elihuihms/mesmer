@@ -67,7 +67,7 @@ class plugin( plugin_basic ):
 		# TYPE	SCALE	OPTIONS
 		# TEST	1		-value <N>
 
-		parser = ArgumentParser(prog=self.name)
+		parser = ArgumentParser(prog=self.type[0])
 		parser.add_argument('-value', metavar='number', help='')
 
 		try:

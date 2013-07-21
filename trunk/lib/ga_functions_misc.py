@@ -31,7 +31,10 @@ def make_ensembles( args, plugins, targets, components ):
 		ensembles.append( mesEnsemble( plugins, targets, args.size ) )
 
 		# randomly fill the new ensemble with components
-		ensembles[-1].fill( component_names )
+		if(not args.uniform):
+			ensembles[-1].fill( component_names )
+		else:
+			ensembles[-1].fill_uniform( i, component_names )
 
 	return ensembles
 
@@ -100,19 +103,19 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q, print_sta
 				continue
 			elif( args.Ralgorithm == 0 ):
 				e.get_fitness( components, plugins, t, [1.0/args.size] * args.size )
-				e.opt_status[t.name] = 1
+				e.opt_status[t.name] = 'N/A'
 
 			elif( args.Ralgorithm == 1 ):
 				e.ratios[t.name] = blind_random_min( wrapper, e.ratios[t.name], args.Rprecision, args.Rn )
-				e.opt_status[t.name] = 1
+				e.opt_status[t.name] = 'N/A'
 
 			elif( args.Ralgorithm == 2 ):
 				e.ratios[t.name] = localized_random_min( wrapper, e.ratios[t.name], args.Rprecision, args.Rn )
-				e.opt_status[t.name] = 1
+				e.opt_status[t.name] = 'N/A'
 
 			elif( args.Ralgorithm == 3 ):
 				(e.ratios[t.name],nfeval,status) = optimize.fmin_tnc( wrapper, e.ratios[t.name], fprime=None, approx_grad=True, bounds=ratio_bounds, maxfun=args.Rn, messages=0, accuracy=args.Rprecision )
-				e.opt_status[t.name] = status -1
+				e.opt_status[t.name] = optimize.tnc.RCSTRINGS[status]
 
 			elif( args.Ralgorithm == 4 ):
 				(e.ratios[t.name],fopt,status) = optimize.fmin_l_bfgs_b( wrapper, e.ratios[t.name], fprime=None, approx_grad=True, bounds=ratio_bounds, maxfun=args.Rn, disp=False, epsilon=args.Rprecision)

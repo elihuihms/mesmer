@@ -22,13 +22,18 @@ group1.add_argument('-plotProp',	nargs=2,	action='append',	default=[],	metavar='
 group1.add_argument('-figsize',		nargs=2,	default=[6,6],	type=int,	metavar='N',	help='Set figure size and ratio: X Y')
 group1.add_argument('-axes',		nargs=4,	default=None,	type=int,	metavar='N',	help='The scales for the axes: xmin, xmax, ymin, ymax')
 group1.add_argument('-pointScale',				default=20,		type=int,	metavar='20',	help='Change the scaling of the attribute scatter plot points')
-group1.add_argument('-lineWidth',				default=3,		type=int,	metavar='3.0',	help='Change the width of the selected component plot circles')
-group1.add_argument('-specColor',	nargs=3,	default=[1.0,0.5,0.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the specification overlay')
-group1.add_argument('-statColor',	nargs=3,	default=[0.0,0.5,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the ensemble statistics overlay')
 
 group2 = parser.add_argument_group('Overlay options')
+group2.add_argument('-lineWidth',				default=3,		type=int,	metavar='3.0',	help='Change the width of the selected component plot circles')
 group2.add_argument('-spec',	default=None,	metavar='<SPEC>',		help='A specification file')
+group2.add_argument('-specColor',	nargs=3,	default=[1.0,0.5,0.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the specification overlay')
+group2.add_argument('-specWeight',				default=-1.0,	type=float,			help='When plotting target specifications, drop components weighted lower than this amount')
 group2.add_argument('-stats',	default=None,	metavar='<STATS>',		help='A MESMER ensemble statistics file')
+group2.add_argument('-statColor',	nargs=3,	default=[0.0,0.5,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the ensemble statistics overlay')
+group2.add_argument('-statNorm',	action='store_true', default=False,				help='Normalize variable color saturation for component prevalence')
+group2.add_argument('-statSame',	action='store_true', default=False,				help='Do not use variable color saturation for component prevalence')
+group2.add_argument('-statWeight',				default=-1.0,	type=float,			help='When plotting MESMER statistics, drop components weighted lower than this amount')
+group2.add_argument('-statPrevalence',			default=-1.0,	type=float,			help='When plotting MESMER statistics, drop components with prevalences lower than this amount')
 
 group3 = parser.add_argument_group('Output options')
 group3.add_argument('-nogui', 	action='store_true',	default=False,	help='Don\'t display image.')
@@ -92,15 +97,30 @@ if(args.nogui) and (args.figure):
 import matplotlib.pyplot as plot
 plot.figure(1, figsize=(args.figsize[0],args.figsize[1]))
 
+def keepKeys( l, k ):
+	""" Returns a new list containing only the specified indexes"""
+	new = []
+	for i in k:
+		new.append(l[i])
+	return new
+
 if( args.spec ):
 	# sort values by weight, so that more heavily-weighted values will be on top
 	o = scipy.argsort( tbl_weights )
-	x = scipy.take(tbl_xvals,o)
-	y = scipy.take(tbl_yvals,o)
 	w = scipy.take(tbl_weights,o)
-	c = [None]*n
+
+	# throw out elements with weights lower than specified
+	keys = []
+	for i in range(len(w)):
+		if(w[i] > args.specWeight):
+			keys.append(i)
+	w = keepKeys( w, keys )
+	x = keepKeys( scipy.take(tbl_xvals,o), keys )
+	y = keepKeys( scipy.take(tbl_yvals,o), keys )
+
 	m = max(w)
-	for i in range(n):
+	c = [None]*len(keys)
+	for i in range(len(keys)):
 		a = 0.5
 		if(w[i]/m>0.15): # 10% alpha cutoff for clarity
 			a = 1.0
@@ -112,15 +132,30 @@ else:
 
 if( args.stats ):
 	o = scipy.argsort( c_prevl )
-	x = scipy.take(c_xvals,o)
-	y = scipy.take(c_yvals,o)
 	w = scipy.take(c_weigh,o)
-	w = scipy.take(c_prevl,o)
-	c = [None]*len(p)
-	s = [None]*len(p)
-	for i in range(len(p)):
-		c[i] = (p[i]/100.0*args.statColor[0],p[i]/100.0*args.statColor[1],p[i]/100.0*args.statColor[2])
+	p = scipy.take(c_prevl,o)
+
+	# throw out elements with weights or prevalences lower than specified
+	keys = []
+	for i in range(len(w)):
+		if(w[i] > args.statWeight) and (p[i] > args.statPrevalence):
+			keys.append(i)
+	w = keepKeys( w, keys )
+	p = keepKeys( p, keys )
+	x = keepKeys( scipy.take(c_xvals,o), keys )
+	y = keepKeys( scipy.take(c_yvals,o), keys )
+
+	m = max(p)
+	c = [None]*len(keys)
+	s = [None]*len(keys)
+	for i in range(len(keys)):
 		s[i] = w[i]*30*args.pointScale
+		if(args.statSame):
+			c[i] = (args.statColor[0],args.statColor[1],args.statColor[2])
+		elif(args.statNorm):
+			c[i] = (p[i]/m*args.statColor[0],p[i]/m*args.statColor[1],p[i]/m*args.statColor[2])
+		else:
+			c[i] = (p[i]/100.0*args.statColor[0],p[i]/100.0*args.statColor[1],p[i]/100.0*args.statColor[2])
 
 	plot.scatter( x, y, edgecolors=c, s=s, zorder=2, facecolors='none', linewidth=args.lineWidth )
 

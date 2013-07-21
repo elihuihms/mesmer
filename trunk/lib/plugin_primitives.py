@@ -15,12 +15,21 @@ class plugin_basic:
 	def __del__( self ):
 		pass
 
-	def info():
-		print "Plugin: \"%s\"" % self.name
-		print "\tVersion: \"%s\"" % self.version
-		print "\tData types:"
-		for t in self.types:
+	def info( self ):
+		print "HELP for plugin: \"%s\"" % self.name
+		print "\tVersion: %s" % self.version
+		print "\tValid data types:"
+		for t in self.type:
 			print "\t\t%s" % t
+		print ""
+		print "Arguments:"
+		# ugly hack
+		try:
+			block = {}
+			block['header'] = "FOO	BAR	-h"
+			self.load_restraint( None, block, None )
+		except:
+			pass
 
 	# base type stubs
 

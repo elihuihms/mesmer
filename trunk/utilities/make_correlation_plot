@@ -14,6 +14,7 @@ use File::Spec;
 $gnuplot = '/usr/bin/gnuplot';
 $terminal = 'aqua';
 $plotargs = ();
+$tbl_size = -1;
 
 #
 # get any specified vars
@@ -21,7 +22,7 @@ $plotargs = ();
 
 if( $#ARGV == -1 )
 {
-	print "Usage: make_correlation_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] <component_correlations_N.tbl>\n";
+	print "Usage: make_correlation_plot [-t/-term <terminal>] [-out/-o <file>] [-size N] [-arg 'arg'] <component_correlations_N.tbl>\n";
 	exit;
 }
 
@@ -42,14 +43,19 @@ while ( $argcounter <= $#ARGV )
 		push( @plotargs, $ARGV[ $argcounter +1 ] );
 		$argcounter++;
 	}
+	elsif ( $ARGV[ $argcounter ] eq "-size" )
+	{
+		$tbl_size = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
 	else
 	{
 		$path = $ARGV[ $argcounter ];
 		$path = File::Spec->rel2abs( $path );
-		
+
 		if( ! -f $path)
 		{
-			print "Bad option or fit file specified: \"$ARGV[ $argcounter ]\"\n";
+			print "Bad option or correlation table specified: \"$ARGV[ $argcounter ]\"\n";
 			exit;
 		}
 	}
@@ -75,10 +81,15 @@ if( $#lines < 2){
 	exit;
 }
 
-for ($row = 1; $row <=$#lines; $row++)
+if($tbl_size < 0){
+	$tbl_size = $#lines;
+}
+
+
+for ($row = 1; $row <=$tbl_size; $row++)
 {
 	@array = split("\t", $lines[ $row ]);
-	for($col = 1; $col <=$#array; $col++){
+	for($col = 1; $col <=$tbl_size; $col++){
 		print FILE $array[$col]."\t";
 	}
 	print FILE "\n";
@@ -114,32 +125,29 @@ unset cbtics
 
 unset key
 set tic scale 0
-set xlabel "Component"
 set ylabel "Component"
+#set xlabel "Component"
 
 EOPLOT
 
-print GNUPLOT "set xrange[-0.5:".($#components -0.5)."]\n";
-print GNUPLOT "set yrange[-0.5:".($#components -0.5)."]\n";
-#print GNUPLOT "set xtics out nomirror rotate by 45 offset -1.5 (";
-print GNUPLOT "set xtics out nomirror rotate by 90 (";
-$counter = -1;
-foreach $component (@components)
+print GNUPLOT "set xrange[-0.5:".($tbl_size -0.5)."]\n";
+print GNUPLOT "set yrange[-0.5:".($tbl_size -0.5)."]\n";
+print GNUPLOT "set xtics out nomirror rotate by 90 offset 0,-1 (";
+for($i=0; $i<=$tbl_size; $i++)
 {
+	$component = $components[$i +1];
 	$component =~ s/\_/\\\_/g;
-	if( $counter > -1 ){ print GNUPLOT ","; }
-	print GNUPLOT "'$component' $counter";
-	$counter++;
+	if( $i > 0 ){ print GNUPLOT ","; }
+	print GNUPLOT "'$component' $i";
 }
 print GNUPLOT ")\n";
 print GNUPLOT "set ytics out nomirror (";
-$counter = -1;
-foreach $component (@components)
+for($i=0; $i<=$tbl_size; $i++)
 {
-	#$component =~ s/\_/\\\_/g;
-	if( $counter > -1 ){ print GNUPLOT ","; }
-	print GNUPLOT "'$component' $counter";
-	$counter++;
+	$component = $components[$i +1];
+	$component =~ s/\_/\\\_/g;
+	if( $i > 0 ){ print GNUPLOT ","; }
+	print GNUPLOT "'$component' $i";
 }
 print GNUPLOT ")\n";
 

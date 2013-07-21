@@ -12,12 +12,12 @@ class mesComponent:
 	def __init__(self):
 		"""
 		Initialize the component
-		
+
 		1. Sets name to an empty string
 		2. Sets attributes to an empty list
 		3. Sets plugin_data to an empty dict
 		"""
-		
+
 		self.name = ''
 		self.attributes = []
 		self.plugin_data = {}
@@ -26,17 +26,17 @@ class mesComponent:
 	def load(self, file, plugins, targets):
 		"""
 		Load the component's various attributes from a specified file using plugins
-		
+
 		Returns True on success, or False on Failure, errors are communicated via the print_msg function
-		
+
 		Arguments:
 			file	- A path to a MESMER component file, see general_functions.get_input_blocks() for more information
 			plugins	- A list of plugin modules for interpretation of data and creation of mesAttribute objects
 			targets	- A list of targets, which are used to properly format the object's attributes (e.g. interpolation of curves, etc.)
 		"""
-						
+
 		blocks = get_input_blocks(file)
-		
+
 		if( blocks == None ):
 			print_msg("ERROR: Could not read component file \"%s\"." % (file))
 		elif( len(blocks) == 0 ):
@@ -52,17 +52,17 @@ class mesComponent:
 
 		# find the plugin that handles this type of of data
 		for b in blocks:
-			
+
 			if(b['type'] == 'NAME'):
 				self.name = re.split("\s+",b['header'])[1]
 				continue
-			
+
 			for p in plugins:
 				if(b['type'] in p.type):
-				
+
 					# initialize the plugin storage variable for this restraint type
 					self.plugin_data[b['type']] = None
-				
+
 					status = None
 
 					# create a new attribute linked to the proper type of restraint
@@ -71,16 +71,16 @@ class mesComponent:
 							attribute = mesAttribute(r)
 							(status,messages) = p.load_attribute( attribute, b, self.plugin_data[b['type']] )
 							break
-				
+
 					if(status == True):
 						self.attributes.append(attribute)
-						
+
 						# decrement the checklist for this restraint type
 						checklist[ b['type'] ] -= 1
-						
+
 						for m in messages:
 							print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,m))
-						
+
 						# only allow one plugin per block
 						break
 					elif(status == False):
@@ -88,11 +88,11 @@ class mesComponent:
 						for m in messages:
 							print_msg("ERROR: plugin \"%s\" reported: %s" % (p.name,m))
 						return False
-						
+
 		if( self.name == '' ):
 			print_msg("ERROR: component file \"%s\" has no NAME attribute." % (file) )
 			return False
-						
+
 		# go through our checklist and ensure that all target restraint types are present
 		for (k,v) in checklist.iteritems():
 			if(v != 0):

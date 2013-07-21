@@ -45,7 +45,7 @@ def load_mesmer_plugin( args, path ):
 		return None
 
 	# did the user request information about a plugin?
-	if (args.plugin == plugin.name) or (args.plugin == name):
+	if (args.plugin == plugin.name) or (args.plugin == name) or (args.plugin in plugin.type):
 		plugin.info()
 		sys.exit(0)
 

@@ -1,0 +1,147 @@
+#!/usr/bin/perl
+
+#
+# saxs_fit_plot - uses gnuplot to make a figure containing experimental data and a MESMER fit
+# Author: Elihu Ihms (c) 2012
+#
+
+use File::Basename;
+use File::Spec;
+
+#
+# default options for settings
+#
+
+$terminal = 'aqua';
+$plotargs = ();
+
+#
+# get any specified vars
+#
+
+if( $#ARGV == -1 )
+{
+	print "Usage: list_fit_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] <MESMER_fit_file.out>\n";
+	exit;
+}
+
+while ( $argcounter <= $#ARGV )
+{
+	if ( $ARGV[ $argcounter ] eq "-term" || $ARGV[ $argcounter ] eq "-t" )
+	{
+		$terminal = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-out" || $ARGV[ $argcounter ] eq "-o" )
+	{
+		$output = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-inc" )
+	{
+		$wait = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-arg" )
+	{
+		push( @plotargs, $ARGV[ $argcounter +1 ] );
+		$argcounter++;
+	}
+	else
+	{
+		$path = $ARGV[ $argcounter ];
+		$path = File::Spec->rel2abs( $path );
+
+		if( ! -f $path)
+		{
+			print "Bad option or fit file specified: \"$ARGV[ $argcounter ]\"\n";
+			exit;
+		}
+	}
+	$argcounter++;
+}
+
+#
+# done with argument parsing
+#
+
+open( FILE, $path ) or die ("Could not open \"$path\"");
+@lines = <FILE>;
+close( FILE );
+
+chomp(@lines);
+@array = split(/\t/, $lines[1]);
+$res_col = $#array +1;
+$fit_col = $res_col-1;
+$exp_col = $res_col-2;
+
+$max = $array[$exp_col];
+$min = $array[$exp_col];
+
+shift(@lines);
+foreach $line (@lines)
+{
+	@array = split(/\t/, $line);
+
+	if( $array[$exp_col -1] > $max ){
+		$max = $array[$exp_col -1];
+	}
+	if( $array[$fit_col -1] > $max ){
+		$max = $array[$fit_col -1];
+	}
+	if( $array[$exp_col -1] < $min ){
+		$min = $array[$exp_col -1];
+	}
+	if( $array[$fit_col -1] < $min ){
+		$min = $array[$fit_col -1];
+	}
+}
+
+$title = basename( $path );
+$title =~ s/\_/\\\_/g;
+
+# open the pipe to GNUPLOT and make it hot
+open( GNUPLOT, "| /usr/bin/gnuplot");
+select GNUPLOT;
+$| = 1;
+select STDOUT;
+
+print GNUPLOT <<EOPLOT;
+	set terminal $terminal enhanced
+EOPLOT
+if( $output ne '' ){
+	print GNUPLOT "set output \"$output\"\n";
+}
+
+print GNUPLOT <<EOPLOT;
+reset
+set encoding iso_8859_1
+set title '$title'
+
+set multiplot
+unset key
+set size 1,0.7
+set origin 0,0
+
+set xlabel "Experimental value"
+set ylabel "Fit value"
+set xrange[$min:$max]
+set yrange[$min:$max]
+
+plot [$min:$max] x lc rgb '#000000', '$path' using $exp_col:$fit_col with points pt 6 lc rgb '#FF0000'
+
+set size 1,0.3
+set origin 0,0.7
+
+set title ' '
+unset xlabel
+set autoscale x
+set autoscale y
+
+set ylabel "I_{exp} - I_{fit}"
+unset xtics
+plot '$path' using $res_col: xtic(1) with histogram notitle
+
+EOPLOT
+
+close( GNUPLOT );

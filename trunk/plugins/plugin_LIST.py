@@ -13,19 +13,17 @@ Component file arguments:
 """
 
 import argparse
-import math
 import sys
-import scipy
-import scipy.interpolate as interpolate
 
-from StringIO import StringIO
+from scipy import interpolate
+from numpy import sqrt,mean
 
 from lib.plugin_primitives import plugin_db
 import lib.plugin_tools as tools
 
 class plugin( plugin_db ):
 	name = 'default_LIST'
-	version = '2013.06.04'
+	version = '2013.07.19'
 	type = ('LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9')
 
 	_plot_handles = {}
@@ -55,13 +53,7 @@ class plugin( plugin_db ):
 		plot.ylabel('Fit Value')
 		plot.xlabel('Experimental Value')
 
-		temp1 = [0.0]*len(exp)
-		temp2 = [0.0]*len(exp)
-		for (i,key) in enumerate(exp):
-			temp1[i] = exp[key]
-			temp2[i] = fit[key]
-
-		self._plot_handles['exp'] = plot.plot(temp1, temp2, 'ro' )
+		self._plot_handles['exp'] = plot.plot(exp, fit, 'ro' )
 
 		plot.draw()
 		plot.ioff()
@@ -72,7 +64,7 @@ class plugin( plugin_db ):
 	# output functions
 	#
 
-	def ensemble_state( self, restraint, target_data, ensembles, file_path):
+	def ensemble_state( self, restraint, target_data, ensemble_data, file_path):
 		"""
 		Prints the status of the plugin for the current generation and target
 
@@ -89,15 +81,14 @@ class plugin( plugin_db ):
 		except IOError:
 			return (False,['Could not open file \"%s\" for writing' % file_path])
 
-		f.write("# (identifiers)\texp\tfit\tres\n")
-		for key in ensembles[0]['values']:
-			tmp = key.replace('.',"\t")
-			res = restraint.data['values'][key] - ensembles[0]['values'][key]
-			f.write("%s\t%.3E\t%.3E\t%.3E\n" % (tmp,restraint.data['values'][key],ensembles[0]['values'][key],res) )
+		f.write("# (identifiers)\texp\tfit\n")
+		for i in range(len(restraint.data['x'])):
+			tmp = restraint.data['x'][i].replace('.',"\t")
+			f.write("%s\t%.3E\t%.3E\n" % (tmp,restraint.data['y'][i],ensemble_data[0]['y'][i]) )
 		f.close()
 
 		if(restraint.data['args'].plot):
-			self.showplot( restraint.type, restraint.data['values'], ensembles[0]['values'] )
+			self.showplot( restraint.type, restraint.data['y'], ensemble_data[0]['y'] )
 
 		return (True,[])
 
@@ -119,14 +110,13 @@ class plugin( plugin_db ):
 
 		messages = []
 
-		parser = argparse.ArgumentParser(prog=self.name)
+		parser = argparse.ArgumentParser(prog=self.type[0])
 		parser.add_argument('-file', 	action='store',								help='An external whitespace-delimited file containing LIST parameters.')
 		parser.add_argument('-col', 	action='store',	type=int,	required=True,	help='The column of data to use as the restraint')
 		parser.add_argument('-sse', 	action='store_true',						help='Calculate fitness as a simple (normalized) sum square of error')
 		parser.add_argument('-harm', 	action='store_true',						help='Calculate fitness from a flat-bottomed harmonic, using the interval present in -col N+1')
-		parser.add_argument('-Q', 		action='store_true',		default=True,	help='Calculate fitness as an Q factor (quality factor).')
+		parser.add_argument('-Q', 		action='store_true',						help='Calculate fitness as an Q factor (quality factor).')
 		parser.add_argument('-plot', 	action='store_true',						help='Create a plot window at each generation showing fit to data')
-		parser.add_argument('-strict',	action='store_true',						help='Check each attribute file to ensure there are no missing LIST elements')
 
 		try:
 			args = parser.parse_args(block['header'].split()[2:])
@@ -134,6 +124,9 @@ class plugin( plugin_db ):
 			return (False,["Argument error: %s" % exc.message()])
 
 		restraint.data['args'] = args
+
+		if (not args.sse) and (not args.harm) and (not args.Q):
+			return(False,['Must specify at least one fitness calculation type!'])
 
 		if(args.file):
 			try:
@@ -150,19 +143,21 @@ class plugin( plugin_db ):
 			line = line.strip()
 			data.append( [field.strip() for field in line.split()] )
 
-		restraint.data['values'] = {}
-		restraint.data['intervals'] = {} # only used in -harm
+		restraint.data['x'] = []
+		restraint.data['y'] = []
+		restraint.data['d'] = []  # only used in -harm
+
 		for e in data:
 			if( len(e) >= args.col ):
 				key = '.'.join( e[:args.col] )
-				restraint.data['values'][key] = float(e[args.col])
+				restraint.data['x'].append(key)
+				restraint.data['y'].append( float(e[args.col]) )
 
 				# save error/interval information
-				if( args.harm != None ):
-					if( len(e) >= args.harm ):
-						restraint.data['intervals'][key] = float(e[args.harm])
-					else:
-						return(False,["Error determining harmonic interval from \"%s\". Line in question looks like: \"%s\""%(file,e)])
+				if(args.harm) and (len(e) >= args.harm):
+					restraint.data['d'].append( float(e[args.harm]) )
+				elif(args.harm):
+					return(False,["Error determining harmonic interval from \"%s\". Line in question looks like: \"%s\""%(file,e)])
 
 		return (True,messages)
 
@@ -206,18 +201,21 @@ class plugin( plugin_db ):
 		col = attribute.restraint.data['args'].col
 
 		temp = {}
+		temp['y'] = [0.0]*len(attribute.restraint.data['x'])
+		seen = attribute.restraint.data['x'][:]
 		for e in data:
 			key = '.'.join( e[:col] )
-			if( key in attribute.restraint.data['values'].keys() ):
-				temp[key] = float(e[col])
+			if( key in attribute.restraint.data['x'] ):
+				i = attribute.restraint.data['x'].index(key)
+				temp['y'][ i ] = float(e[col])
+				seen.remove(key)
 
-		# cross-check keys if necessary
-		if( attribute.restraint.data['args'].strict ):
-			for key in attribute.restraint.data['values']:
-				if( not key in temp.keys() ):
-					return (False,["Strict key checking failed for key \"%s\"" % (key)])
+		for n in seen:
+			messages.append("Couldn't find key \"%s\"!" % n)
+		if( len(seen)>0 ):
+			return(False,messages)
 
-		# save the spline to the database
+		# save the data to the database
 		attribute.data['key'] = self.put(data=temp)
 
 		return (True,messages)
@@ -233,19 +231,9 @@ class plugin( plugin_db ):
 		target_data		- The plugin's data storage variable for the target
 		"""
 
-		n = len(ensemble_data['values'])
-		exp = [0.0]*n
-		fit = [0.0]*n
-		for (i,key) in enumerate(ensemble_data['values']):
-			exp[i] = restraint.data['values'][key]
-			fit[i] = ensemble_data['values'][key]
-
-		tmp = tools.make_bootstrap_sample( exp, fit )
-
-		# docs say that if the ensemble dict is not modified, iteration order will be unchanged!
-		bootstrap.data['values'] = {}
-		for (i,key) in enumerate(ensemble_data['values']):
-			bootstrap.data['values'][key] = tmp[i]
+		bootstrap.data['x'] = restraint.data['x']
+		bootstrap.data['y'] = tools.make_bootstrap_sample( restraint.data['y'], ensemble_data['y'] )
+		bootstrap.data['d'] = restraint.data['d']
 
 		return (True,[])
 
@@ -258,53 +246,30 @@ class plugin( plugin_db ):
 		Arguments:
 		ensemble_data	- The plugin's data storage variable for the ensemble
 		restraint		- The restraint object to be fitted against
-		attrbutes		- A list of attributes to be averaged together and compared to the restraint
+		attributes		- A list of attributes to be averaged together and compared to the restraint
 		ratios			- The relative weighting (ratio) of each attribute
 		"""
 
 		assert(len(attributes) == len(ratios))
-		n = len(restraint.data['values'])
 
-		if(not 'values' in ensemble_data.keys()):
-			ensemble_data['values'] = {}
+		n = len(restraint.data['x'])
+
+		# average the attribute data
+		ensemble_data['y'] = tools.make_weighted_avg( [self.get(a.data['key'])['y'] for a in attributes], ratios )
 
 		if( restraint.data['args'].sse ):
-			sum = 0.0
-			for key in restraint.data['values']:
-				avg = 0.0
-				for (i,a) in enumerate(attributes):
-					avg += ratios[i] * self.get( a.data['key'] )[key]
-				sum += (restraint.data['values'][key] - avg)**2
-				ensemble_data['values'][key] = avg
-
-			return sum
+			return get_sse( restraint.data['y'], ensemble_data['y'] )
 
 		elif( restraint.data['args'].harm ):
-			sum = 0.0
-			for key in restraint.data['values']:
-				avg = 0.0
-				for (i,a) in enumerate(attributes):
-					avg += ratios[i] * self.get( a.data['key'] )[key]
-				sum += tools.get_flat_harmonic( restraint.data['values'][key], restraint.data['intervals'][key], avg)
-				ensemble_data['values'][key] = avg
-
-			return sum
+			return sum([tools.get_flat_harmonic(restraint.data['y'][i],restraint.data['d'][i],ensemble_data['y'][i]) for i in range(n)])
 
 		elif( restraint.data['args'].Q ):
 			# Calculate quality (Q) factor
 			# Described in Cornilescu et al. (1998) J. Am. Chem. Soc.
 
-			exp_sum = 0.0
-			diffs = [0.0]*n
-			for (i,key) in enumerate(restraint.data['values']):
-				exp_sum += (restraint.data['values'][key])**2
+			# calculate the RMS of the experimental data, store if not already present
+			if(not 'rms' in restraint.data):
+				restraint.data['rms'] = tools.get_rms(restraint.data['y'])
 
-				# create the ensemble average
-				avg = 0.0
-				for (j,a) in enumerate(attributes):
-					avg += ratios[j] * self.get( a.data['key'] )[key]
-
-				diffs[i] = restraint.data['values'][key] - avg
-				ensemble_data['values'][key] = avg
-
-			return tools.get_rms(diffs) / math.sqrt(exp_sum/n)
+			diffs = [ restraint.data['y'][i] - ensemble_data['y'][i] for i in range(n) ]
+			return tools.get_rms(diffs) / restraint.data['rms']

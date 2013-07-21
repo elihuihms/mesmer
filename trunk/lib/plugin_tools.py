@@ -94,7 +94,9 @@ def get_scale( y, dy, y_fit):
 		a += ( y_fit[i] * y[i] )/( dy[i]**2 )
 		b += ( y_fit[i] * y_fit[i] )/( dy[i]**2 )
 
-	assert( b != 0 )
+	if( b == 0 ):
+		return 0.0
+
 	return a / b
 
 def get_offset( y, y_fit, index=0):

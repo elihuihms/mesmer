@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-mesmer_path = "/Volumes/FosterLab/users/ihms/Projects/MESMER/mesmer2"
+mesmer_path = "/fosterlab/users/ihms/Applications/mesmer"
 
 import argparse
 import os
@@ -19,10 +19,10 @@ parser.add_argument('-target',		action='append',	required=True,					metavar='FIL
 parser.add_argument('-components',	action='append',	required=True,	nargs='*',		metavar='FILE/DIR',	help='MESMER component files or directory ')
 parser.add_argument('-spec',							required=True,					metavar='SPEC',		help='The synthetic target specification file')
 parser.add_argument('-dir',								default='./',					metavar='./',		help='Directory to write synthetic data to')
-parser.add_argument('-dbm',			action='store_true',default=False,									help='Use a component database instead of maintaining in memory (much slower, significantly reduced memory footprint')
-parser.add_argument('-plugin',		action='store',										metavar='NAME',	help='Print information about the specified plugin and exit.')
 
 args = parser.parse_args()
+args.dbm = False
+args.plugin = ''
 
 # god help you if there's errors here - no checking!
 plugins = lib.plugin_functions.load_plugins(args, '%s/plugins/' % os.path.realpath(mesmer_path))

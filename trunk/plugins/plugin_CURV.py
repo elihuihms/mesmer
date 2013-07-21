@@ -85,7 +85,7 @@ class plugin( plugin_db ):
 
 		return
 
-	def ensemble_state( self, restraint, target_data , ensembles, file_path):
+	def ensemble_state( self, restraint, target_data, ensembles, file_path):
 		"""
 		Prints the status of the plugin for the current generation and target
 
@@ -93,7 +93,7 @@ class plugin( plugin_db ):
 
 		Arguments:
 		target_data		- list of data the plugin has saved for the target
-		ensembles	- list of data the plugin has saved for every ensemble in the run, ordered by overall fitness
+		ensembles		- list of data the plugin has saved for every ensemble in the run, ordered by overall fitness
 		filePath		- an optional file path the plugin can save data to
 		"""
 
@@ -146,23 +146,21 @@ class plugin( plugin_db ):
 
 		messages = []
 
-		parser = argparse.ArgumentParser(prog=self.name)
+		parser = argparse.ArgumentParser(prog=self.type[0])
 		parser.add_argument('-file', metavar='FILE', help='Read an external file containing the experimental data')
-		parser.add_argument('-scale', action='store_true', help='Do we allow scaling of the component profiles for a better match to the target?')
-		parser.add_argument('-offset', action='store_true', help='Allow the application a consistent offset to better match the target data.')
+		parser.add_argument('-scale', action='store_true', help='Allow scaling of the calculated curve to improve fitting')
+		parser.add_argument('-offset', action='store_true', help='Allow the application of an offset to improve fitting')
 		parser.add_argument('-sse', action='store_true', help='Use no point weighting while fitting')
 		parser.add_argument('-relative', action='store_true', help='Use relative weighting instead of explicit dy data')
 		parser.add_argument('-poisson', action='store_true', help='Use poisson weighting instead of explicit dy data')
-		parser.add_argument('-saxs', nargs='?', type=float, const=-1, help='Treat experimental curve as SAXS data.')
+		parser.add_argument('-saxs', nargs='?', metavar='q', type=float, const=-1, help='Treat experimental curve as SAXS data. The optional argument q can be used to improve fits at high scattering angles.')
 		parser.add_argument('-deer', action='store_true', help='Treat experimental curve as DEER data, fit by optimizing the modulation depth')
-		parser.add_argument('-plot', action='store_true', help='Create a plot window at each generation showing fit to data')
+		parser.add_argument('-plot', action='store_true', help='Create a plot window at each generation showing fit to data (requires matplotlib)')
 
 		try:
 			args = parser.parse_args(block['header'].split()[2:])
 		except argparse.ArgumentError, exc:
 			return (False,"Argument error: %s" % exc.message())
-
-		target_data['args'] = args
 
 		if(args.file == None):
 			try:
@@ -180,6 +178,12 @@ class plugin( plugin_db ):
 
 		restraint.data['x'] = values[0]
 		restraint.data['y'] = values[1]
+
+		# autodetect restraint types
+		if( restraint.type == 'SAXS' ):
+			args.saxs = -1
+		elif( restraint.type == 'DEER' ):
+			args.deer = True
 
 		# argument consistency checks
 		if( args.deer and (args.scale or args.offset) ):
@@ -204,6 +208,8 @@ class plugin( plugin_db ):
 		else:
 			# X^2 = ((Y - Y_fit) / dY)^2
 			restraint.data['d'] = values[2]
+
+		target_data['args'] = args
 
 		return (True,messages)
 
@@ -305,25 +311,24 @@ class plugin( plugin_db ):
 			ensemble_data['scale'] = 1.0
 			ensemble_data['offset'] = 0.0
 
-		# are we fitting DEER data? - use modulation depth to obtain chisq
+		# optimize modulation depth to fit DEER data
 		if(target_data['args'].deer):
 
-			def f( l ):
-				diff = 0.0
+			tmp = [0.0]*n
+			def opt( l ):
 				for i in range(n):
-					diff += (1-l + l*fit[i] - restraint.data['y'][i])**2 / restraint.data['d'][i]**2
-				return (1/n) * diff
-
-			(ensemble_data['lambda'],chisq) = optimize.brent( f, full_output=True )[0:2]
+					tmp[i] = 1.0 -l +(l*fit[i])
+				return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], tmp )
+			ensemble_data['lambda'] = optimize.brent( opt )
 
 			for i in range(n):
-				fit[i] = (1-ensemble_data['lambda'] + ensemble_data['lambda']*fit[i])
+				fit[i] = 1.0 - ensemble_data['lambda'] + (ensemble_data['lambda']*fit[i])
 		else:
 			# apply the scaling and offset coefficients to the dataset
 			for i in range(n):
 				fit[i] = (fit[i] * ensemble_data['scale']) + ensemble_data['offset']
 
-		# apply additional small SAXS offset if requested
+		# apply additional small SAXS offset if necessary
 		if(target_data['args'].saxs):
 			# determine starting q value index if not already calculated
 			if( not 'saxs_offset_n' in target_data):
@@ -339,8 +344,5 @@ class plugin( plugin_db ):
 		# Save all of these parameters to the ensemble_data object for future retrieval
 		ensemble_data['x'] = restraint.data['x']
 		ensemble_data['y'] = fit
-
-		if(target_data['args'].deer):
-			return chisq
 
 		return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], fit )
