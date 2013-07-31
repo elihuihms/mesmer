@@ -176,8 +176,8 @@ class plugin( plugin_db ):
 		if( len(values) < 2 ):
 			return(False,["Target data must contain at least two columns: x y"])
 
-		restraint.data['x'] = values[0]
-		restraint.data['y'] = values[1]
+		restraint.data['x'] = list(values[0])
+		restraint.data['y'] = list(values[1])
 
 		# autodetect restraint types
 		if( restraint.type == 'SAXS' ):
@@ -187,7 +187,7 @@ class plugin( plugin_db ):
 
 		# argument consistency checks
 		if( args.deer and (args.scale or args.offset) ):
-			return (False,["Scaling or Offset options not available when fitting DEER data"])
+			return (False,["Scaling or offset options not available when fitting DEER data"])
 
 		# set the per-point weighting to be used during fitting
 		if( args.sse ):
@@ -207,7 +207,7 @@ class plugin( plugin_db ):
 
 		else:
 			# X^2 = ((Y - Y_fit) / dY)^2
-			restraint.data['d'] = values[2]
+			restraint.data['d'] = list(values[2])
 
 		target_data['args'] = args
 
@@ -293,9 +293,7 @@ class plugin( plugin_db ):
 
 		assert(len(attributes) == len(ratios))
 
-		n = len(restraint.data['x'])
-
-		# average the attribute profiles
+		# average the attribute data
 		fit = tools.make_weighted_avg( [interpolate.splev(restraint.data['x'], self.get(a.data['key'])) for a in attributes], ratios )
 
 		# determine the scaling and/or offset coefficients
@@ -311,6 +309,8 @@ class plugin( plugin_db ):
 			ensemble_data['scale'] = 1.0
 			ensemble_data['offset'] = 0.0
 
+		n = len(restraint.data['x'])
+
 		# optimize modulation depth to fit DEER data
 		if(target_data['args'].deer):
 
@@ -322,7 +322,7 @@ class plugin( plugin_db ):
 			ensemble_data['lambda'] = optimize.brent( opt )
 
 			for i in range(n):
-				fit[i] = 1.0 - ensemble_data['lambda'] + (ensemble_data['lambda']*fit[i])
+				fit[i] = 1.0 -ensemble_data['lambda'] + (ensemble_data['lambda']*fit[i])
 		else:
 			# apply the scaling and offset coefficients to the dataset
 			for i in range(n):
@@ -341,7 +341,7 @@ class plugin( plugin_db ):
 			for i in range(n):
 				fit[i] = fit[i] + ensemble_data['saxs_offset']
 
-		# Save all of these parameters to the ensemble_data object for future retrieval
+		# Save fits for future retrieval
 		ensemble_data['x'] = restraint.data['x']
 		ensemble_data['y'] = fit
 

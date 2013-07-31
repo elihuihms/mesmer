@@ -14,6 +14,9 @@ use File::Spec;
 
 $terminal = 'aqua';
 $plotargs = ();
+$title = 'default';
+$xlabel = 'X';
+$ylabel = 'Y';
 
 #
 # get any specified vars
@@ -21,7 +24,7 @@ $plotargs = ();
 
 if( $#ARGV == -1 )
 {
-	print "Usage: curv_fit_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] <MESMER_fit_file.fit>\n";
+	print "Usage: curv_fit_plot [-t/-term <terminal>] [-out/-o <file>] [-arg 'arg'] [-title ''] [-xLabel 'X'] [-yLabel 'Y'] <MESMER_fit_file.out>\n";
 	exit;
 }
 
@@ -37,9 +40,19 @@ while ( $argcounter <= $#ARGV )
 		$output = $ARGV[ $argcounter +1 ];
 		$argcounter++;
 	}
-	elsif ( $ARGV[ $argcounter ] eq "-inc" )
+	elsif ( $ARGV[ $argcounter ] eq "-title" )
 	{
-		$wait = $ARGV[ $argcounter +1 ];
+		$title = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-xLabel" )
+	{
+		$xlabel = $ARGV[ $argcounter +1 ];
+		$argcounter++;
+	}
+	elsif ( $ARGV[ $argcounter ] eq "-yLabel" )
+	{
+		$ylabel = $ARGV[ $argcounter +1 ];
 		$argcounter++;
 	}
 	elsif ( $ARGV[ $argcounter ] eq "-arg" )
@@ -51,7 +64,7 @@ while ( $argcounter <= $#ARGV )
 	{
 		$path = $ARGV[ $argcounter ];
 		$path = File::Spec->rel2abs( $path );
-		
+
 		if( ! -f $path)
 		{
 			print "Bad option or fit file specified: \"$ARGV[ $argcounter ]\"\n";
@@ -65,8 +78,10 @@ while ( $argcounter <= $#ARGV )
 # done with argument parsing
 #
 
-$title = basename( $path );
-$title =~ s/\_/\\\_/g;
+if($title eq 'default'){
+	$title = basename( $path );
+	$title =~ s/\_/\\\_/g;
+}
 
 # open the pipe to GNUPLOT and make it hot
 open( GNUPLOT, "| /usr/bin/gnuplot");
@@ -92,8 +107,8 @@ set multiplot
 set size 1,1
 set origin 0,0
 
-set xlabel "Time (ns)"
-set ylabel "Intensity (counts)"
+set xlabel "$xlabel"
+set ylabel "$ylabel"
 #set logscale y
 #set yrange [0.1 : 10000]
 
@@ -106,7 +121,7 @@ set title ' '
 unset xlabel
 
 unset logscale
-set ylabel "I_{exp} - I_{fit}"
+set ylabel "$ylabel _{exp} - $ylabel _{fit}"
 #set yrange [ 0.95 : 1.05 ]
 
 plot '$file' using 1:(\$2-\$3) with points pt 6 lc rgb '#FF0000' notitle

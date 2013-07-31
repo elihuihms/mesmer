@@ -134,7 +134,7 @@ class plugin( plugin_db ):
 				table = f.readlines()
 				f.close()
 			except:
-				return(False,["Error reading from file \"%s\": " % (file,sys.exc_info()[1])])
+				return(False,["Error reading from file \"%s\": %s" % (file,sys.exc_info()[1])])
 		else:
 			table = block['content']
 
@@ -189,7 +189,7 @@ class plugin( plugin_db ):
 				table = f.readlines()
 				f.close()
 			except:
-				return(False,["Error reading from file \"%s\": " % (file,sys.exc_info()[1])])
+				return(False,["Error reading from file \"%s\": %s" % (file,sys.exc_info()[1])])
 		else:
 			table = block['content']
 

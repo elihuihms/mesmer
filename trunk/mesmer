@@ -11,7 +11,7 @@ from lib.functions import print_msg
 
 def main():
 	_mes_version	= "0.4a"
-	_mes_build		= "2013.07.11.0"
+	_mes_build		= "2013.07.22.0"
 
 	# obtain the parameters for the run
 	args = lib.setup.parse_param_arguments()

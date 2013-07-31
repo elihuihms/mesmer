@@ -29,6 +29,9 @@ plugins = lib.plugin_functions.load_plugins(args, '%s/plugins/' % os.path.realpa
 targets = lib.setup.load_all_targets( args, plugins )
 components = lib.setup.load_all_components( args, plugins, targets )
 
+if(None in components):
+	exit()
+
 tmp = scipy.recfromtxt( args.spec, dtype=str, unpack=True )
 n = len(tmp[0])
 spec = [ list(tmp[0]), list(tmp[1]) ]

@@ -3,6 +3,8 @@
 import argparse
 import scipy
 import matplotlib as mpl
+import math
+import random
 
 parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
@@ -28,12 +30,14 @@ group2.add_argument('-lineWidth',				default=3,		type=int,	metavar='3.0',	help='
 group2.add_argument('-spec',	default=None,	metavar='<SPEC>',		help='A specification file')
 group2.add_argument('-specColor',	nargs=3,	default=[1.0,0.5,0.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the specification overlay')
 group2.add_argument('-specWeight',				default=-1.0,	type=float,			help='When plotting target specifications, drop components weighted lower than this amount')
+group2.add_argument('-specLog',		action='store_true', default=False,				help='Use log of spec weight for shading')
 group2.add_argument('-stats',	default=None,	metavar='<STATS>',		help='A MESMER ensemble statistics file')
 group2.add_argument('-statColor',	nargs=3,	default=[0.0,0.5,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the ensemble statistics overlay')
 group2.add_argument('-statNorm',	action='store_true', default=False,				help='Normalize variable color saturation for component prevalence')
 group2.add_argument('-statSame',	action='store_true', default=False,				help='Do not use variable color saturation for component prevalence')
 group2.add_argument('-statWeight',				default=-1.0,	type=float,			help='When plotting MESMER statistics, drop components weighted lower than this amount')
 group2.add_argument('-statPrevalence',			default=-1.0,	type=float,			help='When plotting MESMER statistics, drop components with prevalences lower than this amount')
+group2.add_argument('-statSubsample',			default=100,	type=float,			help='Randomly subsample selected conformers by a percentage.')
 
 group3 = parser.add_argument_group('Output options')
 group3.add_argument('-nogui', 	action='store_true',	default=False,	help='Don\'t display image.')
@@ -118,11 +122,16 @@ if( args.spec ):
 	x = keepKeys( scipy.take(tbl_xvals,o), keys )
 	y = keepKeys( scipy.take(tbl_yvals,o), keys )
 
+	# use log scaling?
+	if(args.specLog):
+		for i in range(len(w)):
+			w[i] = 1/(-1.0 * math.log(w[i]))
+
 	m = max(w)
 	c = [None]*len(keys)
 	for i in range(len(keys)):
 		a = 0.5
-		if(w[i]/m>0.15): # 10% alpha cutoff for clarity
+		if(w[i]/m>0.15): # 15% alpha cutoff for clarity
 			a = 1.0
 		c[i] = (w[i]/m*args.specColor[0],w[i]/m*args.specColor[1],w[i]/m*args.specColor[2],a)
 	plot.scatter( x, y, facecolors=c, edgecolors='none', s=args.pointScale, zorder=1 )
@@ -139,7 +148,9 @@ if( args.stats ):
 	keys = []
 	for i in range(len(w)):
 		if(w[i] > args.statWeight) and (p[i] > args.statPrevalence):
-			keys.append(i)
+			if( random.random()*100 < args.statSubsample ):
+				keys.append(i)
+
 	w = keepKeys( w, keys )
 	p = keepKeys( p, keys )
 	x = keepKeys( scipy.take(c_xvals,o), keys )
