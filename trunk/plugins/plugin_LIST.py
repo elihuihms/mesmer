@@ -16,7 +16,7 @@ import argparse
 import sys
 
 from scipy import interpolate
-from numpy import sqrt,mean
+from numpy import sqrt,mean,average,array
 
 from lib.plugin_primitives import plugin_db
 import lib.plugin_tools as tools
@@ -255,7 +255,7 @@ class plugin( plugin_db ):
 		n = len(restraint.data['x'])
 
 		# average the attribute data
-		ensemble_data['y'] = tools.make_weighted_avg( [self.get(a.data['key'])['y'] for a in attributes], ratios )
+		ensemble_data['y'] = average( [self.get(a.data['key'])['y'] for a in attributes], 0, ratios )
 
 		if( restraint.data['args'].sse ):
 			return get_sse( restraint.data['y'], ensemble_data['y'] )
@@ -269,7 +269,6 @@ class plugin( plugin_db ):
 
 			# calculate the RMS of the experimental data, store if not already present
 			if(not 'rms' in restraint.data):
-				restraint.data['rms'] = tools.get_rms(restraint.data['y'])
+				restraint.data['rms'] = tools.get_rms(array(restraint.data['y']))
 
-			diffs = [ restraint.data['y'][i] - ensemble_data['y'][i] for i in range(n) ]
-			return tools.get_rms(diffs) / restraint.data['rms']
+			return tools.get_rms(restraint.data['y'] - ensemble_data['y']) / restraint.data['rms']

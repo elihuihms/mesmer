@@ -67,20 +67,7 @@ def evolve_ensembles( args, components, ensembles ):
 
 	return
 
-def optimize_ratios( args, components, plugins, targets, ensembles, q, print_status=True ):
-	"""
-	Optimizes the component ratios of the provided ensembles.
-	The actual algorithm used to achieve optimization is dependent upon the Ralgorithm element of the provided MESMER parameters dict
-	This function returns nothing, as the modified ensembles are placed into a multiprocessing queue
-
-	Arguments:
-	args		- The MESMER argument parameters
-	components	- The component database
-	plugins		- A list of the data processing and evaluation plugin modules
-	targets		- A list of mesTargets used to score the ensembles
-	ensembles	- The ensembles to be worked upon
-	q			- A multiprocessing.Queue object that the modified ensembles will be placed into
-	"""
+def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_status=True ):
 
 	# set up a bounding array for bounded optimizers
 	ratio_bounds = [(0.0,None)] * args.size
@@ -135,36 +122,6 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q, print_sta
 
 			# normalize ensemble ratios for the target
 			e.normalize(t.name)
-
-	q.put(ensembles)
-	return
-
-def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_status=True ):
-	"""
-	A multiprocessing wrapper for the function optimize_ratios.
-	See that function's docstrings for more information.
-
-	Returns a copy of the provided ensembles that have had their component ratios optimized
-	"""
-
-	q = Queue()
-	chunksize = int(math.ceil(len(ensembles) / float(args.threads)))
-
-	# randomize ensemble order so threads should finish processing their chunks in about the same time
-	random.shuffle( ensembles )
-
-	procs = []
-	for i in range( args.threads ):
-		p = Process(target=optimize_ratios, args=(args,components,plugins,targets,ensembles[ chunksize * i : chunksize * (i +1) ],q,print_status))
-		procs.append( p )
-		p.start()
-
-	ensembles = []
-	for i in range( args.threads ):
-		ensembles.extend( q.get() )
-
-	for p in procs:
-		p.join()
 
 	return ensembles
 

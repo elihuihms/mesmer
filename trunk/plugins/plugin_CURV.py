@@ -16,6 +16,7 @@
 
 import argparse
 import math
+import numpy
 import scipy
 import scipy.interpolate as interpolate
 import scipy.optimize as optimize
@@ -176,14 +177,14 @@ class plugin( plugin_db ):
 		if( len(values) < 2 ):
 			return(False,["Target data must contain at least two columns: x y"])
 
-		restraint.data['x'] = list(values[0])
-		restraint.data['y'] = list(values[1])
+		restraint.data['x'] = numpy.array(values[0])
+		restraint.data['y'] = numpy.array(values[1])
 
 		# autodetect restraint types
-		if( restraint.type == 'SAXS' ):
-			args.saxs = -1
-		elif( restraint.type == 'DEER' ):
-			args.deer = True
+		#if( restraint.type == 'SAXS' ):
+		#	args.saxs = -1
+		#elif( restraint.type == 'DEER' ):
+		#	args.deer = True
 
 		# argument consistency checks
 		if( args.deer and (args.scale or args.offset) ):
@@ -207,7 +208,7 @@ class plugin( plugin_db ):
 
 		else:
 			# X^2 = ((Y - Y_fit) / dY)^2
-			restraint.data['d'] = list(values[2])
+			restraint.data['d'] = numpy.array(values[2])
 
 		target_data['args'] = args
 
@@ -294,17 +295,18 @@ class plugin( plugin_db ):
 		assert(len(attributes) == len(ratios))
 
 		# average the attribute data
-		fit = tools.make_weighted_avg( [interpolate.splev(restraint.data['x'], self.get(a.data['key'])) for a in attributes], ratios )
+		ensemble_data['y'] = numpy.average([interpolate.splev(restraint.data['x'], self.get(a.data['key'])) for a in attributes],0,ratios)
+		ensemble_data['x'] = restraint.data['x']
 
 		# determine the scaling and/or offset coefficients
 		if(target_data['args'].scale and target_data['args'].offset):
-			(ensemble_data['scale'],ensemble_data['offset']) = tools.get_curve_transforms( list(restraint.data['y']) , restraint.data['d'], fit[:] )
+			(ensemble_data['scale'],ensemble_data['offset']) = tools.get_curve_transforms( restraint.data['y'] , restraint.data['d'], ensemble_data['y'][:] )
 		elif(target_data['args'].scale):
-			ensemble_data['scale'] = tools.get_scale( restraint.data['y'], restraint.data['d'], fit[:] )
+			ensemble_data['scale'] = tools.get_scale( restraint.data['y'], restraint.data['d'], ensemble_data['y'][:] )
 			ensemble_data['offset'] = 0.0
 		elif(target_data['args'].offset):
 			ensemble_data['scale'] = 1.0
-			ensemble_data['offset'] = tools.get_offset( restraint.data['y'], fit[:] )
+			ensemble_data['offset'] = tools.get_offset( restraint.data['y'], ensemble_data['y'][:] )
 		else:
 			ensemble_data['scale'] = 1.0
 			ensemble_data['offset'] = 0.0
@@ -317,16 +319,15 @@ class plugin( plugin_db ):
 			tmp = [0.0]*n
 			def opt( l ):
 				for i in range(n):
-					tmp[i] = 1.0 -l +(l*fit[i])
-				return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], tmp )
+					tmp[i] = 1.0 -l +(l*ensemble_data['y'][i])
+				return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], numpy.array(tmp) )
 			ensemble_data['lambda'] = optimize.brent( opt )
 
-			for i in range(n):
-				fit[i] = 1.0 -ensemble_data['lambda'] + (ensemble_data['lambda']*fit[i])
+			ensemble_data['y'] = numpy.array([ 1.0 -ensemble_data['lambda'] + (ensemble_data['lambda']*f) for f in ensemble_data['y'] ])
 		else:
 			# apply the scaling and offset coefficients to the dataset
-			for i in range(n):
-				fit[i] = (fit[i] * ensemble_data['scale']) + ensemble_data['offset']
+			ensemble_data['y'] = ensemble_data['y'] * ensemble_data['scale']
+			ensemble_data['y'] = ensemble_data['y'] + ensemble_data['offset']
 
 		# apply additional small SAXS offset if necessary
 		if(target_data['args'].saxs):
@@ -337,12 +338,7 @@ class plugin( plugin_db ):
 						target_data['saxs_offset_n'] = i
 						break
 
-			ensemble_data['saxs_offset'] = tools.get_offset( restraint.data['y'], fit, target_data['saxs_offset_n'] )
-			for i in range(n):
-				fit[i] = fit[i] + ensemble_data['saxs_offset']
+			ensemble_data['saxs_offset'] = tools.get_offset( restraint.data['y'], ensemble_data['y'], target_data['saxs_offset_n'] )
+			ensemble_data['y'] = ensemble_data['y'] + ensemble_data['saxs_offset']
 
-		# Save fits for future retrieval
-		ensemble_data['x'] = restraint.data['x']
-		ensemble_data['y'] = fit
-
-		return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], fit )
+		return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )
