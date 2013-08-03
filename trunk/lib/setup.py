@@ -34,8 +34,9 @@ def parse_param_arguments():
 	parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
 	group0 = parser.add_argument_group('Target and component files')
-	group0.add_argument('-target',		action='append',	required=True,					metavar='FILE',	help='MESMER target file')
-	group0.add_argument('-components',	action='append',	required=True,	nargs='*',		metavar='FILE/DIR',	help='MESMER component files or directory ')
+	group0.add_argument('-target',		action='append',	required=True,					metavar='FILE.target',			help='MESMER target file')
+	group0.add_argument('-components',	action='append',	required=True,	nargs='*',		metavar='FILE.component/DIR',	help='MESMER component files or directory ')
+	group0.add_argument('-resume',															metavar='STATE.tbl',			help='Resume from a provided ensemble state')
 
 	group1 = parser.add_argument_group('Simulation size and convergence parameters')
 	group1.add_argument('-name',		action='store',		default='MESMER_Results',		metavar='NAME',	help='Name of this run - a directory will be created with this name to contain all MESMER output')
@@ -69,7 +70,6 @@ def parse_param_arguments():
 
 	group5 = parser.add_argument_group('Miscellaneous options')
 	group5.add_argument('-seed',		action='store',		default=1,		type=int,		metavar='N',	help='Random number generator seed value to use.')
-	#group5.add_argument('-state',		action='store',		default=None,					metavar='FILE',	help='Load ensemble makeup from an existing ensemble state file')
 	group5.add_argument('-uniform',		action='store_true',default=False,									help='Load ensembles uniformly from available components instead of randomly')
 	group5.add_argument('-force',		action='store_true',default=False,									help='Enable overwriting of previous output directories.')
 	group5.add_argument('-threads',		action='store',		default=1,		type=int,		metavar='N',	help='Number of multiprocessing threads to use.')

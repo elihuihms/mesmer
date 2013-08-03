@@ -326,8 +326,8 @@ class plugin( plugin_db ):
 			ensemble_data['y'] = numpy.array([ 1.0 -ensemble_data['lambda'] + (ensemble_data['lambda']*f) for f in ensemble_data['y'] ])
 		else:
 			# apply the scaling and offset coefficients to the dataset
-			ensemble_data['y'] = ensemble_data['y'] * ensemble_data['scale']
-			ensemble_data['y'] = ensemble_data['y'] + ensemble_data['offset']
+			ensemble_data['y'] *= ensemble_data['scale']
+			ensemble_data['y'] += ensemble_data['offset']
 
 		# apply additional small SAXS offset if necessary
 		if(target_data['args'].saxs):
@@ -339,6 +339,6 @@ class plugin( plugin_db ):
 						break
 
 			ensemble_data['saxs_offset'] = tools.get_offset( restraint.data['y'], ensemble_data['y'], target_data['saxs_offset_n'] )
-			ensemble_data['y'] = ensemble_data['y'] + ensemble_data['saxs_offset']
+			ensemble_data['y'] += ensemble_data['saxs_offset']
 
 		return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )

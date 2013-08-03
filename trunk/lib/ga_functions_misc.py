@@ -36,6 +36,10 @@ def make_ensembles( args, plugins, targets, components ):
 		else:
 			ensembles[-1].fill_uniform( i, component_names )
 
+	# if we're resuming from a previous run, fill the ensembles with the specified makeup
+	if( args.resume ):
+		set_ensemble_state( args, ensembles, components )
+
 	return ensembles
 
 def evolve_ensembles( args, components, ensembles ):
@@ -67,7 +71,20 @@ def evolve_ensembles( args, components, ensembles ):
 
 	return
 
-def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_status=True ):
+def optimize_ratios( args, components, plugins, targets, ensembles, q, print_status=True ):
+	"""
+	Optimizes the component ratios of the provided ensembles.
+	The actual algorithm used to achieve optimization is dependent upon the Ralgorithm element of the provided MESMER parameters dict
+	This function returns nothing, as the modified ensembles are placed into a multiprocessing queue
+
+	Arguments:
+	args		- The MESMER argument parameters
+	components	- The component database
+	plugins		- A list of the data processing and evaluation plugin modules
+	targets		- A list of mesTargets used to score the ensembles
+	ensembles	- The ensembles to be worked upon
+	q			- A multiprocessing.Queue object that the modified ensembles will be placed into
+	"""
 
 	# set up a bounding array for bounded optimizers
 	ratio_bounds = [(0.0,None)] * args.size
@@ -123,6 +140,36 @@ def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_sta
 			# normalize ensemble ratios for the target
 			e.normalize(t.name)
 
+	q.put(ensembles)
+	return
+
+def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_status=True ):
+	"""
+	A multiprocessing wrapper for the function optimize_ratios.
+	See that function's docstrings for more information.
+
+	Returns a copy of the provided ensembles that have had their component ratios optimized
+	"""
+
+	q = Queue()
+	chunksize = int(math.ceil(len(ensembles) / float(args.threads)))
+
+	# randomize ensemble order so threads should finish processing their chunks in about the same time
+	random.shuffle( ensembles )
+
+	procs = []
+	for i in range( args.threads ):
+		p = Process(target=optimize_ratios, args=(args,components,plugins,targets,ensembles[ chunksize * i : chunksize * (i +1) ],q,print_status))
+		procs.append( p )
+		p.start()
+
+	ensembles = []
+	for i in range( args.threads ):
+		ensembles.extend( q.get() )
+
+	for p in procs:
+		p.join()
+
 	return ensembles
 
 def calculate_fitnesses( targets, ensembles ):
@@ -158,8 +205,38 @@ def get_unique_ensembles( ensembles ):
 
 	return unique
 
+def set_ensemble_state( args, ensembles, components ):
 
+	try:
+		f = open( args.resume, 'r' )
+	except IOError:
+		print_msg( "\t\tERROR: Could not open ensemble state table \"%s\"" % file )
+		return False
 
+	names = components.keys()
+
+	i = 0
+	for line in f:
+		if(i>len(ensembles)):
+			print_msg( "\t\tWARNING: Stopped loading ensemble state file at table %i" % (i+1) )
+			break
+
+		# read only the first target (components are the same, only weights different)
+		a = line.split()
+		if(len(a) != (2*args.size)+4):
+			print_msg( "\t\tINFO: Finished reading ensemble state table (%i ensembles loaded)" % (i+1) )
+			break
+
+		for j in range(args.size):
+			if(not a[j +1] in names):
+				print_msg( "\t\tERROR: Component \"%s\" referenced in line %i of ensemble state table not found in loaded components" % (a[j+1],i+1) )
+			else:
+				ensembles[i].component_names[j] = a[j+1]
+
+		i+=1
+
+	f.close()
+	return True
 
 
 

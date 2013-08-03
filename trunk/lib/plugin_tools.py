@@ -1,117 +1,22 @@
-import math
-import random
-import numpy
-import scipy.interpolate
-import scipy.optimize
+from random	import choice
+from math	import sqrt
+from scipy	import array,interpolate
 
 _use_weave = True
 
 if(_use_weave):
-	from scipy.weave import inline
 	try:
-		test = numpy.array( [ random.random() for i in range(10) ] )
-		code=\
-		"""
-		double sum=0;
-
-		for(int i=0; i<Ntest[0]; i++)
-			sum += (double) TEST1(i);
-		return_val = sum;
-		"""
-		inline( code, ['test'] )
+		import plugin_tools_weave as weave
 	except:
-		print "WARNING : plugin_tools.py - weave compile failure"
+		print "WARNING : plugin_tools.py - Weave compile failure, falling back to native python plugin_tools"
 		_use_weave = False
 
 if(_use_weave):
-	print "INFO: Using weave versions of plugin_tools"
-
-	def get_sse( y, yfit ):
-		code=\
-		"""
-		double sum=0;
-
-		for (int i=0; i<Ny[0]; i++)
-			sum += pow( (double) Y1(i) - (double) YFIT1(i), 2);
-		return_val = sum;
-		"""
-
-		return inline( code, ['y','yfit'], verbose=0 )
-
-	def get_chisq_reduced( y, dy, yfit ):
-		code=\
-		"""
-		double sum=0;
-
-		for (int i=0; i<Ny[0]; i++)
-		{
-			if( (double) DY1(i) == 0 )
-				continue;
-
-			sum += pow(( (double) Y1(i) - (double) YFIT1(i)) / (double) DY1(i), 2);
-		}
-
-		return_val = sum/(Ny[0] -1);
-		"""
-
-		return inline( code, ['y','dy','yfit'], verbose=0 )
-
-	def get_scale( y, dy, yfit ):
-		code=\
-		"""
-		double a=0;
-		double b=0;
-		double c;
-
-		for(int i=0; i<Ny[0]; i++)
-		{
-			if( (double) DY1(i) == 0 )
-				continue;
-
-			c = pow((double) DY1(i), 2);
-			a += ((double) YFIT1(i) * (double) Y1(i)) / c;
-			b += ((double) YFIT1(i) * (double) YFIT1(i)) / c;
-		}
-
-		if( b == 0 )
-			return_val = 0;
-		else
-			return_val = a / b;
-
-		"""
-
-		return inline( code, ['y','dy','yfit'], verbose=0 )
-
-	def get_offset( y, yfit, index=0):
-		code=\
-		"""
-		double y_avg=0;
-		double y_fit_avg=0;
-
-		for(int i=index; i<Ny[0]; i++)
-		{
-			y_avg += (double) Y1(i);
-			y_fit_avg += (double) YFIT1(i);
-		}
-
-		return_val = (y_avg - y_fit_avg) / (Ny[0] - index);
-		"""
-
-		return inline( code, ['y','yfit','index'], verbose=0 )
-
-	def get_rms( a ):
-		code=\
-		"""
-		double sum=0;
-
-		for(int i=0; i<Na[0]; i++)
-			sum += pow(A1(i),2);
-
-		return_val = sqrt( sum / Na[0] );
-		"""
-
-		return inline( code, ['a'], verbose=0 )
-
+	get_sse = weave.get_sse
+	get_chisq_reduced = weave.get_chisq_reduced
+	get_scale = weave.get_scale
+	get_offset = weave.get_offset
+	get_rms = weave.get_rms
 else:
 	def get_sse( y, y_fit ):
 		"""
@@ -194,7 +99,7 @@ else:
 		sum = 0.0
 		for f in a:
 			sum += f**2
-		return math.sqrt( sum / len(a) )
+		return sqrt( sum / len(a) )
 
 def get_flat_harmonic( y, dy, y_fit, power=2 ):
 	"""
@@ -247,7 +152,7 @@ def interpolate_curve( x, int_x, int_y ):
 	int_y	- list of original y values
 	"""
 
-	return scipy.interpolate.splev( x, scipy.interpolate.splrep( int_x, int_y ) )
+	return interpolate.splev( x, interpolate.splrep( int_x, int_y ) )
 
 def make_bootstrap_sample( y, y_fit ):
 	"""
@@ -265,7 +170,7 @@ def make_bootstrap_sample( y, y_fit ):
 
 	residuals = [ y[i] - y_fit[i] for i in range(n) ]
 
-	return [f + random.choice(residuals) for f in y_fit]
+	return array([f + choice(residuals) for f in y_fit])
 
 def make_interpolated_bootstrap_sample( x, y, x_fit, y_fit ):
 	"""
@@ -283,5 +188,5 @@ def make_interpolated_bootstrap_sample( x, y, x_fit, y_fit ):
 	estimates = interpolate_curve( x, x_fit, y_fit )
 	residuals = [ y[i] - estimates[i] for i in range(len(y)) ]
 
-	return [f + random.choice(residuals) for f in estimates]
+	return array([f + choice(residuals) for f in estimates])
 

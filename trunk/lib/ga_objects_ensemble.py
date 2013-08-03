@@ -143,7 +143,7 @@ class mesEnsemble:
 
 		total = sum(self.ratios[target_name])
 		if( total == 0 ):
-			self.ratios[target_name] = [0.0] * self.size
+			self.ratios[target_name] = [1.0/self.size] * self.size
 		else:
 			for i in range(self.size):
 				self.ratios[target_name][i] = self.ratios[target_name][i] / total
