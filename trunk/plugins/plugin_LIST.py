@@ -252,22 +252,21 @@ class plugin( plugin_db ):
 
 		assert(len(attributes) == len(ratios))
 
-		n = len(restraint.data['x'])
-
-		# average the attribute data
+		# average the attribute data - this is slow due to the lookup penalty each time. Optimize?
 		ensemble_data['y'] = average( [self.get(a.data['key'])['y'] for a in attributes], 0, ratios )
 
 		if( restraint.data['args'].sse ):
 			return get_sse( restraint.data['y'], ensemble_data['y'] )
 
 		elif( restraint.data['args'].harm ):
+			n = len(restraint.data['x'])
 			return sum([tools.get_flat_harmonic(restraint.data['y'][i],restraint.data['d'][i],ensemble_data['y'][i]) for i in range(n)])
 
 		elif( restraint.data['args'].Q ):
 			# Calculate quality (Q) factor
 			# Described in Cornilescu et al. (1998) J. Am. Chem. Soc.
 
-			# calculate the RMS of the experimental data, store if not already present
+			# calculate the RMS of the experimental data, cache if not already present
 			if(not 'rms' in restraint.data):
 				restraint.data['rms'] = tools.get_rms(array(restraint.data['y']))
 

@@ -279,7 +279,6 @@ class plugin( plugin_db ):
 
 		return (True,[])
 
-	@profile
 	def calc_fitness( self, restraint, target_data, ensemble_data, attributes, ratios ):
 		"""
 		Calculates the fitness of a set of attributes against a given restraint
@@ -295,7 +294,7 @@ class plugin( plugin_db ):
 
 		assert(len(attributes) == len(ratios))
 
-		# average the attribute data
+		# average the attribute data - this is slow due to the lookup penalty each time. Optimize?
 		ensemble_data['y'] = numpy.average([interpolate.splev(restraint.data['x'], self.get(a.data['key'])) for a in attributes],0,ratios)
 		ensemble_data['x'] = restraint.data['x']
 

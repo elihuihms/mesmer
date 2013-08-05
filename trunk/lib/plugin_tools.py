@@ -193,7 +193,7 @@ def make_interpolated_bootstrap_sample( x, y, x_fit, y_fit ):
 	# create local numpy copies
 	y = scipy.array(y)
 
-	estimates = scipy.interpolate_curve( x, x_fit, y_fit )
+	estimates = interpolate_curve( x, x_fit, y_fit )
 	residuals = y-estimates
 
 	return scipy.array([f + choice(residuals) for f in estimates])

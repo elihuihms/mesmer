@@ -64,7 +64,9 @@ class mesTarget:
 					status = None
 
 					# check that the scaling
-					if( not header_array[1].isdigit() ):
+					try:
+						float(header_array[1])
+					except:
 						print_msg("ERROR: Restraint on line %i does not have a scaling value." % (b['l_start']))
 						return False
 
