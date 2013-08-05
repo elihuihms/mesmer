@@ -1,6 +1,7 @@
+import scipy
+
 from random	import choice
 from math	import sqrt
-from scipy	import array,interpolate
 
 _use_weave = True
 
@@ -22,12 +23,12 @@ else:
 		"""
 		Get the sum squared of error between y and y_fit
 		"""
-		n = len(y)
-		sum = 0.0
-		for i in range( n ):
-			sum += ( y[i] - y_fit[i] )**2
 
-		return sum
+		# create local numpy copies
+		y,y_fit = scipy.array(y),scipy.array(y_fit)
+
+		diffs = y - y_fit
+		return sum(scipy.square(diffs))
 
 	def get_chisq_reduced( y, dy, y_fit ):
 		"""
@@ -39,16 +40,15 @@ else:
 		y_fit	- list of floats, the fitted values
 		"""
 
+		# create local numpy copies
+		y,dy,y_fit = scipy.array(y),scipy.array(dy),scipy.array(y_fit)
+
 		n = len(y)
-		sum = 0.0
-		for i in range( n ):
-			if(dy[i] == 0.0):
-				continue
-			sum += ( (y[i] - y_fit[i]) / dy[i] )**2
+		diffs = y - y_fit
+		diffs /= dy
+		return sum(scipy.square(diffs)) / (n -1)
 
-		return sum/(n -1)
-
-	def get_scale( y, dy, y_fit):
+	def get_scale( y, dy, y_fit ):
 		"""
 		Get the optimal scaling factor to superimpose two lists
 
@@ -58,12 +58,12 @@ else:
 		y_fit	- list of floats, the fitted values
 		"""
 
-		(a,b) = (0.0,0.0)
-		for i in range( len(y) ):
-			if(dy[i] == 0.0):
-				continue
-			a += ( y_fit[i] * y[i] )/( dy[i]**2 )
-			b += ( y_fit[i] * y_fit[i] )/( dy[i]**2 )
+		# create local numpy copies
+		y,dy,y_fit = scipy.array(y),scipy.array(dy),scipy.array(y_fit)
+
+		dy2 = scipy.square(dy)
+		a = sum( y     * y_fit / dy2 )
+		b = sum( y_fit * y_fit / dy2 )
 
 		if( b == 0 ):
 			return 0.0
@@ -82,14 +82,20 @@ else:
 		index		- starting index to use, defaults to 0 (all points)
 		"""
 
+		# create local numpy copies
+		y,y_fit = scipy.array(y),scipy.array(y_fit)
+
+		if( index == 0 ):
+			a = sum( y )
+			b = sum( y_fit )
+			return ( a - b ) / len(y)
+
 		n = len(y)
-
-		y_avg, y_fit_avg = 0.0, 0.0
+		a, b = 0.0, 0.0
 		for i in range(index,n):
-			y_avg += y[ i ]
-			y_fit_avg += y_fit[ i ]
-
-		return (y_avg - y_fit_avg) / (n-index)
+			a += y[ i ]
+			b += y_fit[ i ]
+		return ( a - b ) / (n-index)
 
 	def get_rms( a ):
 		"""
@@ -127,32 +133,32 @@ def get_curve_transforms( y, dy, y_fit ):
 	y_fit		- list of n floats, the fitted values
 	"""
 
-	# translate both y and y_fit means to zero
-	n = len(y)
-	y_avg = sum(y) / n
-	y_fit_avg = sum(y_fit) / n
+	# create local numpy copies
+	y,dy,y_fit = scipy.array(y),scipy.array(dy),scipy.array(y_fit)
 
-	for i in range(n):
-		y[i] -= y_avg
-		y_fit[i] -= y_fit_avg
+	# translate both y and y_fit means to zero
+	a = scipy.mean( y )
+	b = scipy.mean( y_fit )
+	y -= a
+	y_fit -= b
 
 	scale = get_scale( y, dy, y_fit )
 
-	return( scale, y_avg - (y_fit_avg * scale) )
+	return( scale, a - (b * scale) )
 
 def interpolate_curve( x, int_x, int_y ):
 	"""
 	Interpolate one curve to another by spline fitting
 
-	Returns a list of the interpolated y values
+	Returns a list of the scipy.interpolated y values
 
 	Arguments:
-	x		- list of x values over which to interpolate the curve
+	x		- list of x values over which to scipy.interpolate the curve
 	int_x	- list of original x values
 	int_y	- list of original y values
 	"""
 
-	return interpolate.splev( x, interpolate.splrep( int_x, int_y ) )
+	return scipy.interpolate.splev( x, scipy.interpolate.splrep( int_x, int_y ) )
 
 def make_bootstrap_sample( y, y_fit ):
 	"""
@@ -165,12 +171,11 @@ def make_bootstrap_sample( y, y_fit ):
 	y_fit	- list of floats, the best estimate
 	"""
 
-	n = len(y)
-	assert(n == len(y_fit))
+	# create local numpy copies
+	y,y_fit = scipy.array(y),scipy.array(y_fit)
 
-	residuals = [ y[i] - y_fit[i] for i in range(n) ]
-
-	return array([f + choice(residuals) for f in y_fit])
+	residuals = y - y_fit
+	return scipy.array([f + choice(residuals) for f in y_fit])
 
 def make_interpolated_bootstrap_sample( x, y, x_fit, y_fit ):
 	"""
@@ -185,8 +190,11 @@ def make_interpolated_bootstrap_sample( x, y, x_fit, y_fit ):
 	y_fit	- list of floats, the fit dataset dependent var
 	"""
 
-	estimates = interpolate_curve( x, x_fit, y_fit )
-	residuals = [ y[i] - estimates[i] for i in range(len(y)) ]
+	# create local numpy copies
+	y = scipy.array(y)
 
-	return array([f + choice(residuals) for f in estimates])
+	estimates = scipy.interpolate_curve( x, x_fit, y_fit )
+	residuals = y-estimates
+
+	return scipy.array([f + choice(residuals) for f in estimates])
 

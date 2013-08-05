@@ -279,6 +279,7 @@ class plugin( plugin_db ):
 
 		return (True,[])
 
+	@profile
 	def calc_fitness( self, restraint, target_data, ensemble_data, attributes, ratios ):
 		"""
 		Calculates the fitness of a set of attributes against a given restraint
@@ -300,13 +301,13 @@ class plugin( plugin_db ):
 
 		# determine the scaling and/or offset coefficients
 		if(target_data['args'].scale and target_data['args'].offset):
-			(ensemble_data['scale'],ensemble_data['offset']) = tools.get_curve_transforms( restraint.data['y'] , restraint.data['d'], ensemble_data['y'][:] )
+			(ensemble_data['scale'],ensemble_data['offset']) = tools.get_curve_transforms( restraint.data['y'] , restraint.data['d'], ensemble_data['y'] )
 		elif(target_data['args'].scale):
-			ensemble_data['scale'] = tools.get_scale( restraint.data['y'], restraint.data['d'], ensemble_data['y'][:] )
+			ensemble_data['scale'] = tools.get_scale( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )
 			ensemble_data['offset'] = 0.0
 		elif(target_data['args'].offset):
 			ensemble_data['scale'] = 1.0
-			ensemble_data['offset'] = tools.get_offset( restraint.data['y'], ensemble_data['y'][:] )
+			ensemble_data['offset'] = tools.get_offset( restraint.data['y'], ensemble_data['y'] )
 		else:
 			ensemble_data['scale'] = 1.0
 			ensemble_data['offset'] = 0.0

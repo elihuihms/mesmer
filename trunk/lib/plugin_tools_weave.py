@@ -4,6 +4,7 @@ from scipy.weave import inline
 _compile_args = ["-Wno-unused-variable"]
 
 def get_sse( y, yfit ):
+	y,yfit = array(y),array(yfit)
 	code=\
 	"""
 	double sum=0;
@@ -16,6 +17,7 @@ def get_sse( y, yfit ):
 	return inline( code, ['y','yfit'], verbose=0, extra_compile_args=_compile_args )
 
 def get_chisq_reduced( y, dy, yfit ):
+	y,dy,yfit = array(y),array(dy),array(yfit)
 	code=\
 	"""
 	double sum=0;
@@ -34,6 +36,7 @@ def get_chisq_reduced( y, dy, yfit ):
 	return inline( code, ['y','dy','yfit'], verbose=0, extra_compile_args=_compile_args )
 
 def get_scale( y, dy, yfit ):
+	y,dy,yfit = array(y),array(dy),array(yfit)
 	code=\
 	"""
 	double a=0;
@@ -60,6 +63,7 @@ def get_scale( y, dy, yfit ):
 	return inline( code, ['y','dy','yfit'], verbose=0, extra_compile_args=_compile_args )
 
 def get_offset( y, yfit, index=0):
+	y,yfit = array(y),array(yfit)
 	code=\
 	"""
 	double y_avg=0;
@@ -77,6 +81,7 @@ def get_offset( y, yfit, index=0):
 	return inline( code, ['y','yfit','index'], verbose=0, extra_compile_args=_compile_args )
 
 def get_rms( a ):
+	a = array(a)
 	code=\
 	"""
 	double sum=0;
