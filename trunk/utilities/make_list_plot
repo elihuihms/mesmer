@@ -7,7 +7,7 @@ import matplotlib as mpl
 parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
 group0 = parser.add_argument_group('Table specification')
-group0.add_argument('-input', 	required=True,	nargs='+',					help='MESMER restraint output file(s).')
+group0.add_argument('input', 		nargs='+',					help='MESMER restraint output file(s).')
 group0.add_argument('-xCol',	default=1,		metavar='N',	type=int,	help='The column containing the desired component attribute')
 group0.add_argument('-yCol',	default=2,		metavar='N',	type=int,	help='The column to use as y-axis data')
 
@@ -20,6 +20,7 @@ group1.add_argument('-plotArgs',	nargs=2,	action='append',	default=[],	metavar='
 group1.add_argument('-plotProp',	nargs=2,	action='append',	default=[],	metavar='',	help='Set properties for the figure as ARG VALUE')
 group1.add_argument('-figsize',		nargs=2,	default=[6,6],	type=int,	metavar='N',	help='Set figure size and ratio: X Y')
 group1.add_argument('-pointScale',				default=40,		type=int,	metavar='20',	help='Change the scaling of the attribute scatter plot points')
+group1.add_argument('-colors',		nargs='*',	default=[] )
 
 group3 = parser.add_argument_group('Output options')
 group3.add_argument('-nogui', 	action='store_true',	default=False,	help='Don\'t display image.')
@@ -65,10 +66,10 @@ ax1.set_ylabel( args.yLabel )
 ax2.plot( [0,lMax], [0,0], 'k-' )
 ax2.set_xlim( [0,lMax] )
 
-colors = ('b','g','r','c','m','y','k','w')
+args.colors.extend(['b','g','r','c','m','y','k','w'])
 for (i,d) in enumerate(data):
-	ax1.scatter( d[0], d[1], c=colors[i] )
-	ax2.scatter( [j for j in range(len(d[0]))], d[0] - d[1], c=colors[i] )
+	ax1.scatter( d[0], d[1], c=args.colors[i], edgecolors='none' )
+	ax2.scatter( [j for j in range(len(d[0]))], d[0] - d[1], c=args.colors[i], edgecolors='none' )
 
 for (arg,val) in args.plotArgs:
 	mpl.rcParams[ arg ] = val

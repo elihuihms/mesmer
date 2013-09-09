@@ -15,7 +15,7 @@ class plugin( plugin_basic ):
 
 	name = 'XX_EXAMPLE'
 	version = '2013.06.04'
-	type = ['TEST']
+	type = ['TEST','TEST0','TEST1','TEST2','TEST3','TEST4','TEST5','TEST6','TEST7','TEST8','TEST9']
 
 	#
 	# output functions

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+#mesmer_path = "/Volumes/Fosterlab/users/ihms/Applications/mesmer"
 mesmer_path = "/fosterlab/users/ihms/Applications/mesmer"
 
 import argparse
@@ -9,6 +10,7 @@ import sys
 import glob
 
 sys.path.append(mesmer_path)
+
 import lib.setup
 import lib.plugin_functions
 import lib.ga_objects_ensemble

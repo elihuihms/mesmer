@@ -15,8 +15,8 @@ Component file arguments:
 import argparse
 import sys
 
-from scipy import interpolate
-from numpy import sqrt,mean,average,array
+from scipy import sqrt,mean,average,array,interpolate
+from scipy.stats import linregress
 
 from lib.plugin_primitives import plugin_db
 import lib.plugin_tools as tools
@@ -116,6 +116,7 @@ class plugin( plugin_db ):
 		parser.add_argument('-sse', 	action='store_true',						help='Calculate fitness as a simple (normalized) sum square of error')
 		parser.add_argument('-harm', 	action='store_true',						help='Calculate fitness from a flat-bottomed harmonic, using the interval present in -col N+1')
 		parser.add_argument('-Q', 		action='store_true',						help='Calculate fitness as an Q factor (quality factor).')
+		parser.add_argument('-R', 		action='store_true',						help='Calculate fitness as a reciprocal of the correlation coefficient (1/R^2).')
 		parser.add_argument('-plot', 	action='store_true',						help='Create a plot window at each generation showing fit to data')
 
 		try:
@@ -125,7 +126,7 @@ class plugin( plugin_db ):
 
 		restraint.data['args'] = args
 
-		if (not args.sse) and (not args.harm) and (not args.Q):
+		if (not args.sse) and (not args.harm) and (not args.Q) and (not args.R):
 			return(False,['Must specify at least one fitness calculation type!'])
 
 		if(args.file):
@@ -271,3 +272,6 @@ class plugin( plugin_db ):
 				restraint.data['rms'] = tools.get_rms(array(restraint.data['y']))
 
 			return tools.get_rms(restraint.data['y'] - ensemble_data['y']) / restraint.data['rms']
+		elif( restraint.data['args'].R ):
+			(slope,intercept,r,p,stderr) = linregress( restraint.data['y'], ensemble_data['y'] )
+			return 1.0/(r**2)

@@ -30,7 +30,11 @@ class plugin( plugin_db ):
 
 	name = 'default_CURV'
 	version = '2013.07.16'
-	type = ('CURV','SAXS','DEER','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9')
+	type = (
+		'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',
+		'SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9',
+		'DEER','DEER0','DEER1','DEER2','DEER3','DEER4','DEER5','DEER6','DEER7','DEER8','DEER9'
+		)
 
 	_plot_handles = {}
 
@@ -181,10 +185,10 @@ class plugin( plugin_db ):
 		restraint.data['y'] = numpy.array(values[1])
 
 		# autodetect restraint types
-		#if( restraint.type == 'SAXS' ):
-		#	args.saxs = -1
-		#elif( restraint.type == 'DEER' ):
-		#	args.deer = True
+		if( restraint.type[0:4] == 'SAXS' ):
+			args.saxs = -1
+		elif( restraint.type[0:4] == 'DEER' ):
+			args.deer = True
 
 		# argument consistency checks
 		if( args.deer and (args.scale or args.offset) ):

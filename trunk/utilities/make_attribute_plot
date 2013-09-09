@@ -9,7 +9,7 @@ import random
 parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
 group0 = parser.add_argument_group('Table specification')
-group0.add_argument('-table', 	required=True,								help='A file containing tab-delimited statistics of the available components')
+group0.add_argument('table', 	default=None,								help='A file containing tab-delimited statistics of the available components')
 group0.add_argument('-Ncol',	default=0,		metavar='N',	type=int,	help='The column containing the component names')
 group0.add_argument('-xCol',	default=1,		metavar='N',	type=int,	help='The column containing the desired component attribute')
 group0.add_argument('-yCol',	default=2,		metavar='N',	type=int,	help='The column to use as y-axis data')
@@ -44,6 +44,10 @@ group3.add_argument('-nogui', 	action='store_true',	default=False,	help='Don\'t 
 group3.add_argument('-figure', 					default=None,	help='The file to write the resulting figure to.')
 
 args = parser.parse_args()
+
+if(args.table==None):
+	print "You must provide a component attribute table"
+	exit()
 
 # generate master data lists
 tmp = scipy.genfromtxt( args.table, usecols=(args.Ncol,args.xCol,args.yCol), dtype=str, unpack=True )
@@ -127,14 +131,15 @@ if( args.spec ):
 		for i in range(len(w)):
 			w[i] = 1/(-1.0 * math.log(w[i]))
 
-	m = max(w)
-	c = [None]*len(keys)
-	for i in range(len(keys)):
-		a = 0.5
-		if(w[i]/m>0.15): # 15% alpha cutoff for clarity
-			a = 1.0
-		c[i] = (w[i]/m*args.specColor[0],w[i]/m*args.specColor[1],w[i]/m*args.specColor[2],a)
-	plot.scatter( x, y, facecolors=c, edgecolors='none', s=args.pointScale, zorder=1 )
+	if(len(w)>0):
+		m = max(w)
+		c = [None]*len(keys)
+		for i in range(len(keys)):
+			a = 0.5
+			if(w[i]/m>0.15): # 15% alpha cutoff for clarity
+				a = 1.0
+			c[i] = (w[i]/m*args.specColor[0],w[i]/m*args.specColor[1],w[i]/m*args.specColor[2],a)
+		plot.scatter( x, y, facecolors=c, edgecolors='none', s=args.pointScale, zorder=1 )
 
 else:
 	plot.scatter( tbl_xvals, tbl_yvals, facecolor=(0,0,0,0.5), edgecolors='none', s=args.pointScale, zorder=1 )
@@ -156,19 +161,20 @@ if( args.stats ):
 	x = keepKeys( scipy.take(c_xvals,o), keys )
 	y = keepKeys( scipy.take(c_yvals,o), keys )
 
-	m = max(p)
-	c = [None]*len(keys)
-	s = [None]*len(keys)
-	for i in range(len(keys)):
-		s[i] = w[i]*30*args.pointScale
-		if(args.statSame):
-			c[i] = (args.statColor[0],args.statColor[1],args.statColor[2])
-		elif(args.statNorm):
-			c[i] = (p[i]/m*args.statColor[0],p[i]/m*args.statColor[1],p[i]/m*args.statColor[2])
-		else:
-			c[i] = (p[i]/100.0*args.statColor[0],p[i]/100.0*args.statColor[1],p[i]/100.0*args.statColor[2])
+	if(len(p)>0):
+		m = max(p)
+		c = [None]*len(keys)
+		s = [None]*len(keys)
+		for i in range(len(keys)):
+			s[i] = w[i]*30*args.pointScale
+			if(args.statSame):
+				c[i] = (args.statColor[0],args.statColor[1],args.statColor[2])
+			elif(args.statNorm):
+				c[i] = (p[i]/m*args.statColor[0],p[i]/m*args.statColor[1],p[i]/m*args.statColor[2])
+			else:
+				c[i] = (p[i]/100.0*args.statColor[0],p[i]/100.0*args.statColor[1],p[i]/100.0*args.statColor[2])
 
-	plot.scatter( x, y, edgecolors=c, s=s, zorder=2, facecolors='none', linewidth=args.lineWidth )
+		plot.scatter( x, y, edgecolors=c, s=s, zorder=2, facecolors='none', linewidth=args.lineWidth )
 
 for (arg,val) in args.plotArgs:
 	mpl.rcParams[ arg ] = val

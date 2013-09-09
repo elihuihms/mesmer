@@ -47,7 +47,7 @@ def print_generation_state( args, ensemble_stats, restraint_stats ):
 
 		# print the per-restraint breakdown of scores
 		if( len(restraint_stats) > 1):
-			for type in restraint_stats:
+			for type in sorted(restraint_stats.keys()):
 				print_msg( "\t%s\t%.3e\t|\t%.3e\t|\t%.3e" % (
 				type,
 				restraint_stats[type][name][0],

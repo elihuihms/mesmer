@@ -16,7 +16,7 @@ from lib.functions import print_msg
 Functions for setting up a MESMER run
 """
 
-def parse_param_arguments():
+def parse_param_arguments(str=None):
 	"""
 	Parses the command-line parameters (or those provided in a configuration file)
 	"""
@@ -34,8 +34,8 @@ def parse_param_arguments():
 	parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
 	group0 = parser.add_argument_group('Target and component files')
-	group0.add_argument('-target',		action='append',	required=True,					metavar='FILE.target',			help='MESMER target file')
-	group0.add_argument('-components',	action='append',	required=True,	nargs='*',		metavar='FILE.component/DIR',	help='MESMER component files or directory ')
+	group0.add_argument('-target',		action='append',	required=(str==None),					metavar='FILE.target',			help='MESMER target file')
+	group0.add_argument('-components',	action='append',	required=(str==None),	nargs='*',		metavar='FILE.component/DIR',	help='MESMER component files or directory ')
 	group0.add_argument('-resume',															metavar='STATE.tbl',			help='Resume from a provided ensemble state')
 
 	group1 = parser.add_argument_group('Simulation size and convergence parameters')
@@ -43,8 +43,8 @@ def parse_param_arguments():
 	group1.add_argument('-dir',			action='store',		default='./',					metavar='DIR',	help='Directory in which to create results folder')
 	group1.add_argument('-ensembles',	action='store',		default=1000,	type=int,		metavar='N',	help='Number of ensembles to use in the algorithm')
 	group1.add_argument('-size',		action='store',		default=3,		type=int,		metavar='N',	help='Number of components per ensemble')
-	group1.add_argument('-Fmin',		action='store',		default=1.0,	type=float,		metavar='F',	help='Maximum ensemble fitness to stop algorithm')
-	group1.add_argument('-Smin',		action='store',		default=0.0,	type=float,		metavar='F',	help='Minimum ensemble fitness stdev to stop algorithm')
+	group1.add_argument('-Fmin',		action='store',		default=-1,		type=float,		metavar='F',	help='Maximum ensemble fitness to stop algorithm')
+	group1.add_argument('-Smin',		action='store',		default=1.0,	type=float,		metavar='F',	help='Minimum ensemble fitness stdev to stop algorithm')
 
 	group2 = parser.add_argument_group('Genetic algorithm coefficients')
 	group2.add_argument('-Gmax',		action='store',		default=-1,		type=int,		metavar='N',	help='Maximum number of generations, set to -1 to run indefinitely')
@@ -61,7 +61,7 @@ def parse_param_arguments():
 
 	group4 = parser.add_argument_group('Output options')
 	group4.add_argument('-Pstats',		action='store_true',default=True,									help='Print ensemble information at each generation. NOTE: always enabled')
-	group4.add_argument('-Pbest',		action='store_true',default=False,									help='Print best ensemble information at each generation.')
+	group4.add_argument('-Pbest',		action='store_true',default=True,									help='Print best ensemble information at each generation.')
 	group4.add_argument('-Popt',		action='store_true',default=False,									help='Print optimization convergence status for all ensembles.')
 	group4.add_argument('-Pextra',		action='store_true',default=False,									help='Print extra restraint-specific information.')
 	group4.add_argument('-Pstate',		action='store_true',default=False,									help='Print ensemble ratio state at each generation')
@@ -73,10 +73,13 @@ def parse_param_arguments():
 	group5.add_argument('-uniform',		action='store_true',default=False,									help='Load ensembles uniformly from available components instead of randomly')
 	group5.add_argument('-force',		action='store_true',default=False,									help='Enable overwriting of previous output directories.')
 	group5.add_argument('-threads',		action='store',		default=1,		type=int,		metavar='N',	help='Number of multiprocessing threads to use.')
-	group5.add_argument('-dbm',			action='store_true',default=False,									help='Store ensembles in a database instead of maintaining in memory (much slower, significantly reduced memory footprint)')
+	group5.add_argument('-dbm',			action='store_true',default=False,									help='Use a component database instead of maintaining in memory (much slower, significantly reduced memory footprint')
 	group5.add_argument('-plugin',		action='store',										metavar='NAME',	help='Print information about the specified plugin and exit.')
 
-	args = parser.parse_args()
+	if(str == None):
+		args = parser.parse_args()
+	else:
+		args = parser.parse_args(str.split())
 
 	# argument error checking and defaults
 	if (args.Rn < 0):
@@ -156,8 +159,18 @@ def load_all_components( args, plugins, targets ):
 	if(len(files) < 0):
 		return [None]
 
-	print_msg("INFO: Found %i component files." % (len(files)))
-	components = {}
+	if( args.dbm ):
+		print_msg("INFO: Loading %i component files to temporary database:" % (len(files)))
+
+		path = "%s%scomponents.db" % (tempfile.mkdtemp(),os.sep)
+		try:
+			components = shelve.open( path )
+		except:
+			print_msg("ERROR: Could not create component database file \"%s\"." % (path) )
+			return [None]
+	else:
+		print_msg("INFO: Found %i component files." % (len(files)))
+		components = {}
 
 	names = [''] * len(files)
 	divisor = int(max(len(files)/100,1))
@@ -181,5 +194,11 @@ def load_all_components( args, plugins, targets ):
 		names[i] = temp.name
 
 	sys.stdout.write("\n")
+
+	if( args.dbm ):
+		components.close()
+
+		# reopen components db as read-only
+		components = shelve.open( path, flag='r' )
 
 	return components

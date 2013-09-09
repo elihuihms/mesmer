@@ -53,7 +53,7 @@ def get_component_correlations( args, ensembles ):
 	for e in ensembles:
 		for name in e.component_names:
 			if (name in component_counts):
-				component_counts[name] +=1
+				component_counts[name]+= 1
 			else:
 				component_counts[name] = 1
 
@@ -63,6 +63,7 @@ def get_component_correlations( args, ensembles ):
 		if(float(component_counts[name])/n*100.0 < args.Pcorr):
 			del component_counts[name]
 
+	# sort to make most heavily populated first
 	names = sorted(component_counts, key=component_counts.get, reverse=True)
 
 	# initialize correlation table
@@ -75,7 +76,7 @@ def get_component_correlations( args, ensembles ):
 		for i in range(m):
 			for j in range(m):
 				if(names[i] in e.component_names) and (names[j] in e.component_names):
-					relative_correlations[i][j] += 1.0/component_counts[names[i]]
+					relative_correlations[i][j] += 1.0/component_counts[names[j]]
 					absolute_correlations[i][j] += 1.0/n
 
 	return (names,relative_correlations,absolute_correlations)

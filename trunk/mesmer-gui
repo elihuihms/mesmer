@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+
+import Tkinter as tk
+
+from gui.win_components import ComponentsWindow
+from gui.win_main		import MainWindow
+
+root = tk.Tk()
+app = MainWindow(root)
+app.mainloop()

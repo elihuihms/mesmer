@@ -6,7 +6,7 @@ import argparse
 import scipy
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-table', 	required=True,								help='A file containing tab-delimited statistics of the available components')
+parser.add_argument('table', 	required=True,								help='A file containing tab-delimited statistics of the available components')
 parser.add_argument('-nCol',	default=0,		metavar='N',	type=int,	help='The column containing the component names')
 parser.add_argument('-dCol',	default=1,		metavar='N',	type=int,	help='The column containing the desired component attribute')
 parser.add_argument('-mean',	default=None,					type=float,	help='The value to use as the center of the distribution. Defaults to the mean of the selected dataset.')
@@ -17,6 +17,10 @@ parser.add_argument('-add',		default=None,	metavar='<SPEC>',			help='Add an exis
 parser.add_argument('-subtract',default=None,	metavar='<SPEC>',			help='Subtract an existing target specification from this one.')
 parser.add_argument('-out',		required=True,								help='The path to which the target specification should be written.')
 args = parser.parse_args()
+
+if(args.table==None):
+	print "You must provide a component attribute table"
+	exit()
 
 # table 0 = names
 # table 1 = data values
