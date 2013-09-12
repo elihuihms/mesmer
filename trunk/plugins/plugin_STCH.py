@@ -10,14 +10,17 @@ Component file arguments:
 
 import argparse
 
-from lib.plugin_primitives import plugin_basic
+from lib.plugin_primitives import MESMERPluginError,MESMERPluginBasic
 import lib.plugin_tools as tools
 
-class plugin( plugin_basic ):
+class plugin( MESMERPluginBasic ):
 
-	name = 'default_STCH'
-	version = '2013.06.04'
-	type = ('STCH','STCH0','STCH1','STCH2','STCH3','STCH4','STCH5','STCH6','STCH7','STCH8','STCH9')
+	def __init__(self, args):
+		MESMERPluginBasic.__init__(self, args)
+
+		self.name = 'default_STCH'
+		self.version = '2013.06.04'
+		self.type = ('STCH','STCH0','STCH1','STCH2','STCH3','STCH4','STCH5','STCH6','STCH7','STCH8','STCH9')
 
 	#
 	# output functions
@@ -35,7 +38,7 @@ class plugin( plugin_basic ):
 		filePath		- an optional file path the plugin can save data to
 		"""
 
-		return (True,[])
+		return []
 	#
 	# data handling functions
 	#
@@ -70,7 +73,7 @@ class plugin( plugin_basic ):
 		try:
 			args = parser.parse_args(block['header'].split()[2:])
 		except argparse.ArgumentError, exc:
-			return (False,["Argument error: %s" % exc.message()])
+			raise MESMERPluginError("Argument error: %s" % exc.message())
 
 		sum = 0.0
 		restraint.data['components']	= {}
@@ -82,7 +85,7 @@ class plugin( plugin_basic ):
 		for component in args.component:
 			restraint.data['components'][component[0]] /= sum
 
-		return (True,[])
+		return []
 
 	def load_attribute( self, attribute, block, ensemble_data ):
 		"""
@@ -102,13 +105,13 @@ class plugin( plugin_basic ):
 		try:
 			args = parser.parse_args(block['header'].split()[1:])
 		except argparse.ArgumentError, exc:
-			return (False,["Argument error: %s" % exc.message()])
+			raise MESMERPluginError("Argument error: %s" % exc.message())
 
 		attribute.data['components']	= {}
 		for component in args.component:
 			attribute.data['components'][component[0]] = float(component[1])
 
-		return (True,[])
+		return []
 
 	def load_bootstrap( self, bootstrap, restraint, ensemble_data, target_data ):
 		"""
@@ -125,7 +128,7 @@ class plugin( plugin_basic ):
 		for name in restraint.data['components']:
 			bootstrap.data['components'][name] = ensemble_data['components'][name]
 
-		return (True,[])
+		return []
 
 	def calc_fitness( self, restraint, target_data, ensemble_data, attributes, ratios ):
 		"""

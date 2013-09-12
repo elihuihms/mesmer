@@ -9,9 +9,9 @@ Component file arguments:
 """
 
 from argparse import ArgumentParser
-from lib.plugin_primitives import plugin_basic
+from lib.plugin_primitives import MESMERPluginError,MESMERPluginBasic
 
-class plugin( plugin_basic ):
+class plugin( MESMERPluginBasic ):
 
 	name = 'XX_EXAMPLE'
 	version = '2013.06.04'
@@ -38,7 +38,7 @@ class plugin( plugin_basic ):
 		'Path is %s' % (file_path)
 		)
 
-		return (True,output)
+		return output
 	#
 	# data handling functions
 	#
@@ -73,12 +73,12 @@ class plugin( plugin_basic ):
 		try:
 			args = parser.parse_args(block['header'].split()[2:])
 		except argparse.ArgumentError, exc:
-			return (False,["Argument error: %s" % exc.message()])
+			raise MESMERPluginError("Argument error: %s" % exc.message())
 
 		target_data['args']		= args
 		restraint.data['value']	= args.value
 
-		return (True,[])
+		return []
 
 	def load_attribute( self, attribute, block, ensemble_data ):
 		"""
@@ -98,11 +98,11 @@ class plugin( plugin_basic ):
 		try:
 			args = parser.parse_args(block['header'].split()[1:])
 		except argparse.ArgumentError, exc:
-			return (False,["Argument error: %s" % exc.message()])
+			raise MESMERPluginError("Argument error: %s" % exc.message())
 
 		attribute.data['value'] = args.value
 
-		return (True,[])
+		return []
 
 	def load_bootstrap( self, bootstrap, restraint, ensemble_data, target_data ):
 		"""
@@ -117,7 +117,7 @@ class plugin( plugin_basic ):
 
 		bootstrap.data['value'] = restraint.data['value']
 
-		return (True,[])
+		return []
 
 	#
 	# Calc fitness - the heart of the plugin, provides the fitness of an ensemble

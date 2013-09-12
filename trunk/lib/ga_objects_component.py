@@ -63,31 +63,29 @@ class mesComponent:
 					# initialize the plugin storage variable for this restraint type
 					self.plugin_data[b['type']] = None
 
-					status = None
-
 					# create a new attribute linked to the proper type of restraint
 					for r in targets[0].restraints:
 						if(b['type'] == r.type):
+
 							attribute = mesAttribute(r)
-							(status,messages) = p.load_attribute( attribute, b, self.plugin_data[b['type']] )
+
+							try:
+								messages = p.load_attribute( attribute, b, self.plugin_data[b['type']] )
+							except MESMERPluginError as e:
+								print_msg("ERROR: plugin \"%s\" could not create an attribute from the component file \"%s\" lines %i-%i" % (p.name,file,b['l_start'],b['l_end']))
+								print_msg("ERROR: plugin \"%s\" reported: %s" % (p.name,e.msg))
+								return False
+
+							for m in messages:
+								print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,m))
+
+							self.attributes.append(attribute)
+
+							# decrement the checklist for this restraint type
+							checklist[ b['type'] ] -= 1
+
+							# only allow one plugin per block
 							break
-
-					if(status == True):
-						self.attributes.append(attribute)
-
-						# decrement the checklist for this restraint type
-						checklist[ b['type'] ] -= 1
-
-						for m in messages:
-							print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,m))
-
-						# only allow one plugin per block
-						break
-					elif(status == False):
-						print_msg("ERROR: plugin \"%s\" could not create an attribute from the component file \"%s\" lines %i-%i" % (p.name,file,b['l_start'],b['l_end']))
-						for m in messages:
-							print_msg("ERROR: plugin \"%s\" reported: %s" % (p.name,m))
-						return False
 
 		if( self.name == '' ):
 			print_msg("ERROR: component file \"%s\" has no NAME attribute." % (file) )

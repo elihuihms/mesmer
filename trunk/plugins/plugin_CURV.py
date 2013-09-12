@@ -23,20 +23,39 @@ import scipy.optimize as optimize
 
 from StringIO import StringIO
 
-from lib.plugin_primitives import plugin_db
+from lib.plugin_primitives import MESMERPluginError,MESMERPluginDB
 import lib.plugin_tools as tools
 
-class plugin( plugin_db ):
+class plugin( MESMERPluginDB ):
 
-	name = 'default_CURV'
-	version = '2013.07.16'
-	type = (
-		'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',
-		'SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9',
-		'DEER','DEER0','DEER1','DEER2','DEER3','DEER4','DEER5','DEER6','DEER7','DEER8','DEER9'
-		)
+	def __init__(self, args):
 
-	_plot_handles = {}
+		# call parent constructor first
+		MESMERPluginDB.__init__(self, args)
+
+		self.name = 'default_CURV'
+		self.version = '2013.07.16'
+		self.type = (
+			'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',
+			'SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9',
+			'DEER','DEER0','DEER1','DEER2','DEER3','DEER4','DEER5','DEER6','DEER7','DEER8','DEER9'
+			)
+
+		self.target_parser = argparse.ArgumentParser(prog=self.type[0])
+		self.target_parser.add_argument('-file', metavar='FILE', help='Read an external file containing the experimental data')
+		self.target_parser.add_argument('-scale', action='store_true', help='Allow scaling of the calculated curve to improve fitting')
+		self.target_parser.add_argument('-offset', action='store_true', help='Allow the application of an offset to improve fitting')
+		self.target_parser.add_argument('-sse', action='store_true', help='Use no point weighting while fitting')
+		self.target_parser.add_argument('-relative', action='store_true', help='Use relative weighting instead of explicit dy data')
+		self.target_parser.add_argument('-poisson', action='store_true', help='Use poisson weighting instead of explicit dy data')
+		self.target_parser.add_argument('-saxs', nargs='?', metavar='q', type=float, const=-1, help='Treat experimental curve as SAXS data. The optional argument q can be used to improve fits at high scattering angles.')
+		self.target_parser.add_argument('-deer', action='store_true', help='Treat experimental curve as DEER data, fit by optimizing the modulation depth')
+		self.target_parser.add_argument('-plot', action='store_true', help='Create a plot window at each generation showing fit to data (requires matplotlib)')
+
+		self.component_parser = argparse.ArgumentParser(prog=self.type[0])
+		self.component_parser.add_argument('-file', metavar='FILE', help='Read an external file containing the predicted data')
+
+		self._plot_handles = {}
 
 	def showplot(self,id,x,y,yfit,saxs=False):
 
@@ -105,7 +124,7 @@ class plugin( plugin_db ):
 		try:
 			f = open( file_path, 'w' )
 		except IOError:
-			return (False,['Could not open file \"%s\" for writing' % file_path])
+			raise MESMERPluginError('Could not open file \"%s\" for writing' % file_path)
 
 		f.write("# Best scoring ensemble fit\n" )
 		if(ensembles[0]['scale'] != 1):
@@ -131,7 +150,7 @@ class plugin( plugin_db ):
 		if(target_data['args'].plot):
 			self.showplot( restraint.type, restraint.data['x'], restraint.data['y'], y_fit, target_data['args'].saxs )
 
-		return (True,[])
+		return []
 
 	#
 	# data handling functions
@@ -151,35 +170,24 @@ class plugin( plugin_db ):
 
 		messages = []
 
-		parser = argparse.ArgumentParser(prog=self.type[0])
-		parser.add_argument('-file', metavar='FILE', help='Read an external file containing the experimental data')
-		parser.add_argument('-scale', action='store_true', help='Allow scaling of the calculated curve to improve fitting')
-		parser.add_argument('-offset', action='store_true', help='Allow the application of an offset to improve fitting')
-		parser.add_argument('-sse', action='store_true', help='Use no point weighting while fitting')
-		parser.add_argument('-relative', action='store_true', help='Use relative weighting instead of explicit dy data')
-		parser.add_argument('-poisson', action='store_true', help='Use poisson weighting instead of explicit dy data')
-		parser.add_argument('-saxs', nargs='?', metavar='q', type=float, const=-1, help='Treat experimental curve as SAXS data. The optional argument q can be used to improve fits at high scattering angles.')
-		parser.add_argument('-deer', action='store_true', help='Treat experimental curve as DEER data, fit by optimizing the modulation depth')
-		parser.add_argument('-plot', action='store_true', help='Create a plot window at each generation showing fit to data (requires matplotlib)')
-
 		try:
-			args = parser.parse_args(block['header'].split()[2:])
+			args = self.target_parser.parse_args(block['header'].split()[2:])
 		except argparse.ArgumentError, exc:
-			return (False,"Argument error: %s" % exc.message())
+			raise MESMERPluginError("Argument error: %s" % exc.message())
 
 		if(args.file == None):
 			try:
 				values = scipy.genfromtxt( StringIO( ''.join(block['content'])), unpack=True )
 			except ValueError, exc:
-				return (False,["Could not parse 2D data in target file - %s " % (exc)])
+				raise MESMERPluginError("Could not parse 2D data in target file - %s " % exc.message())
 		else:
 			try:
 				values = scipy.genfromtxt(args.file, unpack=True)
 			except ValueError, exc:
-				return (False,["Could not read file \"%s\" - %s" % (args.file, exc)])
+				raise MESMERPluginError("Could not read file \"%s\" - %s" % (args.file, exc.message()))
 
 		if( len(values) < 2 ):
-			return(False,["Target data must contain at least two columns: x y"])
+			raise MESMERPluginError("Target data must contain at least two columns: x y")
 
 		restraint.data['x'] = numpy.array(values[0])
 		restraint.data['y'] = numpy.array(values[1])
@@ -192,7 +200,7 @@ class plugin( plugin_db ):
 
 		# argument consistency checks
 		if( args.deer and (args.scale or args.offset) ):
-			return (False,["Scaling or offset options not available when fitting DEER data"])
+			raise MESMERPluginError("Scaling or offset options not available when fitting DEER data")
 
 		# set the per-point weighting to be used during fitting
 		if( args.sse ):
@@ -208,7 +216,7 @@ class plugin( plugin_db ):
 			restraint.data['d'] = [ math.sqrt(y) for y in restraint.data['y'] ]
 
 		elif(len(values) != 3):
-			return (False,["Target data must be of the format: x y dy"])
+			raise MESMERPluginError("Target data must be of the format: x y dy")
 
 		else:
 			# X^2 = ((Y - Y_fit) / dY)^2
@@ -216,7 +224,7 @@ class plugin( plugin_db ):
 
 		target_data['args'] = args
 
-		return (True,messages)
+		return messages
 
 	def load_attribute( self, attribute, block, ensemble_data ):
 		"""
@@ -232,39 +240,36 @@ class plugin( plugin_db ):
 
 		messages = []
 
-		parser = argparse.ArgumentParser(prog=self.name)
-		parser.add_argument('-file', metavar='FILE', help='Read an external file containing the predicted data')
-
 		try:
-			args = parser.parse_args(block['header'].split()[1:])
+			args = self.component_parser.parse_args(block['header'].split()[1:])
 		except argparse.ArgumentError, exc:
-			return (False,["Argument error: %s" % exc.message()])
+			raise MESMERPluginError("Argument error: %s" % exc.message())
 
 		if(args.file == None):
 			try:
 				values = scipy.genfromtxt( StringIO( ''.join(block['content'])), unpack=True )
 			except ValueError, exc:
-				return (False,["Could not parse 2D data in component file - %s" % (exc)])
+				raise MESMERPluginError("Could not parse 2D data in component file - %s" % exc.message())
 		else:
 			try:
 				values = scipy.genfromtxt(args.file, unpack=True)
 			except ValueError, exc:
-				return (False,["Could not read file \"%s\" - %s" % (args.file, exc)])
+				raise MESMERPluginError("Could not read file \"%s\" - %s" % (args.file, exc.message()))
 
 		if(len(values) != 2):
-			return (False,["Component data must be at least of the format: x y"])
+			raise MESMERPluginError("Component data must be at least of the format: x y")
 
 		# attempt to interpolate the XY values against the target restraint X values
 		try:
 			temp = interpolate.splrep( values[0], values[1] )
 			interpolate.splev( attribute.restraint.data['x'], temp )
 		except TypeError:
-			return (False,["Could not interpolate the component's curve data to the target's. Perhaps the x values are not sorted?"])
+			raise MESMERPluginError("Could not interpolate the component's curve data to the target's. Perhaps the x values are not sorted?")
 
 		# save the spline to the database
 		attribute.data['key'] = self.put(data=temp)
 
-		return (True,messages)
+		return messages
 
 	def load_bootstrap( self, bootstrap, restraint, ensemble_data, target_data ):
 		"""
@@ -281,7 +286,7 @@ class plugin( plugin_db ):
 		bootstrap.data['y'] = tools.make_interpolated_bootstrap_sample( restraint.data['x'], restraint.data['y'], ensemble_data['x'], ensemble_data['y'] )
 		bootstrap.data['d'] = restraint.data['d']
 
-		return (True,[])
+		return []
 
 	def calc_fitness( self, restraint, target_data, ensemble_data, attributes, ratios ):
 		"""

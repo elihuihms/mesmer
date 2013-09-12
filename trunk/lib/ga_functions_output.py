@@ -109,12 +109,10 @@ def print_plugin_state( args, counter, plugins, targets, ensembles):
 					for e in ensembles:
 						all_ensemble_data.append(e.plugin_data[t.name][r.type])
 
-					# retrieve
-					(ok,messages) = p.ensemble_state(r, t.plugin_data[r.type], all_ensemble_data, path)
-
-					if(not ok):
-						for m in messages:
-							print_msg("Plugin \"%s\" returned an error: %s" % m)
+					try:
+						messages = p.ensemble_state(r, t.plugin_data[r.type], all_ensemble_data, path)
+					except MESMERPluginError as e:
+						print_msg("Plugin \"%s\" returned an error: %s" % e.msg)
 
 					break
 

@@ -40,6 +40,12 @@ class ComponentsWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Could not load plugin types description. Please reinstall MESMER.',parent=self)
 			self.master.destroy()
 
+		try:
+			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
+		except:
+			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
+			self.master.destroy()
+
 	def loadTarget(self):
 		tmp = tkMessageBox.askquestion("Load Target","Are you sure you would like to load an existing target as a template?\nThis will clear your current entries.", icon='warning',parent=self)
 		if(tmp != 'yes'):
@@ -69,6 +75,7 @@ class ComponentsWindow(tk.Frame):
 	def loadComponentPDBs(self):
 		tmp = tkFileDialog.askdirectory(title='Select folder containing PDBs:',mustexist=True,parent=self)
 		if(tmp != ''):
+			self.prefs['last_pdb_dir'] = tmp
 			files = glob.glob(os.path.join(tmp,'*.pdb'))
 			for f in files:
 				self.componentPDBsList.insert(tk.END, f)
@@ -137,6 +144,7 @@ class ComponentsWindow(tk.Frame):
 		self.updateWidgets()
 
 	def closeWindow(self):
+		self.prefs.close()
 		self.master.destroy()
 
 	def createToolTips(self):

@@ -72,21 +72,21 @@ class mesTarget:
 
 					# create a new restraint
 					restraint = mesRestraint(float(header_array[1]),b['type'])
-					(status,messages) = p.load_restraint( restraint, b, self.plugin_data[b['type']] )
 
-					if(status == True):
-						self.restraints.append(restraint)
-						print_msg("INFO: Target file \"%s\" lines %i-%i - plugin \"%s\" created %.1fx weighted \"%s\" restraint." % (file,b['l_start'],b['l_end'],p.name,float(header_array[1]),b['type']))
-						for m in messages:
-							print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,m))
-
-						# only allow one plugin per block
-						break
-					elif(status == False):
+					try:
+						messages = p.load_restraint( restraint, b, self.plugin_data[b['type']] )
+					except MESMERPluginError as e:
 						print_msg("ERROR: plugin \"%s\" could not create a restraint from the target file \"%s\" lines %i-%i." % (p.name,file,b['l_start'],b['l_end']))
-						for m in messages:
-							print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,m))
+						print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,e.msg))
 						return False
+
+					self.restraints.append(restraint)
+					print_msg("INFO: Target file \"%s\" lines %i-%i - plugin \"%s\" created %.1fx weighted \"%s\" restraint." % (file,b['l_start'],b['l_end'],p.name,float(header_array[1]),b['type']))
+					for m in messages:
+						print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,m))
+
+					# only allow one plugin per block
+					break
 
 		if( self.name == '' ):
 			print_msg("ERROR: component file \"%s\" has no NAME attribute." % (file) )

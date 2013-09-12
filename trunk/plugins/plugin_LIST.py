@@ -18,15 +18,33 @@ import sys
 from scipy import sqrt,mean,average,array,interpolate
 from scipy.stats import linregress
 
-from lib.plugin_primitives import plugin_db
+from lib.plugin_primitives import MESMERPluginError,MESMERPluginDB
 import lib.plugin_tools as tools
 
-class plugin( plugin_db ):
-	name = 'default_LIST'
-	version = '2013.07.19'
-	type = ('LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9')
+class plugin( MESMERPluginDB ):
 
-	_plot_handles = {}
+	def __init__(self, args):
+
+		# call parent constructor first
+		MESMERPluginDB.__init__(self, args)
+
+		self.name = 'default_LIST'
+		self.version = '2013.07.19'
+		self.type = ('LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9')
+
+		self.target_parser = argparse.ArgumentParser(prog=self.type[0])
+		self.target_parser.add_argument('-file', 	action='store',								help='An external whitespace-delimited file containing LIST parameters.')
+		self.target_parser.add_argument('-col', 	action='store',	type=int,	required=True,	help='The column of data to use as the restraint')
+		self.target_parser.add_argument('-sse', 	action='store_true',						help='Calculate fitness as a simple (normalized) sum square of error')
+		self.target_parser.add_argument('-harm', 	action='store_true',						help='Calculate fitness from a flat-bottomed harmonic, using the interval present in -col N+1')
+		self.target_parser.add_argument('-Q', 		action='store_true',						help='Calculate fitness as an Q factor (quality factor).')
+		self.target_parser.add_argument('-R', 		action='store_true',						help='Calculate fitness as a reciprocal of the correlation coefficient (1/R^2).')
+		self.target_parser.add_argument('-plot', 	action='store_true',						help='Create a plot window at each generation showing fit to data')
+
+		self.component_parser = argparse.ArgumentParser(prog=self.name)
+		self.component_parser.add_argument('-file',	action='store',	help='An external whitespace-delimited file containing LIST parameters.')
+
+		self._plot_handles = {}
 
 	#
 	# custom functions
@@ -79,7 +97,7 @@ class plugin( plugin_db ):
 		try:
 			f = open( file_path, 'w' )
 		except IOError:
-			return (False,['Could not open file \"%s\" for writing' % file_path])
+			raise MESMERPluginError('Could not open file \"%s\" for writing' % file_path)
 
 		f.write("# (identifiers)\texp\tfit\n")
 		for i in range(len(restraint.data['x'])):
@@ -90,7 +108,7 @@ class plugin( plugin_db ):
 		if(restraint.data['args'].plot):
 			self.showplot( restraint.type, restraint.data['y'], ensemble_data[0]['y'] )
 
-		return (True,[])
+		return []
 
 	#
 	# data handling functions
@@ -110,24 +128,15 @@ class plugin( plugin_db ):
 
 		messages = []
 
-		parser = argparse.ArgumentParser(prog=self.type[0])
-		parser.add_argument('-file', 	action='store',								help='An external whitespace-delimited file containing LIST parameters.')
-		parser.add_argument('-col', 	action='store',	type=int,	required=True,	help='The column of data to use as the restraint')
-		parser.add_argument('-sse', 	action='store_true',						help='Calculate fitness as a simple (normalized) sum square of error')
-		parser.add_argument('-harm', 	action='store_true',						help='Calculate fitness from a flat-bottomed harmonic, using the interval present in -col N+1')
-		parser.add_argument('-Q', 		action='store_true',						help='Calculate fitness as an Q factor (quality factor).')
-		parser.add_argument('-R', 		action='store_true',						help='Calculate fitness as a reciprocal of the correlation coefficient (1/R^2).')
-		parser.add_argument('-plot', 	action='store_true',						help='Create a plot window at each generation showing fit to data')
-
 		try:
-			args = parser.parse_args(block['header'].split()[2:])
+			args = self.target_parser.parse_args(block['header'].split()[2:])
 		except argparse.ArgumentError, exc:
-			return (False,["Argument error: %s" % exc.message()])
+			raise MESMERPluginError("Argument error: %s" % exc.message())
 
 		restraint.data['args'] = args
 
 		if (not args.sse) and (not args.harm) and (not args.Q) and (not args.R):
-			return(False,['Must specify at least one fitness calculation type!'])
+			raise MESMERPluginError('Must specify at least one fitness calculation type!')
 
 		if(args.file):
 			try:
@@ -135,7 +144,7 @@ class plugin( plugin_db ):
 				table = f.readlines()
 				f.close()
 			except:
-				return(False,["Error reading from file \"%s\": %s" % (file,sys.exc_info()[1])])
+				raise MESMERPluginError("Error reading from file \"%s\": %s" % (file,sys.exc_info()[1]))
 		else:
 			table = block['content']
 
@@ -158,9 +167,9 @@ class plugin( plugin_db ):
 				if(args.harm) and (len(e) >= args.harm):
 					restraint.data['d'].append( float(e[args.harm]) )
 				elif(args.harm):
-					return(False,["Error determining harmonic interval from \"%s\". Line in question looks like: \"%s\""%(file,e)])
+					raise MESMERPluginError("Error determining harmonic interval from \"%s\". Line in question looks like: \"%s\""%(file,e))
 
-		return (True,messages)
+		return messages
 
 	def load_attribute( self, attribute, block, ensemble_data ):
 		"""
@@ -176,13 +185,10 @@ class plugin( plugin_db ):
 
 		messages = []
 
-		parser = argparse.ArgumentParser(prog=self.name)
-		parser.add_argument('-file',	action='store',	help='An external whitespace-delimited file containing LIST parameters.')
-
 		try:
-			args = parser.parse_args(block['header'].split()[1:])
+			args = self.component_parser.parse_args(block['header'].split()[1:])
 		except argparse.ArgumentError, exc:
-			return (False,["Argument error: %s" % exc.message()])
+			raise MESMERPluginError("Argument error: %s" % exc.message())
 
 		if(args.file):
 			try:
@@ -190,7 +196,7 @@ class plugin( plugin_db ):
 				table = f.readlines()
 				f.close()
 			except:
-				return(False,["Error reading from file \"%s\": %s" % (file,sys.exc_info()[1])])
+				raise MESMERPluginError("Error reading from file \"%s\": %s" % (file,sys.exc_info()[1]))
 		else:
 			table = block['content']
 
@@ -214,12 +220,12 @@ class plugin( plugin_db ):
 		for n in seen:
 			messages.append("Couldn't find key \"%s\"!" % n)
 		if( len(seen)>0 ):
-			return(False,messages)
+			raise MESMERPluginError( "\n".join(messages) )
 
 		# save the data to the database
 		attribute.data['key'] = self.put(data=temp)
 
-		return (True,messages)
+		return messages
 
 	def load_bootstrap( self, bootstrap, restraint, ensemble_data, target_data ):
 		"""
@@ -236,7 +242,7 @@ class plugin( plugin_db ):
 		bootstrap.data['y'] = tools.make_bootstrap_sample( restraint.data['y'], ensemble_data['y'] )
 		bootstrap.data['d'] = restraint.data['d']
 
-		return (True,[])
+		return []
 
 	def calc_fitness( self, restraint, target_data, ensemble_data, attributes, ratios ):
 		"""

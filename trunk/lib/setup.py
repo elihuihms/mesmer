@@ -34,8 +34,8 @@ def parse_param_arguments(str=None):
 	parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
 	group0 = parser.add_argument_group('Target and component files')
-	group0.add_argument('-target',		action='append',	required=(str==None),					metavar='FILE.target',			help='MESMER target file')
-	group0.add_argument('-components',	action='append',	required=(str==None),	nargs='*',		metavar='FILE.component/DIR',	help='MESMER component files or directory ')
+	group0.add_argument('-target',		action='append',									metavar='FILE.target',			help='MESMER target file')
+	group0.add_argument('-components',	action='append',	nargs='*',						metavar='FILE.component/DIR',	help='MESMER component files or directory ')
 	group0.add_argument('-resume',															metavar='STATE.tbl',			help='Resume from a provided ensemble state')
 
 	group1 = parser.add_argument_group('Simulation size and convergence parameters')
@@ -44,7 +44,7 @@ def parse_param_arguments(str=None):
 	group1.add_argument('-ensembles',	action='store',		default=1000,	type=int,		metavar='N',	help='Number of ensembles to use in the algorithm')
 	group1.add_argument('-size',		action='store',		default=3,		type=int,		metavar='N',	help='Number of components per ensemble')
 	group1.add_argument('-Fmin',		action='store',		default=-1,		type=float,		metavar='F',	help='Maximum ensemble fitness to stop algorithm')
-	group1.add_argument('-Smin',		action='store',		default=1.0,	type=float,		metavar='F',	help='Minimum ensemble fitness stdev to stop algorithm')
+	group1.add_argument('-Smin',		action='store',		default=0,		type=float,		metavar='F',	help='Minimum ensemble fitness stdev to stop algorithm')
 
 	group2 = parser.add_argument_group('Genetic algorithm coefficients')
 	group2.add_argument('-Gmax',		action='store',		default=-1,		type=int,		metavar='N',	help='Maximum number of generations, set to -1 to run indefinitely')

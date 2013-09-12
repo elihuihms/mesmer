@@ -2,15 +2,23 @@ import os
 import shelve
 import tempfile
 import uuid
+import argparse
 
-class plugin_basic:
+class MESMERPluginError(Exception):
+	def __init__(self, msg):
+		self.msg = msg
+	def __str__(self):
+		return self.msg
 
-	name = ''
-	version = ''
-	types = ()
+class MESMERPluginBasic:
 
 	def __init__( self, args ):
-		pass
+		self.name = ''
+		self.version = ''
+		self.type = ()
+
+		self.target_parser = argparse.ArgumentParser(prog=self.type[0])
+		self.component_parser = argparse.ArgumentParser(prog=self.type[0])
 
 	def __del__( self ):
 		pass
@@ -22,33 +30,36 @@ class plugin_basic:
 		for t in self.type:
 			print "\t\t%s" % t
 		print ""
-		print "Arguments:"
-		# ugly hack
+		print "Target file argument help:"
 		try:
-			block = {}
-			block['header'] = "FOO	BAR	-h"
-			self.load_restraint( None, block, None )
+			self.target_parser.print_help()
 		except:
-			pass
+			raise MESMERPluginError("Could not display target argument help for parser \"%s\"" % self.name)
+		print ""
+		print "Component file argument help:"
+		try:
+			self.component_parser.print_help()
+		except:
+			raise MESMERPluginError("Could not display component argument help for parser \"%s\"" % self.name)
 
 	# base type stubs
 
 	def ensemble_state( self, restraint, target_data , ensembles, file_path):
-		return (True,[])
+		return []
 
 	def load_restraint( self, restraint, block, target_data ):
-		return (True,[])
+		return []
 
 	def load_attribute( self, attribute, block, ensemble_data ):
-		return (True,[])
+		return []
 
 	def load_bootstrap( self, bootstrap, restraint, ensemble_data, target_data ):
-		return (True,[])
+		return []
 
 	def calc_fitness( self, restraint, target_data, ensemble_data, attributes, ratios ):
 		return None
 
-class plugin_db( plugin_basic ):
+class MESMERPluginDB( MESMERPluginBasic ):
 
 	def __init__( self, args ):
 
