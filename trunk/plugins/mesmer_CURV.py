@@ -37,7 +37,7 @@ class plugin( mesPluginDB ):
 		self.target_parser.add_argument('-relative',	action='store_true',	help='Use relative weighting instead of explicit dy data')
 		self.target_parser.add_argument('-poisson',		action='store_true',	help='Use poisson weighting instead of explicit dy data')
 		self.target_parser.add_argument('-saxs',		action='store_true',	help='Treat experimental curve as SAXS data. ')
-		self.target_parser.add_argument('-saxs_offset', type=float,default=0.0, help='Improve fits to SAXS curves at higher specified scattering angles by applying an additional offset.')
+		self.target_parser.add_argument('-saxs_offset', type=float,				help='Improve fits to SAXS curves at higher specified scattering angles by applying an additional offset.')
 		self.target_parser.add_argument('-deer',		action='store_true',	help='Treat experimental curve as DEER data, fit by optimizing the modulation depth')
 		self.target_parser.add_argument('-plot',		action='store_true',	help='Create a plot window at each generation showing fit to data (requires matplotlib)')
 

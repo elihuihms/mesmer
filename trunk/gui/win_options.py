@@ -21,7 +21,10 @@ class OptionsWindow(tk.Frame):
 	def saveWindow(self):
 		# retrieve the set values, save back to the options dict
 		for (i,k) in enumerate(self.options):
-			self.options[k]['value'] = self.optionValues[i].get()
+			try:
+				self.options[k]['value'] = self.optionValues[i].get()
+			except:
+				self.options[k]['value'] = None
 
 		self.master.destroy()
 
@@ -44,7 +47,7 @@ class OptionsWindow(tk.Frame):
 			if(not 'value' in option.keys()):
 				option['value'] = option['default']
 
-			self.optionLabels.append( tk.Label(self.container,text=option['dest'].capitalize()) )
+			self.optionLabels.append( tk.Label(self.container,text=option['dest']) )
 			self.optionLabels[-1].grid(in_=self.container,column=0,row=rowCounter,sticky=tk.W)
 			self.optionToolTips = ToolTip(self.optionLabels[-1],follow_mouse=0,text=option['help'])
 

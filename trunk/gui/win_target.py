@@ -5,9 +5,10 @@ import tkMessageBox
 import tkFileDialog
 import copy
 
-from lib.functions 			import get_input_blocks
+from lib.utility_functions 	import get_input_blocks
 from gui.tools_TkTooltip	import ToolTip
-from gui.tools_target		import makeTargetFromWindow,setBlockOptions,getPluginOptions
+from gui.tools_plugin		import getTargetPluginOptions,setOptionsFromBlock
+from gui.tools_target		import makeTargetFromWindow
 from gui.win_options		import OptionsWindow
 
 class TargetWindow(tk.Frame):
@@ -22,14 +23,11 @@ class TargetWindow(tk.Frame):
 		self.grid_propagate(0)
 
 		self.loadPrefs()
-		self.loadPlugins()
 
 		self.createControlVars()
 		self.createWidgets()
 		self.createToolTips()
 		self.updateWidgets()
-
-		self.Ready = False
 
 	def loadPrefs(self):
 		try:
@@ -38,21 +36,26 @@ class TargetWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()
 
-	def loadPlugins(self):
 		try:
-			(self.plugin_types,self.plugin_options) = getPluginOptions(os.path.dirname(os.path.realpath(__file__)))
-		except:
-			tkMessageBox.showerror("Error",'Cannot load MESMER plugins.',parent=self)
+			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs['mesmer_dir'])
+		except Exception as e:
+			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()
 
 	def openOptionsWindow(self, evt):
+		# find the row that generated the event
 		for (i,w) in enumerate(self.widgetRowOptButtons):
 			if w == evt.widget:
 				break
 
+		# send the correct set of options to the window
 		type = self.widgetRowTypes[i].get()
+		for (j,t) in enumerate(self.plugin_types):
+			if(type in t):
+				break
+
 		self.newWindow = tk.Toplevel(self)
-		self.optWindow = OptionsWindow(self.newWindow,i,self.widgetRowOptions[i][type],self.setOptionsFromWindow)
+		self.optWindow = OptionsWindow(self.newWindow,self.widgetRowOptions[i][j])
 		self.newWindow.focus_set()
 		self.newWindow.grab_set()
 		self.newWindow.transient(self)
@@ -84,39 +87,31 @@ class TargetWindow(tk.Frame):
 			self.widgetRowChecks[i].set(1)
 		self.destroyWidgetRows()
 
+		# make a list of data types we have plugins for
+		available_types = []
+		for t in self.plugin_types:
+			available_types.extend(t)
+
 		for b in blocks:
 			type = b['type'][0:4]
 			header = b['header'].split()
+
 			if(type == 'NAME'):
 				self.targetName.set(header[1])
-			elif type in self.types.keys():
+			elif(type in available_types):
 				self.createWidgetRow()
+
+				# update the new row with the right type and options
 				self.widgetRowTypes[-1].set( type )
 				self.widgetRowWeights[-1].set( header[1] )
-				self.widgetRowOptions[-1] = setOptsFromBlock(self.widgetRowOptions[-1],b)
 
-	def setOptionsFromWindow(self, index, spec ):
-		type = self.widgetRowTypes[index].get()
-		self.widgetRowOptions[index][type] = spec
+				# set the plugin options for this type of data from the block
+				for i in range(len(self.plugin_types)):
+					if( type in self.plugin_types[i] ):
+						setOptionsFromBlock(self.widgetRowOptions[-1][i],b)
 
 	def updateWidgets(self, evt=None):
-		self.Ready = True
-
-		for i in range(self.rowCounter):
-			type = self.widgetRowTypes[i].get()
-			opts = self.widgetRowOptions[i][type]
-			if(len(opts['bool_options'])>0 or len(opts['int_options'])>0 or len(opts['float_options'])>0 or len(opts['string_options'])>0):
-				self.widgetRowOptButtons[i].config(state=tk.NORMAL)
-			else:
-				self.widgetRowOptButtons[i].config(state=tk.DISABLED)
-
-			if(self.widgetRowFiles[i].get() == ''):
-				self.Ready = False
-
-		if(self.targetName.get() == ''):
-			self.Ready = False
-
-		if(self.Ready):
+		if(self.targetName.get() != ''):
 			self.saveButton.config(state=tk.ACTIVE)
 		else:
 			self.saveButton.config(state=tk.DISABLED)
@@ -202,18 +197,20 @@ class TargetWindow(tk.Frame):
 	def createWidgetRow(self):
 		self.rowCounter+=1
 
-		# append a copy of the plugin options for the default type
-
-		self.widgetRowOptions.append( convertParserToOptions )
+		# append a copy of the options for the available plugins
+		self.widgetRowOptions.append( copy.deepcopy(self.plugin_options) )
+		available_types = []
+		for t in self.plugin_types:
+			available_types.extend(t)
 
 		self.widgetRowChecks.append( tk.IntVar() )
 		self.widgetRowCheckboxes.append( tk.Checkbutton(self.f_container,variable=self.widgetRowChecks[-1]) )
 		self.widgetRowCheckboxes[-1].grid(in_=self.f_container,column=0,row=self.rowCounter+1)
 
-		self.widgetRowTypeOptions.append( self.types.keys() )
+		self.widgetRowTypeOptions.append( available_types )
 		self.widgetRowTypes.append( tk.StringVar() )
-		self.widgetRowTypes[-1].set( self.types.keys()[0] )
-		self.widgetRowTypeMenus.append( tk.OptionMenu(self.f_container,self.widgetRowTypes[-1],*self.widgetRowTypeOptions[-1],command=self.updateWidgets) )
+		self.widgetRowTypes[-1].set( available_types[0] )
+		self.widgetRowTypeMenus.append( tk.OptionMenu(self.f_container,self.widgetRowTypes[-1],*available_types,command=self.updateWidgets) )
 		self.widgetRowTypeMenus[-1].grid(in_=self.f_container,column=1,row=self.rowCounter+1)
 
 		self.widgetRowWeights.append( tk.DoubleVar() )

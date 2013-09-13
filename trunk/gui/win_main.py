@@ -5,8 +5,8 @@ import shelve
 import Tkinter as tk
 import tkMessageBox
 
-from lib.setup			import parse_param_arguments
 from gui.tools_TkTooltip	import ToolTip
+from gui.tools_plugin	import getTargetPluginOptions
 from gui.win_target		import TargetWindow
 from gui.win_components	import ComponentsWindow
 from gui.win_run		import RunWindow
@@ -15,6 +15,7 @@ from gui.win_config		import ConfigWindow
 class MainWindow(tk.LabelFrame):
 	def __init__(self, master=None):
 		self.master = master
+		self.master.geometry('500x300+200+200')
 		self.master.resizable(width=False, height=False)
 		self.master.title('MESMER')
 
@@ -34,13 +35,38 @@ class MainWindow(tk.LabelFrame):
 		try:
 			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
 		except:
-			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
+			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps the program is running in a read-only directory?',parent=self)
 			self.master.destroy()
 
-		if(not self.prefs.has_key('mesmer_exe_path')):
+		if( self.prefs.has_key('mesmer_dir') ):
+			path0 = self.prefs['mesmer_dir']
+			path1 = self.prefs['mesmer_exe_path']
+			path2 = os.path.join(self.prefs['mesmer_util_path'],'make_components')
+		else:
+			path0 = os.getcwd()
+			path1 = os.path.join(path0,'mesmer')
+			path2 = os.path.join(path0,'utilities','make_components')
+
+		if(not os.path.isdir(path0)):
 			self.Ready = False
-		if(not self.prefs.has_key('mesmer_util_path')):
+		if(not os.path.isfile(path1)):
 			self.Ready = False
+		elif(not os.access(path1, os.X_OK)):
+			self.Ready = False
+		if(not os.access(path2, os.X_OK)):
+			self.Ready = False
+
+		if(self.Ready):
+			self.prefs['mesmer_dir'] = path0
+			self.prefs['mesmer_exe_path'] = path1
+			self.prefs['mesmer_util_path'] = os.path.join(path0,'utilities')
+
+		# preload plugins
+		try:
+			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs['mesmer_dir'])
+		except Exception as e:
+			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
+			self.master.destroy()
 
 	def makeTarget(self):
 		self.newWindow = tk.Toplevel(self.master)
@@ -56,7 +82,7 @@ class MainWindow(tk.LabelFrame):
 
 	def setConfig(self):
 		self.newWindow = tk.Toplevel(self.master)
-		self.loadConfigWindow = ConfigWindow(self.newWindow)
+		self.loadConfigWindow = ConfigWindow(self.newWindow,self)
 
 	def createToolTips(self):
 		self.createTargetTT 	= ToolTip(self.createTargetButton,		follow_mouse=0,text='Create a target file from experimental data')

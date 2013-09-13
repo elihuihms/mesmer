@@ -24,7 +24,7 @@ args.dbm = False
 args.plugin = ''
 
 # god help you if there's errors here - no checking!
-plugins = lib.plugin_functions.load_plugins(args, '%s/plugins/' % os.path.realpath('..'))
+plugins = lib.plugin_functions.load_plugins('%s/plugins/' % os.path.realpath('..'), 'mesmer', args=args)
 targets = lib.setup.load_all_targets( args, plugins )
 components = lib.setup.load_all_components( args, plugins, targets )
 

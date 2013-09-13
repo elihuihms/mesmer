@@ -6,7 +6,12 @@ import tkFileDialog
 
 from datetime import datetime
 
-from lib.component_generation import matchDataFiles,writeComponentFiles
+from lib.exceptions				import *
+from lib.component_generation	import *
+from lib.plugin_functions		import *
+from gui.win_options			import *
+from gui.win_status				import *
+from gui.tools_plugin			import *
 
 def makeComponentsFromWindow( w ):
 	paths = w.componentPDBsList.get(0,tk.END)
@@ -35,7 +40,7 @@ NAME	$0
 		template+="%s%i\n%%%i\n\n" % (type,type_counters[type],i+1)
 
 	try:
-		data_files = matchDataFiles( names, dirs )
+		data_files = match_data_files( names, dirs )
 	except ComponentGenException as e:
 		tkMessageBox.showerror("Error",e.msg,parent=w)
 		return False
@@ -53,10 +58,77 @@ NAME	$0
 		return False
 
 	try:
-		writeComponentFiles( names, data_files, template, tmp )
+		write_component_files( names, data_files, template, tmp )
 	except ComponentGenException as e:
 		tkMessageBox.showerror("Error",e.msg,parent=w)
 		return False
 
 	tkMessageBox.showinfo("Success","%i component files were successfully written" % (len(names.keys())))
 	return True
+
+def pluginCalculator( w, plugin, pdbs, dir ):
+	try:
+		counter = plugin.calculator()
+	except Exception as e:
+		tkMessageBox.showerror("Error","Plugin \"%s\" reported an error.\n\n%s" % (plugin.name,e) )
+		return
+
+	if( counter < len(pdbs) ):
+		w.CalcProgress.set("Progress: %i/%i" % (counter+1,len(pdbs)) )
+		w.CurrentPDB.set( os.path.basename( pdbs[counter] ) )
+		w.AfterID = w.after( plugin.respawn, pluginCalculator, *(w,plugin,pdbs,dir) )
+	else:
+		plugin.close()
+		w.master.destroy()
+
+def calcDataFromWindow( w, pdbs, pluginName ):
+
+	# find the plugin matching the provided name
+	plugin = None
+	for p in w.calc_plugins:
+		if( p.name == pluginName ):
+			plugin = p
+	if(plugin == None):
+		return
+
+	dir = tkFileDialog.asksaveasfilename(title='New folder to save calculated data:',parent=w, initialfile="%s_data" % (plugin.type) )
+	if(dir == ''):
+		return
+	if(os.path.exists(dir)):
+		shutil.rmtree(dir)
+	try:
+		os.mkdir(dir)
+	except:
+		tkMessageBox.showerror("Error","Could not create folder \"%s\"" % dir)
+		return
+
+	# update the parent window row
+	for i in range(w.rowCounter):
+		if( w.widgetRowTypes[i].get() == plugin.type and w.widgetRowFolders[i].get() == '' ):
+			w.widgetRowFolders[i].set( dir )
+			break
+
+	# get options for the plugin
+	options = convertParserToOptions( plugin.parser )
+	w.newWindow = tk.Toplevel(w)
+	w.optWindow = OptionsWindow(w.newWindow,options)
+	w.newWindow.focus_set()
+	w.newWindow.grab_set()
+	w.newWindow.transient(w)
+	w.newWindow.wait_window(w.newWindow)
+
+	plugin.setup( pdbs, dir, options )
+
+	# open the status window
+	w.newWindow = tk.Toplevel(w)
+	w.statWindow = StatusWindow(w.newWindow,plugin.cancel,plugin.name)
+	w.newWindow.focus_set()
+	w.newWindow.grab_set()
+
+	# set the timed callback function
+	w.optWindow.AfterID = w.after( plugin.respawn, pluginCalculator, *(w.statWindow,plugin,pdbs,dir) )
+
+	return w.newWindow
+
+
+

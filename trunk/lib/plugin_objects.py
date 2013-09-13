@@ -16,7 +16,7 @@ class mesPluginBasic:
 		self.target_parser = argparse.ArgumentParser(prog=self.type[0])
 		self.component_parser = argparse.ArgumentParser(prog=self.type[0])
 
-	def __del__( self ):
+	def close( self ):
 		pass
 
 	def info( self ):
@@ -59,14 +59,12 @@ class mesPluginDB( mesPluginBasic ):
 
 	def __init__( self, args ):
 
-		self._db_path ="%s%s%s%s" % (tempfile.gettempdir(),os.sep,uuid.uuid1().hex,'.db')
+		self._db_path = os.path.join(tempfile.gettempdir(),uuid.uuid1().hex)
 		self._db_handle = shelve.open(self._db_path,'c')
 
 		# some db implementations append a .db to the provided path
 		if( os.path.exists("%s%s" % (self._db_path,'.db')) ):
 			self._db_path = "%s%s" % (self._db_path,'.db')
-
-		return None
 
 	def __del__( self ):
 
@@ -75,8 +73,6 @@ class mesPluginDB( mesPluginBasic ):
 
 		if (self._db_path != None):
 			os.unlink(self._db_path)
-
-		return None
 
 	def put( self, data, key=None ):
 		if( key == None ):

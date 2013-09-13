@@ -2,20 +2,22 @@
 
 import os.path
 import copy
+import shelve
 import Tkinter as tk
 import tkFileDialog
 import tkMessageBox
 
-from lib.setup import parse_param_arguments
-from gui.tools_TkTooltip import ToolTip
+from lib.setup_functions	import parse_arguments
+from gui.tools_TkTooltip	import ToolTip
+from gui.tools_run			import makeMESMERArgsFromWindow
 
-class RunWindow(tk.LabelFrame):
+class RunWindow(tk.Frame):
 	def __init__(self, master=None):
 		self.master = master
 		self.master.title('Configure MESMER Run')
 		self.master.resizable(width=False, height=False)
 
-		tk.LabelFrame.__init__(self,master)
+		tk.Frame.__init__(self,master)
 		self.grid()
 
 		self.loadPrefs()
@@ -27,7 +29,7 @@ class RunWindow(tk.LabelFrame):
 		self.basedir = os.path.expanduser('~')
 
 		# initialize to defaults
-		args = parse_param_arguments('')
+		args = parse_arguments('')
 		args.dir = self.basedir
 		self.setControlVarsFromMESMERArgs(args)
 
@@ -35,13 +37,10 @@ class RunWindow(tk.LabelFrame):
 		self.setButtonStates()
 
 	def loadPrefs(self):
-		self.RTR = False
-
 		try:
-			from gui.plugin_types import types
-			self.types = types
+			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
 		except:
-			tkMessageBox.showerror("Error",'Could not load plugin types description. Please reinstall MESMER.',parent=self)
+			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()
 
 	def setResultsPath(self):
@@ -124,50 +123,6 @@ class RunWindow(tk.LabelFrame):
 		self.setCheckboxStates()
 		self.setButtonStates()
 
-	def getControlVarArgs(self, args):
-		ret = copy.deepcopy(args)
-		ret.name = self.runTitle.get().replace(' ','_')
-		ret.dir = self.saveResults.get()
-		ret.target = list(self.targetFilesList.get(0,tk.END)) #see bug notice in createControlVars
-		ret.components = list(self.componentFilesList.get(0,tk.END)) #see bug notice in createControlVars
-		ret.size = self.ensembleSize.get()
-		ret.ensembles = self.numEnsembles.get()
-		ret.Gcross = self.gCrossFreq.get()
-		ret.Gmutate = self.gMutateFreq.get()
-		ret.Gsource = self.gSourceRatio.get()
-		if(self.minFitnessCheck.get()>0):
-			ret.Fmin = self.minFitness.get()
-		else:
-			ret.Fmin = None
-		if(self.minRSDCheck.get()>0):
-			ret.Smin = self.minRSD.get()
-		else:
-			ret.Smin = None
-		if(self.maxGenerationsCheck.get()>0):
-			ret.Gmax = self.maxGenerations.get()
-		else:
-			ret.Gmax = None
-		ret.Pbest = (self.bestFitCheck.get()>0)
-		if(self.componentStatsCheck.get()>0):
-			ret.Pstats = True
-			ret.Pmin = self.componentStats.get()
-		else:
-			ret.Pstats = False
-			ret.Pmin = None
-		if(self.componentCorrCheck.get()>0):
-			ret.Pcorr = self.componentCorr.get()
-		else:
-			ret.Pcorr = 100
-		ret.Popt = (self.optimizationStateCheck.get()>0)
-		try:
-			ret.Ralgorithm = self.optMethodOptions.index(self.optMethodOption.get())
-		except:
-			ret.Ralgorithm = 0
-		ret.Rprecision = self.optTolerance.get()
-		ret.Rn = self.optIterations.get()
-
-		return ret
-
 	def loadControlVarArgs(self):
 		tmp = tkFileDialog.askopenfilename(title='Select MESMER run config file:',parent=self)
 		if(tmp == ''):
@@ -175,42 +130,18 @@ class RunWindow(tk.LabelFrame):
 		string = open(tmp).read()
 		string.replace("\n",'')
 		string.replace("\r",'')
-		args = parse_param_arguments(string)
+		args = parse_arguments(string)
 		self.setControlVarsFromMESMERArgs(args)
 
 	def saveControlVarArgs(self):
-		# load the default set of arguments
-		tmp = parse_param_arguments('')
-		tmp = self.getControlVarArgs(tmp)
-		args = vars(tmp)
-
-		# get any machine-specific arguments
-		if(self.prefs.has_key('run_arguments')):
-			p_args = self.prefs['run_arguments']
-			for k in p_args: #don't overwrite any arguments already explicitly specified
-				if not k in args:
-					args[k] = p_args[k]
-
-		ret = []
-		booleans = ('Rforce','Pstats','Pbest','Popt','Pextra','Pstate','force','uniform','resume','dbm')
-		for k in args:
-			if(args[k] in booleans):
-				if(args[k]>0):
-					ret.append( "-%s" % k )
-			elif(isinstance(args[k],(list,tuple))):
-				for w in args[k]:
-					ret.append( "-%s %s" % (k,w) )
-			elif(isinstance(args[k],(str,basestring))):
-				ret.append( "-%s %s" % (k,args[k]) )
-			elif(isinstance(args[k],float)):
-				ret.append( "-%s %f" % (k,args[k]) )
-			elif(isinstance(args[k],int)):
-				ret.append( "-%s %i" % (k,args[k]) )
+		text = makeMESMERArgsFromWindow(self)
+		if(text == None):
+			return
 
 		tmp = tkFileDialog.asksaveasfile(title='Select name and location for MESMER config file:',initialfile='args.txt',parent=self)
 		if(tmp == None):
 			return
-		tmp.write("\n".join(ret))
+		tmp.write(text)
 		tmp.close()
 
 	def closeWindow(self):

@@ -13,14 +13,14 @@ from lib.ga_functions_main		import run_ga
 
 def main():
 	_mes_version	= "0.6a"
-	_mes_build		= "2013.09.12.0"
+	_mes_build		= "2013.09.13.0"
 
 	# obtain the parameters for the run
 	args = parse_arguments()
 
 	# attempt to load available plugin modules
 	try:
-		plugins = load_plugins(args, '%s/plugins/' % os.path.dirname(os.path.realpath(__file__)))
+		plugins = load_plugins(os.path.join(os.path.realpath(__file__),'plugins'), 'mesmer', args=args )
 	except mesPluginError as e:
 		print e.msg
 		sys.exit(10)
@@ -28,6 +28,12 @@ def main():
 	if( len(plugins) < 1):
 		print "ERROR: No valid data plugins found, aborting."
 		sys.exit(11)
+
+	# did the user request information about a plugin?
+	for p in plugins:
+		if (args.plugin == p.name) or (args.plugin in p.type):
+			p.info()
+			sys.exit(0)
 
 	# attempt to create the fitting results directory
 	try:

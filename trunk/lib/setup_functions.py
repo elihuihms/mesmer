@@ -33,7 +33,7 @@ def parse_arguments(str=None):
 	group1.add_argument('-ensembles',	action='store',		default=1000,	type=int,		metavar='N',	help='Number of ensembles to use in the algorithm')
 	group1.add_argument('-size',		action='store',		default=3,		type=int,		metavar='N',	help='Number of components per ensemble')
 	group1.add_argument('-Fmin',		action='store',		default=-1,		type=float,		metavar='F',	help='Maximum ensemble fitness to stop algorithm')
-	group1.add_argument('-Smin',		action='store',		default=0,		type=float,		metavar='F',	help='Minimum ensemble fitness stdev to stop algorithm')
+	group1.add_argument('-Smin',		action='store',		default=0.01,		type=float,		metavar='F',	help='Minimum ensemble fitness stdev to stop algorithm')
 
 	group2 = parser.add_argument_group('Genetic algorithm coefficients')
 	group2.add_argument('-Gmax',		action='store',		default=-1,		type=int,		metavar='N',	help='Maximum number of generations, set to -1 to run indefinitely')

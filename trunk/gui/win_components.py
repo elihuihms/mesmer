@@ -6,11 +6,10 @@ import tkMessageBox
 import tkFileDialog
 import copy
 
-from lib.functions 			import get_input_blocks
+from lib.utility_functions 	import get_input_blocks
 from gui.tools_TkTooltip	import ToolTip
-from gui.tools_target		import makeTargetFromWindow
-from gui.tools_component	import makeComponentsFromWindow
-from gui.win_saxscalc		import SAXSCalcWindow
+from gui.tools_component	import makeComponentsFromWindow,calcDataFromWindow
+from gui.tools_plugin		import getTargetPluginOptions,getGUICalcPlugins
 
 class ComponentsWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -34,16 +33,21 @@ class ComponentsWindow(tk.Frame):
 		self.Ready = False
 
 		try:
-			from gui.plugin_types import types
-			self.types = types
-		except:
-			tkMessageBox.showerror("Error",'Could not load plugin types description. Please reinstall MESMER.',parent=self)
-			self.master.destroy()
-
-		try:
 			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
+			self.master.destroy()
+
+		try:
+			(self.target_plugin_types,self.target_plugin_options) = getTargetPluginOptions(self.prefs['mesmer_dir'])
+		except Exception as e:
+			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
+			self.master.destroy()
+
+		try:
+			self.calc_plugins = getGUICalcPlugins(self.prefs['mesmer_dir'])
+		except Exception as e:
+			tkMessageBox.showerror("Error",'Failure loading GUI calculator plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()
 
 	def loadTarget(self):
@@ -62,11 +66,26 @@ class ComponentsWindow(tk.Frame):
 			self.widgetRowChecks[i].set(1)
 		self.destroyWidgetRows()
 
+		available_types = []
+		for t in self.target_plugin_types:
+			available_types.extend(t)
+
 		for b in blocks:
 			type = b['type'][0:4]
-			if type in self.types.keys():
+			if type in available_types:
 				self.createWidgetRow()
 				self.widgetRowTypes[-1].set( type )
+			elif(type != 'NAME'):
+				tkMessageBox.showwarning("Unknown Type",'Target contains unknown data type (\"%s\").' % type,parent=self)
+
+	def openCalcWindow(self, pluginName):
+		self.calcDataMenuType.set( 'Calculate data...' )
+
+		pdbs = self.componentPDBsList.get(0,tk.END)
+		if(len(pdbs)<1):
+			return
+
+		calcDataFromWindow(self, pdbs, pluginName)
 
 	def makeComponents(self):
 		if( makeComponentsFromWindow(self) ):
@@ -117,22 +136,6 @@ class ComponentsWindow(tk.Frame):
 			self.loadComponentsButton.config(state=tk.NORMAL)
 			self.clearComponentsButton.config(state=tk.DISABLED)
 
-	def openSAXSCalcWindow(self):
-		pdbs = self.componentPDBsList.get(0,tk.END)
-		if(len(pdbs)<1):
-			return
-		self.newWindow = tk.Toplevel(self)
-		self.optWindow = SAXSCalcWindow(self.newWindow,pdbs,self.updateSAXSDir)
-		self.newWindow.focus_set()
-		self.newWindow.grab_set()
-		self.newWindow.transient(self)
-		self.newWindow.wait_window(self.newWindow)
-
-	def updateSAXSDir(self,dir):
-		for i in range(self.rowCounter):
-			if(self.widgetRowTypes[i].get() == 'SAXS'):
-				self.widgetRowFolders[i].set(dir)
-
 	def attachDataFolder(self,evt):
 		tmp = tkFileDialog.askdirectory(title='Select folder containing calculated data:',mustexist=True,parent=self)
 		if(tmp == ''):
@@ -154,7 +157,6 @@ class ComponentsWindow(tk.Frame):
 	def createControlVars(self):
 		self.widgetRowChecks = []
 		self.widgetRowTypes = []
-		self.widgetRowTypeOptions = []
 		self.widgetRowFolders = []
 
 	def createWidgets(self):
@@ -189,8 +191,15 @@ class ComponentsWindow(tk.Frame):
 		self.addRowButton.grid(in_=self.f_container,column=0,row=0,sticky=tk.E)
 		self.delRowButton = tk.Button(self.f_container,text='Remove',command=self.destroyWidgetRows)
 		self.delRowButton.grid(in_=self.f_container,column=1,row=0,sticky=tk.W)
-		self.calcSAXSButton = tk.Button(self.f_container,text='Calculate SAXS...',command=self.openSAXSCalcWindow)
-		self.calcSAXSButton.grid(in_=self.f_container,column=2,row=0,sticky=tk.W,columnspan=2)
+
+		tmp = ['Calculate data...']
+		tmp.extend( [p.name for p in self.calc_plugins] )
+		self.calcDataMenuType = tk.StringVar()
+		self.calcDataMenuType.set( tmp[0] )
+		self.calcDataMenu = tk.OptionMenu(self.f_container,self.calcDataMenuType,*tmp,command=self.openCalcWindow)
+		self.calcDataMenu.grid(in_=self.f_container,column=2,row=0,sticky=tk.W,columnspan=2)
+#		self.calcSAXSButton = tk.Button(self.f_container,text='Calculate...',command=self.openSAXSCalcWindow)
+#		self.calcSAXSButton.grid(in_=self.f_container,column=2,row=0,sticky=tk.W,columnspan=2)
 
 		self.rowHeaderSelectLabel = tk.Label(self.f_container,text='Select')
 		self.rowHeaderSelectLabel.grid(in_=self.f_container,column=0,row=1)
@@ -218,14 +227,19 @@ class ComponentsWindow(tk.Frame):
 
 	def createWidgetRow(self):
 		self.rowCounter+=1
+
+		# append a copy of the options for the available plugins
+		available_types = []
+		for t in self.target_plugin_types:
+			available_types.extend(t)
+
 		self.widgetRowChecks.append( tk.IntVar() )
 		self.widgetRowCheckboxes.append( tk.Checkbutton(self.f_container,variable=self.widgetRowChecks[-1]) )
 		self.widgetRowCheckboxes[-1].grid(in_=self.f_container,column=0,row=self.rowCounter+1)
 
-		self.widgetRowTypeOptions.append( self.types.keys() )
 		self.widgetRowTypes.append( tk.StringVar() )
-		self.widgetRowTypes[-1].set( self.types.keys()[0] )
-		self.widgetRowTypeMenus.append( tk.OptionMenu(self.f_container,self.widgetRowTypes[-1],*self.widgetRowTypeOptions[-1],command=self.updateWidgets) )
+		self.widgetRowTypes[-1].set( available_types[0] )
+		self.widgetRowTypeMenus.append( tk.OptionMenu(self.f_container,self.widgetRowTypes[-1],*available_types,command=self.updateWidgets) )
 		self.widgetRowTypeMenus[-1].grid(in_=self.f_container,column=1,row=self.rowCounter+1)
 
 		self.widgetRowFolders.append( tk.StringVar() )
@@ -254,7 +268,6 @@ class ComponentsWindow(tk.Frame):
 				del self.widgetRowFolderEntries[index]
 				del self.widgetRowFolderButtons[index]
 				del self.widgetRowChecks[index]
-				del self.widgetRowTypeOptions[index]
 				del self.widgetRowTypes[index]
 				del self.widgetRowFolders[index]
 				self.rowCounter-=1

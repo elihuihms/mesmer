@@ -8,12 +8,13 @@ from gui.tools_TkTooltip	import ToolTip
 from gui.tools_general		import getWhichPath
 
 class ConfigWindow(tk.LabelFrame):
-	def __init__(self, master=None):
+	def __init__(self, master, mainWindow):
 		self.master = master
+		self.mainWindow = mainWindow
 		self.master.resizable(width=False, height=False)
 		self.master.title('Configuration Panel')
 
-		tk.LabelFrame.__init__(self,master,width=400,height=150,borderwidth=0)
+		tk.LabelFrame.__init__(self,master,width=420,height=150,borderwidth=0)
 		self.grid()
 		self.grid_propagate(0)
 
@@ -22,7 +23,6 @@ class ConfigWindow(tk.LabelFrame):
 		self.createControlVars()
 		self.createWidgets()
 		self.createToolTips()
-		self.updateWidgets()
 
 	def loadPrefs(self):
 		try:
@@ -35,19 +35,21 @@ class ConfigWindow(tk.LabelFrame):
 		tmp = tkFileDialog.askopenfilename(title='Select MESMER command-line program:',parent=self)
 		if(tmp != ''):
 			self.mesmerEXEPath.set(os.path.abspath(tmp))
-		self.updateWidgets()
 
 	def setUtilPath(self):
 		tmp = tkFileDialog.askdirectory(title='Select MESMER utilities directory',mustexist=True,parent=self)
 		if(tmp != ''):
 			self.mesmerUtilPath.set(os.path.abspath(tmp))
-		self.updateWidgets()
 
 	def checkPaths(self):
 		ok = True
+		path0 = os.path.dirname(self.mesmerEXEPath.get())
 		path1 = self.mesmerEXEPath.get()
 		path2 = os.path.join(self.mesmerUtilPath.get(),'make_components')
-		path3 = self.SAXSCalcPath.get()
+
+		if(not os.path.isdir(path0)):
+			tkMessageBox.showwarning("Warning","The folder containing the MESMER executable was not found.",parent=self)
+			ok = False
 		if(not os.path.isfile(path1)):
 			tkMessageBox.showwarning("Warning","The MESMER executable was not found.",parent=self)
 			ok = False
@@ -58,18 +60,17 @@ class ConfigWindow(tk.LabelFrame):
 			tkMessageBox.showwarning("Warning","The MESMER utilities are missing.",parent=self)
 			ok = False
 		if(ok):
-			tkMessageBox.showinfo("Setup Check","Setup verified!",parent=self)
+			tkMessageBox.showinfo("Setup Check","Configuration is OK.",parent=self)
 
-	def updateWidgets(self):
-		if(self.mesmerEXEPath.get() != '' and self.mesmerUtilPath.get() != ''):
-			self.mesmerCheckButton.config(state=tk.NORMAL)
-		else:
-			self.mesmerCheckButton.config(state=tk.DISABLED)
+			self.prefs['mesmer_dir'] = os.path.dirname(self.mesmerEXEPath.get())
+			self.prefs['mesmer_exe_path'] = self.mesmerEXEPath.get()
+			self.prefs['mesmer_util_path'] = self.mesmerUtilPath.get()
+			self.prefs.close()
+			self.mainWindow.Ready = True
+			self.mainWindow.updateWidgets()
+			self.master.destroy()
 
-	def saveChanges(self):
-		self.prefs['mesmer_exe_path'] = self.mesmerEXEPath.get()
-		self.prefs['mesmer_util_path'] = self.mesmerUtilPath.get()
-		self.prefs.close()
+	def closeWindow(self):
 		self.master.destroy()
 
 	def createControlVars(self):
@@ -108,7 +109,7 @@ class ConfigWindow(tk.LabelFrame):
 		self.mesmerUtilPathButton = tk.Button(self.container, text='Set...',command=self.setUtilPath)
 		self.mesmerUtilPathButton.grid(in_=self.container,column=1,row=3,sticky=tk.W)
 
-		self.mesmerCheckButton = tk.Button(self.container, text='Verify...',command=self.checkPaths)
+		self.mesmerCheckButton = tk.Button(self.container, text='Cancel',command=self.closeWindow)
 		self.mesmerCheckButton.grid(in_=self.container,column=0,row=4,sticky=tk.E,pady=10)
-		self.mesmerDoneButton = tk.Button(self.container, text='Done',default=tk.ACTIVE,command=self.saveChanges)
+		self.mesmerDoneButton = tk.Button(self.container, text='Check...',default=tk.ACTIVE,command=self.checkPaths)
 		self.mesmerDoneButton.grid(in_=self.container,column=1,row=4,sticky=tk.W,pady=10)
