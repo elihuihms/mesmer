@@ -7,8 +7,8 @@ import copy
 
 from lib.functions 			import get_input_blocks
 from gui.tools_TkTooltip	import ToolTip
-from gui.tools_target		import makeTargetFromWindow
-from gui.win_target_options	import OptionsWindow,setOptsFromBlock
+from gui.tools_target		import makeTargetFromWindow,setBlockOptions,getPluginOptions
+from gui.win_options		import OptionsWindow
 
 class TargetWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -22,26 +22,27 @@ class TargetWindow(tk.Frame):
 		self.grid_propagate(0)
 
 		self.loadPrefs()
+		self.loadPlugins()
 
 		self.createControlVars()
 		self.createWidgets()
 		self.createToolTips()
 		self.updateWidgets()
 
-	def loadPrefs(self):
 		self.Ready = False
 
-		try:
-			from gui.plugin_types import types
-			self.types = types
-		except:
-			tkMessageBox.showerror("Error",'Could not load plugin types description. Please reinstall MESMER.',parent=self)
-			self.master.destroy()
-
+	def loadPrefs(self):
 		try:
 			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
+			self.master.destroy()
+
+	def loadPlugins(self):
+		try:
+			(self.plugin_types,self.plugin_options) = getPluginOptions(os.path.dirname(os.path.realpath(__file__)))
+		except:
+			tkMessageBox.showerror("Error",'Cannot load MESMER plugins.',parent=self)
 			self.master.destroy()
 
 	def openOptionsWindow(self, evt):
@@ -200,6 +201,11 @@ class TargetWindow(tk.Frame):
 
 	def createWidgetRow(self):
 		self.rowCounter+=1
+
+		# append a copy of the plugin options for the default type
+
+		self.widgetRowOptions.append( convertParserToOptions )
+
 		self.widgetRowChecks.append( tk.IntVar() )
 		self.widgetRowCheckboxes.append( tk.Checkbutton(self.f_container,variable=self.widgetRowChecks[-1]) )
 		self.widgetRowCheckboxes[-1].grid(in_=self.f_container,column=0,row=self.rowCounter+1)
@@ -226,9 +232,6 @@ class TargetWindow(tk.Frame):
 		self.widgetRowOptButtons.append( tk.Button(self.f_container,text='Set Options...') )
 		self.widgetRowOptButtons[-1].bind('<ButtonRelease-1>',self.openOptionsWindow)
 		self.widgetRowOptButtons[-1].grid(in_=self.f_container,column=5,row=self.rowCounter+1)
-
-		# append a copy of the plugin options for each type. The appropriate options for the specified datatype will be modified when the user open the option window
-		self.widgetRowOptions.append( copy.deepcopy(self.types) )
 
 		self.delRowButton.config(state=tk.NORMAL)
 

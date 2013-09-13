@@ -1,10 +1,11 @@
 import copy
 
-from operator import itemgetter
+from operator			import itemgetter
 
-from lib.functions import mean_stdv
-from lib.ga_functions_misc import *
-from lib.plugin_objects import mesRestraint
+from exceptions			import *
+from utility_functions	import mean_stdv
+from ga_functions_misc	import *
+from target_objects		import mesRestraint
 
 def get_ratio_stats( targets, ensembles ):
 	"""

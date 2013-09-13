@@ -1,8 +1,16 @@
 import re
 import copy
 
-from lib.plugin_objects import mesRestraint
-from lib.functions import print_msg,get_input_blocks
+from exceptions			import *
+from utility_functions	import print_msg,get_input_blocks
+
+class mesRestraint:
+
+	def __init__(self, scale, type):
+		self.scale = scale
+		self.type = type
+		self.data = {}
+		return
 
 class mesTarget:
 	"""

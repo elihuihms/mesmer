@@ -3,13 +3,15 @@ import os
 import imp
 import glob
 
-def load_plugins( args, dir ):
-	"""Finds all MESMER plugin (plugin_*.py) files in the provided directory, and loads them"""
+from exceptions import *
 
-	files = glob.glob( '%s/plugin_*.py' % dir )
+def load_plugins( args, dir ):
+	"""
+	Finds all MESMER plugin (plugin_*.py) files in the provided directory, and returns them
+	"""
 
 	plugins = []
-	for f in files:
+	for f in glob.glob( '%s%smesmer_*.py' % (dir,os.sep) ):
 	    plugins.append( load_mesmer_plugin(args, f) )
 
 	return plugins
@@ -27,22 +29,19 @@ def load_mesmer_plugin( args, path ):
 	try:
 		file, filename, data = imp.find_module(name, [dir])
 	except ImportError:
-		print "ERROR: Could not discover plugin at path \"%s\"." % (path)
-		return None
+		raise mesPluginError("ERROR: Could not discover plugin at path \"%s\"." % path)
 
 	try:
 		module = imp.load_module(name, file, filename, data)
 	except:
-		print "ERROR: Could not import plugin module \"%s\". Reason: %s" % (name,sys.exc_info()[1])
-		return None
-	finally:
-		file.close()
+		raise mesPluginError("ERROR: Could not import plugin module \"%s\". Reason: %s" % (name,sys.exc_info()[1]))
+	#finally:
+	#	file.close()
 
-	try:
-		plugin = module.plugin( args )
-	except:
-		print "ERROR: Could not load plugin \"%s\": %s" % (name,sys.exc_info()[1])
-		return None
+	#try:
+	plugin = module.plugin( args )
+	#except:
+	#	raise mesPluginError("ERROR: Could not load plugin \"%s\": %s" % (name,sys.exc_info()[1]))
 
 	# did the user request information about a plugin?
 	if (args.plugin == plugin.name) or (args.plugin == name) or (args.plugin in plugin.type):
@@ -53,9 +52,7 @@ def load_mesmer_plugin( args, path ):
 
 def unload_plugins( plugins ):
 	for p in plugins:
-		name = p.name
 		try:
 			del p
 		except:
-			print "ERROR: Plugin \"%s\" deletion failed: %s" % (name,sys.exc_info()[1])
-			continue
+			raise mesPluginError("ERROR: Plugin \"%s\" unloading failed: %s" % (p.name,sys.exc_info()[1]))

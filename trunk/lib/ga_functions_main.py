@@ -1,13 +1,13 @@
 import sys
-import cPickle
 
-from datetime import datetime
+from datetime				import datetime
 
-from lib.ga_functions_misc import *
-from lib.ga_functions_stats import *
-from lib.ga_functions_output import *
+from exceptions				import *
+from ga_functions_misc		import *
+from ga_functions_stats		import *
+from ga_functions_output	import *
 
-def main( args, plugins, targets, components ):
+def run_ga( args, plugins, targets, components ):
 	"""
 	Evolves a set of ensembles until a combination of components is found that best fits the provided target dataset
 

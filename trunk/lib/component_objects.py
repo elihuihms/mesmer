@@ -1,8 +1,15 @@
 import re
 import random
 
-from lib.plugin_objects import mesAttribute
-from lib.functions import print_msg,get_input_blocks
+from exceptions			import *
+from utility_functions	import print_msg,get_input_blocks
+
+class mesAttribute:
+
+	def __init__(self, restraint):
+		self.restraint = restraint
+		self.data = {}
+		return
 
 class mesComponent:
 	"""

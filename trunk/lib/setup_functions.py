@@ -1,22 +1,11 @@
 import os
-import os.path
-import sys
 import shutil
-import re
-import glob
 import argparse
-import shelve
-import tempfile
 
-from lib.ga_objects_target import mesTarget
-from lib.ga_objects_component import mesComponent
-from lib.functions import print_msg
+from exceptions				import *
+from utility_functions		import print_msg
 
-"""
-Functions for setting up a MESMER run
-"""
-
-def parse_param_arguments(str=None):
+def parse_arguments(str=None):
 	"""
 	Parses the command-line parameters (or those provided in a configuration file)
 	"""
@@ -92,113 +81,29 @@ def make_results_dir( args ):
 	Creates a directory in which to save MESMER output files, and copies the parameters file into it
 	"""
 
-	path = os.path.abspath( "%s%s%s" % (args.dir,os.sep,args.name) )
-	args.dir = path
+	args.dir = os.path.join( args.dir, args.name)
 
-	if args.force and os.path.isdir(path):
-		print_msg("INFO: Overwriting old result directory \"%s\"" % (path))
-
+	oWrite = False
+	if args.force and os.path.isdir(args.dir):
+		oWrite = True
 		try:
-			shutil.rmtree(path)
+			shutil.rmtree(args.dir)
 		except OSError:
-			print "ERROR: Could not delete directory \"%s\"." % (path)
-			return False
+			raise mesSetupError("ERROR: Could not delete directory \"%s\"." % (args.dir))
 
-	if os.path.isdir(path):
-		print "ERROR: MESMER results directory \"%s\" already exists." % (path)
-		return False
+	if os.path.isdir(args.dir):
+		raise mesSetupError("ERROR: MESMER results directory \"%s\" already exists." % (args.dir))
 
 	# Prep the folders to recieve the results
 	try:
-		os.mkdir(path)
+		os.mkdir(args.dir)
 	except OSError:
-		print "ERROR: Couldn't create MESMER results directory \"%s\"." % (path)
-		return False
+		raise mesSetupError("ERROR: Couldn't create MESMER results directory \"%s\"." % (args.dir))
 
-	return True
+	try:
+		print_msg('',os.path.join(args.dir,"mesmer_log.txt"))
+	except:
+		raise mesSetupError("ERROR: Couldn't open MESMER log file")
 
-def load_all_targets( args, plugins ):
-	"""
-	Loads all targets specified in the args by passing them off to the appropriate plugins
-	"""
-
-	if(len(args.target) < 0):
-		return [None]
-
-	names, targets = [], []
-
-	for f in args.target:
-		print_msg("INFO: Reading target file \"%s\"" % (f))
-
-		targets.append( mesTarget() )
-
-		if( not targets[-1].load(f,plugins) ):
-			print_msg("ERROR: Could not load target file \"%s\"." % (f))
-			targets[-1] = None
-			return targets
-
-		if( targets[-1].name in names ):
-			print_msg("ERROR: Target file \"%s\" has the same name (%s) as a previous target." % (f,targets[-1].name))
-			targets[-1] = None
-			return targets
-
-		names.append(targets[-1].name)
-
-	return targets
-
-def load_all_components( args, plugins, targets ):
-
-	files = []
-	for f in args.components:
-
-		if( os.path.isdir(f[0]) ):
-			files.extend( glob.glob( "%s%s*" % (f[0],os.sep) ) )
-		else:
-			files.extend( f )
-
-	if(len(files) < 0):
-		return [None]
-
-	if( args.dbm ):
-		print_msg("INFO: Loading %i component files to temporary database:" % (len(files)))
-
-		path = "%s%scomponents.db" % (tempfile.mkdtemp(),os.sep)
-		try:
-			components = shelve.open( path )
-		except:
-			print_msg("ERROR: Could not create component database file \"%s\"." % (path) )
-			return [None]
-	else:
-		print_msg("INFO: Found %i component files." % (len(files)))
-		components = {}
-
-	names = [''] * len(files)
-	divisor = int(max(len(files)/100,1))
-	for (i,f) in enumerate(files):
-		if( i % divisor == 0 ):
-			sys.stdout.write("\rComponent loading progress: %i%%" % (100.*i/len(files)+1) )
-			sys.stdout.flush()
-
-		temp = mesComponent()
-
-		if( not temp.load(f,plugins,targets) ):
-			print_msg("\nERROR: Could not load component file \"%s\"." % (f))
-			return [None]
-
-		if( temp.name in names ):
-			print_msg("\nERROR: Component file \"%s\" has the same NAME as a previous component." % (f))
-			return [None]
-
-		# add the component to the component database
-		components[temp.name] = temp
-		names[i] = temp.name
-
-	sys.stdout.write("\n")
-
-	if( args.dbm ):
-		components.close()
-
-		# reopen components db as read-only
-		components = shelve.open( path, flag='r' )
-
-	return components
+	if(oWrite):
+		print_msg("INFO: Overwriting old result directory \"%s\"" % (args.dir))

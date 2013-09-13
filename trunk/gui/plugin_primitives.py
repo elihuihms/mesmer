@@ -1,3 +1,5 @@
+import argparse
+
 class GUICalcPluginError(Exception):
 	def __init__(self, msg):
 		self.msg = msg
@@ -5,7 +7,8 @@ class GUICalcPluginError(Exception):
 		return self.msg
 
 class GUICalcPlugin():
-
 	def __init__(self):
-		return True
-
+		self.name = ''
+		self.version = ''
+		self.type = ''
+		self.parser = argparse.ArgumentParser(prog=self.name)

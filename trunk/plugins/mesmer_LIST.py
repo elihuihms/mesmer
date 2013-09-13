@@ -18,15 +18,15 @@ import sys
 from scipy import sqrt,mean,average,array,interpolate
 from scipy.stats import linregress
 
-from lib.plugin_primitives import MESMERPluginError,MESMERPluginDB
+from lib.plugin_objects import mesPluginError,mesPluginDB
 import lib.plugin_tools as tools
 
-class plugin( MESMERPluginDB ):
+class plugin( mesPluginDB ):
 
 	def __init__(self, args):
 
 		# call parent constructor first
-		MESMERPluginDB.__init__(self, args)
+		mesPluginDB.__init__(self, args)
 
 		self.name = 'default_LIST'
 		self.version = '2013.07.19'
@@ -97,7 +97,7 @@ class plugin( MESMERPluginDB ):
 		try:
 			f = open( file_path, 'w' )
 		except IOError:
-			raise MESMERPluginError('Could not open file \"%s\" for writing' % file_path)
+			raise mesPluginError('Could not open file \"%s\" for writing' % file_path)
 
 		f.write("# (identifiers)\texp\tfit\n")
 		for i in range(len(restraint.data['x'])):
@@ -131,12 +131,12 @@ class plugin( MESMERPluginDB ):
 		try:
 			args = self.target_parser.parse_args(block['header'].split()[2:])
 		except argparse.ArgumentError, exc:
-			raise MESMERPluginError("Argument error: %s" % exc.message())
+			raise mesPluginError("Argument error: %s" % exc.message())
 
 		restraint.data['args'] = args
 
 		if (not args.sse) and (not args.harm) and (not args.Q) and (not args.R):
-			raise MESMERPluginError('Must specify at least one fitness calculation type!')
+			raise mesPluginError('Must specify at least one fitness calculation type!')
 
 		if(args.file):
 			try:
@@ -144,7 +144,7 @@ class plugin( MESMERPluginDB ):
 				table = f.readlines()
 				f.close()
 			except:
-				raise MESMERPluginError("Error reading from file \"%s\": %s" % (file,sys.exc_info()[1]))
+				raise mesPluginError("Error reading from file \"%s\": %s" % (file,sys.exc_info()[1]))
 		else:
 			table = block['content']
 
@@ -167,7 +167,7 @@ class plugin( MESMERPluginDB ):
 				if(args.harm) and (len(e) >= args.harm):
 					restraint.data['d'].append( float(e[args.harm]) )
 				elif(args.harm):
-					raise MESMERPluginError("Error determining harmonic interval from \"%s\". Line in question looks like: \"%s\""%(file,e))
+					raise mesPluginError("Error determining harmonic interval from \"%s\". Line in question looks like: \"%s\""%(file,e))
 
 		return messages
 
@@ -188,7 +188,7 @@ class plugin( MESMERPluginDB ):
 		try:
 			args = self.component_parser.parse_args(block['header'].split()[1:])
 		except argparse.ArgumentError, exc:
-			raise MESMERPluginError("Argument error: %s" % exc.message())
+			raise mesPluginError("Argument error: %s" % exc.message())
 
 		if(args.file):
 			try:
@@ -196,7 +196,7 @@ class plugin( MESMERPluginDB ):
 				table = f.readlines()
 				f.close()
 			except:
-				raise MESMERPluginError("Error reading from file \"%s\": %s" % (file,sys.exc_info()[1]))
+				raise mesPluginError("Error reading from file \"%s\": %s" % (file,sys.exc_info()[1]))
 		else:
 			table = block['content']
 
@@ -220,7 +220,7 @@ class plugin( MESMERPluginDB ):
 		for n in seen:
 			messages.append("Couldn't find key \"%s\"!" % n)
 		if( len(seen)>0 ):
-			raise MESMERPluginError( "\n".join(messages) )
+			raise mesPluginError( "\n".join(messages) )
 
 		# save the data to the database
 		attribute.data['key'] = self.put(data=temp)

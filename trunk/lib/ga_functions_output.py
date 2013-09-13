@@ -6,11 +6,12 @@ import os
 import os.path
 import operator
 
-from datetime import datetime
+from datetime			import datetime
 
-from lib.ga_functions_misc import *
-from lib.ga_functions_stats import *
-from lib.functions import mean_stdv
+from exceptions			import *
+from ga_functions_misc	import *
+from ga_functions_stats	import *
+from utility_functions	import mean_stdv
 
 def print_generation_state( args, ensemble_stats, restraint_stats ):
 	"""

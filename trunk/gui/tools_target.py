@@ -1,26 +1,58 @@
-import tkMessageBox
+from lib.plugin_functions	import load_plugins
+from gui.tools_plugin		import convertParserToOptions
 
-def makeStringFromOpts( opts ):
+def getPluginOptions( path ):
+	try:
+		plugins = load_plugins
+
+def setOptionsFromBlock( options, block ):
+	header = block['header'].split()
+
+	for k in options:
+
+		if(options[k]['nargs'] == 0):
+			options[k]['value'] = (options[k]['option_strings'][0] in header[2:])
+			continue
+
+		if( not options[k]['option_strings'][0] in header[2:]):
+			continue
+		else:
+			i = header.index(options[k]['option_strings'][0])+1
+
+		if(i > len(header)):
+			raise Exception("Header to short to contain a value for key: %s" % options[k]['dest'])
+		elif(header[i][0] == options[k]['option_strings'][0][0]):
+			raise Exception("Header missing a value for key: %s" % options[k]['dest'])
+
+		if(options[k]['nargs'] == None):
+			if(options[k]['type'] == type(0)):
+				options[k]['value'] = int( header[i] )
+			elif(options[k]['type'] == type(0.0)):
+				options[k]['value'] = float( header[i] )
+			else:
+				options[k]['value'] = header[i]
+
+		else:
+			raise Exception("Encountered an option that could not be parsed properly: %s" % options[k]['dest'])
+
+def makeStringFromOptions( options ):
 	string = ''
-	for i in range(len(opts['bool_options'])):
-		(name,opt,value,help) = opts['bool_options'][i]
-		if(value>0):
-			string+="-%s " % (opt)
 
-	for i in range(len(opts['int_options'])):
-		(name,opt,value,help) = opts['int_options'][i]
-		if(value!=None):
-			string+="-%s %i " % (opt,value)
-
-	for i in range(len(opts['float_options'])):
-		(name,opt,value,help) = opts['float_options'][i]
-		if(value!=None):
-			string+="-%s %f" % (opt,value)
-
-	for i in range(len(opts['string_options'])):
-		(name,opt,value,help) = opts['string_options'][i]
-		if(value!=''):
-			string+="-%s %f" % (opt,value)
+	for k in options:
+		if( not 'value' in options[k] ):
+			if options[k]['required']:
+				raise Exception("Encountered a required option without a value: %s" % options[k]['dest'])
+		elif( options[k]['value'] == None or options[k]['value'] == 'None' ):
+			if options[k]['required']:
+				raise Exception("Encountered a required option without a value: %s" % options[k]['dest'])
+			continue
+		elif(options[k]['nargs'] == 0):
+			if(options[k]['value']):
+				string+="%s " % options[k]['option_strings'][0]
+		elif(options[k]['nargs'] == None):
+			string+="%s %s " % (options[k]['option_strings'][0],options[k]['value'])
+		else:
+			raise Exception("Encountered an option that could not be converted to a string properly: %s" % options[k]['dest'])
 
 	return string
 

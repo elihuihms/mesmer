@@ -1,13 +1,9 @@
 import glob
 import os
 
-class ComponentGenException(Exception):
-	def __init__(self,msg):
-		self.msg = msg
-	def __str__(self):
-		return self.msg
+from exceptions import *
 
-def getComponentValues( path ):
+def get_component_values( path ):
 	try:
 		f = open( path, 'r' )
 	except IOError:
@@ -31,7 +27,7 @@ def getComponentValues( path ):
 
 	return ret
 
-def matchDataFiles( names, dirs ):
+def match_data_files( names, dirs ):
 	"""
 	Find the datafiles from the provided a list of directories matching the provided name
 	"""
@@ -53,7 +49,7 @@ def matchDataFiles( names, dirs ):
 
 	return ret
 
-def writeComponentFiles( data_vals, data_dirs, template, dir ):
+def write_component_files( data_vals, data_dirs, template, dir ):
 
 	# create the component file
 	for name in data_vals:

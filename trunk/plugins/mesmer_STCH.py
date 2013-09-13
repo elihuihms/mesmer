@@ -1,21 +1,26 @@
 """
-Example MESMER plugin
+MESMER plugin for component stoichiometry
 
 Target file arguments:
--value <N>
+-component <name> <# of component>
 
 Component file arguments:
--value <N>
+-component <name> <# of component>
 """
 
-from argparse import ArgumentParser
-from lib.plugin_primitives import MESMERPluginError,MESMERPluginBasic
+import argparse
 
-class plugin( MESMERPluginBasic ):
+from lib.plugin_objects import mesPluginError,mesPluginBasic
+import lib.plugin_tools as tools
 
-	name = 'XX_EXAMPLE'
-	version = '2013.06.04'
-	type = ['TEST','TEST0','TEST1','TEST2','TEST3','TEST4','TEST5','TEST6','TEST7','TEST8','TEST9']
+class plugin( mesPluginBasic ):
+
+	def __init__(self, args):
+		mesPluginBasic.__init__(self, args)
+
+		self.name = 'default_STCH'
+		self.version = '2013.06.04'
+		self.type = ('STCH','STCH0','STCH1','STCH2','STCH3','STCH4','STCH5','STCH6','STCH7','STCH8','STCH9')
 
 	#
 	# output functions
@@ -33,12 +38,7 @@ class plugin( MESMERPluginBasic ):
 		filePath		- an optional file path the plugin can save data to
 		"""
 
-		output = (
-		'Example plugin',
-		'Path is %s' % (file_path)
-		)
-
-		return output
+		return []
 	#
 	# data handling functions
 	#
@@ -67,16 +67,23 @@ class plugin( MESMERPluginBasic ):
 		# TYPE	SCALE	OPTIONS
 		# TEST	1		-value <N>
 
-		parser = ArgumentParser(prog=self.type[0])
-		parser.add_argument('-value', metavar='number', help='')
+		parser = argparse.ArgumentParser(prog=self.type[0])
+		parser.add_argument('-component', nargs='+', metavar='NAME, #', action='append', help='')
 
 		try:
 			args = parser.parse_args(block['header'].split()[2:])
 		except argparse.ArgumentError, exc:
-			raise MESMERPluginError("Argument error: %s" % exc.message())
+			raise mesPluginError("Argument error: %s" % exc.message())
 
-		target_data['args']		= args
-		restraint.data['value']	= args.value
+		sum = 0.0
+		restraint.data['components']	= {}
+		for component in args.component:
+			restraint.data['components'][component[0]] = float(component[1])
+			sum += float(component[1])
+
+		# normalize the components to ratios
+		for component in args.component:
+			restraint.data['components'][component[0]] /= sum
 
 		return []
 
@@ -93,14 +100,16 @@ class plugin( MESMERPluginBasic ):
 		"""
 
 		parser = argparse.ArgumentParser(prog=self.name)
-		parser.add_argument('-value', metavar='number', help='')
+		parser.add_argument('-component', nargs='+', metavar='NAME, #', action='append', help='')
 
 		try:
 			args = parser.parse_args(block['header'].split()[1:])
 		except argparse.ArgumentError, exc:
-			raise MESMERPluginError("Argument error: %s" % exc.message())
+			raise mesPluginError("Argument error: %s" % exc.message())
 
-		attribute.data['value'] = args.value
+		attribute.data['components']	= {}
+		for component in args.component:
+			attribute.data['components'][component[0]] = float(component[1])
 
 		return []
 
@@ -115,19 +124,17 @@ class plugin( MESMERPluginBasic ):
 		target_data		- The plugin's data storage variable for the target
 		"""
 
-		bootstrap.data['value'] = restraint.data['value']
+		bootstrap.data['components'] = {}
+		for name in restraint.data['components']:
+			bootstrap.data['components'][name] = ensemble_data['components'][name]
 
 		return []
-
-	#
-	# Calc fitness - the heart of the plugin, provides the fitness of an ensemble
-	#
 
 	def calc_fitness( self, restraint, target_data, ensemble_data, attributes, ratios ):
 		"""
 		Calculates the fitness of a set of attributes against a given restraint
 
-		Returns a fitness score, ideally a chi-square error (1=good fit, or >1 if bad fit). Less ideally a sum-squared of error.
+		Returns a fitness score.
 
 		Arguments:
 		ensemble_data	- The plugin's data storage variable for the ensemble
@@ -138,9 +145,27 @@ class plugin( MESMERPluginBasic ):
 
 		assert(len(attributes) == len(ratios))
 
-		avg = 0.0
-		for (i,a) in enumerate(attributes):
-			avg += a.data['value'] * ratios[i]
+		# convert component count to ratios
+		sum = 0.0
+		ensemble_data['components'] = {}
+		for name in restraint.data['components']:
+			ensemble_data['components'][name] = 0.0
 
-		return restraint.data['value'] - avg
+			for (i,a) in enumerate(attributes):
+				if(name in a.data['components']):
+					ensemble_data['components'][name] += (a.data['components'][name] * ratios[i])
+					sum += (a.data['components'][name] * ratios[i])
+
+		fitness = 0.0
+
+		# create score from flat harmonic
+		for name in restraint.data['components']:
+			if( sum == 0.0 ):
+				ensemble_data['components'][name] = 0.0
+			else:
+				ensemble_data['components'][name] /= sum
+
+			fitness += tools.get_flat_harmonic( restraint.data['components'][name], restraint.data['components'][name], ensemble_data['components'][name] )
+
+		return fitness
 
