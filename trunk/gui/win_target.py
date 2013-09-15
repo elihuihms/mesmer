@@ -126,7 +126,7 @@ class TargetWindow(tk.Frame):
 		self.widgetRowFiles[i].set(tmp)
 		self.updateWidgets()
 
-	def closeWindow(self):
+	def close(self):
 		self.master.destroy()
 
 	def createToolTips(self):
@@ -191,7 +191,7 @@ class TargetWindow(tk.Frame):
 		self.openButton.grid(in_=self.f_footer,column=0,row=0,sticky=tk.N+tk.S+tk.E,pady=8)
 		self.saveButton = tk.Button(self.f_footer,text='Save Target...',command=self.saveTarget,default=tk.ACTIVE)
 		self.saveButton.grid(in_=self.f_footer,column=1,row=0,sticky=tk.N+tk.S+tk.W,pady=8)
-		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.closeWindow)
+		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
 		self.cancelButton.grid(in_=self.f_footer,column=2,row=0,sticky=tk.N+tk.S+tk.E,pady=8,padx=20)
 
 	def createWidgetRow(self):

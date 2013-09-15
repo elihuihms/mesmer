@@ -70,7 +70,7 @@ class ConfigWindow(tk.LabelFrame):
 			self.mainWindow.updateWidgets()
 			self.master.destroy()
 
-	def closeWindow(self):
+	def close(self):
 		self.master.destroy()
 
 	def createControlVars(self):
@@ -109,7 +109,7 @@ class ConfigWindow(tk.LabelFrame):
 		self.mesmerUtilPathButton = tk.Button(self.container, text='Set...',command=self.setUtilPath)
 		self.mesmerUtilPathButton.grid(in_=self.container,column=1,row=3,sticky=tk.W)
 
-		self.mesmerCheckButton = tk.Button(self.container, text='Cancel',command=self.closeWindow)
+		self.mesmerCheckButton = tk.Button(self.container, text='Cancel',command=self.close)
 		self.mesmerCheckButton.grid(in_=self.container,column=0,row=4,sticky=tk.E,pady=10)
 		self.mesmerDoneButton = tk.Button(self.container, text='Check...',default=tk.ACTIVE,command=self.checkPaths)
 		self.mesmerDoneButton.grid(in_=self.container,column=1,row=4,sticky=tk.W,pady=10)

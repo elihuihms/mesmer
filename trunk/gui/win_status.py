@@ -16,9 +16,9 @@ class StatusWindow(tk.Frame):
 
 	def cancelCalc(self):
 		self.cancelFunc()
-		self.closeWindow()
+		self.close()
 
-	def closeWindow(self):
+	def close(self):
 		self.master.destroy()
 
 	def createControlVars(self):

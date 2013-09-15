@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import Tkinter as tk
 import argparse
 
@@ -82,4 +80,3 @@ class OptionsWindow(tk.Frame):
 		self.cancelButton.grid(in_=self.container,column=0,row=rowCounter,sticky=tk.E,pady=8)
 		self.saveButton = tk.Button(self.container,text='Save',command=self.saveWindow,default=tk.ACTIVE)
 		self.saveButton.grid(in_=self.container,column=1,row=rowCounter,sticky=tk.W,pady=8)
-

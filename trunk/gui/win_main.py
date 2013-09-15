@@ -6,13 +6,14 @@ import Tkinter as tk
 import tkMessageBox
 
 from gui.tools_TkTooltip	import ToolTip
-from gui.tools_plugin	import getTargetPluginOptions
-from gui.win_target		import TargetWindow
-from gui.win_components	import ComponentsWindow
-from gui.win_run		import RunWindow
-from gui.win_config		import ConfigWindow
+from gui.tools_plugin		import getTargetPluginOptions
+from gui.win_target			import TargetWindow
+from gui.win_components		import ComponentsWindow
+from gui.win_setup			import SetupWindow
+from gui.win_config			import ConfigWindow
+from gui.win_analysis		import AnalysisWindow
 
-class MainWindow(tk.LabelFrame):
+class MainWindow(tk.Frame):
 	def __init__(self, master=None):
 		self.master = master
 		self.master.geometry('500x300+200+200')
@@ -21,14 +22,19 @@ class MainWindow(tk.LabelFrame):
 
 		self.loadPrefs()
 
-		tk.LabelFrame.__init__(self,master,width=500,height=300)
+		tk.Frame.__init__(self,master,width=500,height=300)
 		self.grid()
 		self.grid_propagate(0)
 
 		self.createWidgets()
 		self.createToolTips()
 		self.updateWidgets()
-
+		
+		self.masters	= []
+		self.windows	= []
+		self.setupMaster	= None
+		self.configMaster	= None
+			
 	def loadPrefs(self):
 		self.Ready = True
 
@@ -67,22 +73,28 @@ class MainWindow(tk.LabelFrame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()
-
+		
 	def makeTarget(self):
-		self.newWindow = tk.Toplevel(self.master)
-		self.makeTargetWindow = TargetWindow(self.newWindow)
+		self.masters.append( tk.Toplevel(self.master) )
+		self.windows.append( TargetWindow(self.masters[-1]) )
 
 	def makeComponents(self):
-		self.newWindow = tk.Toplevel(self.master)
-		self.makeComponentsWindow = ComponentsWindow(self.newWindow)
-
-	def runMESMER(self):
-		self.newWindow = tk.Toplevel(self.master)
-		self.runMESMERWindow = RunWindow(self.newWindow)
-
+		self.masters.append( tk.Toplevel(self.master) )
+		self.windows.append( ComponentsWindow(self.masters[-1]) )
+		
+	def openAnalysis(self):
+		self.masters.append( tk.Toplevel(self.master) )
+		self.windows.append( AnalysisWindow(self.masters[-1]) )
+	
+	def setupMESMER(self):
+		if(self.setupMaster == None or not self.setupMaster.winfo_exists()):
+			self.setupMaster = tk.Toplevel(self.master)
+			self.setupWindow = SetupWindow(self.setupMaster,self)
+	
 	def setConfig(self):
-		self.newWindow = tk.Toplevel(self.master)
-		self.loadConfigWindow = ConfigWindow(self.newWindow,self)
+		if(self.configMaster == None or not self.configMaster.winfo_exists()):
+			self.configMaster = tk.Toplevel(self.master)
+			self.configWindow = ConfigWindow(self.configMaster,self)
 
 	def createToolTips(self):
 		self.createTargetTT 	= ToolTip(self.createTargetButton,		follow_mouse=0,text='Create a target file from experimental data')
@@ -122,10 +134,10 @@ class MainWindow(tk.LabelFrame):
 		self.createComponentsButton = tk.Button(self.f_buttons, text='Create Components', command=self.makeComponents,width=20,height=1)
 		self.createComponentsButton.grid(in_=self.f_buttons,column=0,row=2,sticky=tk.S)
 
-		self.runMESMERButton = tk.Button(self.f_buttons, text='Run MESMER', command=self.runMESMER,width=20,height=1)
+		self.runMESMERButton = tk.Button(self.f_buttons, text='Run MESMER', command=self.setupMESMER,width=20,height=1)
 		self.runMESMERButton.grid(in_=self.f_buttons,column=0,row=3,sticky=tk.S)
 
-		self.analyzeDataButton = tk.Button(self.f_buttons, text='Analyze Run Data', command=self.makeTarget,width=20,height=1)
+		self.analyzeDataButton = tk.Button(self.f_buttons, text='Analyze Run Data', command=self.openAnalysis,width=20,height=1)
 		self.analyzeDataButton.grid(in_=self.f_buttons,column=0,row=4,sticky=tk.S)
 
 		self.configureButton = tk.Button(self.f_buttons, text='Configure',width=20,height=1,command=self.setConfig)

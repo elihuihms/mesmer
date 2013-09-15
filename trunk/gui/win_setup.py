@@ -9,16 +9,18 @@ import tkMessageBox
 
 from lib.setup_functions	import parse_arguments
 from gui.tools_TkTooltip	import ToolTip
-from gui.tools_run			import makeMESMERArgsFromWindow
+from gui.tools_setup		import *
+from gui.tools_analysis		import startRun
 
-class RunWindow(tk.Frame):
-	def __init__(self, master=None):
+class SetupWindow(tk.Frame):
+	def __init__(self, master, parent):
 		self.master = master
 		self.master.title('Configure MESMER Run')
 		self.master.resizable(width=False, height=False)
+		self.parent = parent
 
 		tk.Frame.__init__(self,master)
-		self.grid()
+		self.grid(pady=(2,6),padx=6)
 
 		self.loadPrefs()
 
@@ -31,7 +33,7 @@ class RunWindow(tk.Frame):
 		# initialize to defaults
 		args = parse_arguments('')
 		args.dir = self.basedir
-		self.setControlVarsFromMESMERArgs(args)
+		setControlVarsFromMESMERArgs(self, args)
 
 		self.setCheckboxStates()
 		self.setButtonStates()
@@ -42,6 +44,13 @@ class RunWindow(tk.Frame):
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()
+			
+	def close(self):
+		self.master.destroy()
+		
+	def setupAndStartRun(self):
+		if( startRun( self.parent, self.prefs['mesmer_exe_path'], makeMESMERArgsFromWindow(self) ) ):
+			self.close()
 
 	def setResultsPath(self):
 		tmp = tkFileDialog.askdirectory(title='Select Results Directory',mustexist=True,parent=self)
@@ -54,147 +63,45 @@ class RunWindow(tk.Frame):
 		if(tmp != ''):
 			for f in tmp:
 				self.targetFilesList.insert(tk.END, os.path.relpath(f,self.basedir))
+		self.setButtonStates()
 
 	def delTargetFile(self):
 		tmp = map(int, self.targetFilesList.curselection())[0]
-		self.targetFilesList.delete(tmp,1)
-		self.removeTargetButton.config(state=tk.DISABLED)
+		self.targetFilesList.delete(tmp,0)
+		self.setButtonStates()
 
-	def addComponentFile(self):
+	def addComponentDir(self):
 		tmp = tkFileDialog.askdirectory(title='Select Directory containing MESMER components:',mustexist=True,parent=self)
 		if(tmp != ''):
 			self.componentFilesList.insert(tk.END,  os.path.relpath(tmp,self.basedir))
-
-	def addComponentDir(self):
-		tmp = tkFileDialog.askdirectory(title='Select Results Directory',mustexist=True,parent=self)
-		if(tmp != ''):
-			self.componentFilesList.insert(tk.END,  os.path.relpath(tmp,self.basedir))
-
-	def delComponentFile(self):
-		tmp = map(int, self.componentFilesList.curselection())[0]
-		self.componentFilesList.delete(tmp,0)
-		self.removeComponentButton.config(state=tk.DISABLED)
-
-	def setControlVarsFromMESMERArgs(self, args):
-		self.runTitle.set(args.name)
-		self.saveResults.set(os.path.normpath(os.path.join(self.basedir,args.dir)))
-		if(args.target != None):
-			tmp = []
-			for f in args.target:
-				tmp.append( os.path.normpath(f) )
-			self.targetFiles.set(tuple(tmp))
-		if(args.components != None):
-			tmp = []
-			for f in args.components:
-				for g in f:
-					tmp.append( os.path.normpath(g) )
-			self.componentFiles.set(tuple(tmp))
-		self.ensembleSize.set(args.size)
-		self.numEnsembles.set(args.ensembles)
-		self.gCrossFreq.set(args.Gcross)
-		self.gMutateFreq.set(args.Gmutate)
-		self.gSourceRatio.set(args.Gsource)
-		if(args.Fmin>=0):
-			self.minFitness.set(args.Fmin)
-			self.minFitnessCheck.set(1)
-		if(args.Smin>=0):
-			self.minRSD.set(args.Smin)
-			self.minRSDCheck.set(1)
-		if(args.Gmax>=0):
-			self.maxGenerations.set(args.Gmax)
-			self.maxGenerationsCheck.set(1)
-		if(args.Pbest):
-			self.bestFitCheck.set(1)
-		if(args.Pstats >= 0):
-			self.componentStatsCheck.set(1)
-			self.componentStats.set(float(args.Pstats))
-		if(args.Pcorr < 100):
-			self.componentCorrCheck.set(1)
-		self.componentCorr.set(args.Pcorr)
-		if(args.Pextra):
-			self.pluginExtrasCheck.set(1)
-		if(args.Popt):
-			self.optimizationStateCheck.set(1)
-		self.optMethod.set( args.Ralgorithm )
-		self.optMethodOption.set( self.optMethodOptions[self.optMethod.get()] )
-		self.optTolerance.set(args.Rprecision)
-		self.optIterations.set(args.Rn)
-
-		self.setCheckboxStates()
 		self.setButtonStates()
 
-	def loadControlVarArgs(self):
-		tmp = tkFileDialog.askopenfilename(title='Select MESMER run config file:',parent=self)
-		if(tmp == ''):
-			return
-		string = open(tmp).read()
-		string.replace("\n",'')
-		string.replace("\r",'')
-		args = parse_arguments(string)
-		self.setControlVarsFromMESMERArgs(args)
-
-	def saveControlVarArgs(self):
-		text = makeMESMERArgsFromWindow(self)
-		if(text == None):
-			return
-
-		tmp = tkFileDialog.asksaveasfile(title='Select name and location for MESMER config file:',initialfile='args.txt',parent=self)
-		if(tmp == None):
-			return
-		tmp.write(text)
-		tmp.close()
-
-	def closeWindow(self):
-		self.master.destroy()
-
-	def createControlVars(self):
-		self.runTitle 			= tk.StringVar()
-		self.saveResults 		= tk.StringVar()
-		self.targetFiles		= tk.StringVar() #NOTE: not used - bug in .get() returns as string, not list
-		self.componentFiles		= tk.StringVar() #NOTE: see above, must call self.componentFilesList(box).get() instead
-		self.ensembleSize		= tk.IntVar()
-		self.numEnsembles		= tk.IntVar()
-		self.gCrossFreq			= tk.DoubleVar()
-		self.gMutateFreq		= tk.DoubleVar()
-		self.gSourceRatio		= tk.DoubleVar()
-		self.minFitness			= tk.DoubleVar()
-		self.minFitnessCheck	= tk.IntVar()
-		self.minRSD				= tk.DoubleVar()
-		self.minRSDCheck		= tk.IntVar()
-		self.maxGenerations		= tk.IntVar()
-		self.maxGenerationsCheck= tk.IntVar()
-		self.bestFitCheck		= tk.IntVar()
-		self.componentStats		= tk.DoubleVar()
-		self.componentStatsCheck= tk.IntVar()
-		self.componentStatsCheck.set(1) #always on in MESMER >0.3
-		self.componentCorr		= tk.DoubleVar()
-		self.componentCorrCheck= tk.IntVar()
-		self.componentCorrCheck.set(1) #always on in MESMER >0.3
-		self.pluginExtrasCheck	= tk.IntVar()
-		self.pluginExtrasCheck.set(1) #enabled by default
-		self.optimizationStateCheck = tk.IntVar()
-		self.optMethod			= tk.IntVar()
-		self.optMethodOptions = ('None','Blind Random','Local Random','Truncated Newtonian','L-BFGS-B','Powell','Simplex')
-		self.optMethodOption	= tk.StringVar()
-		self.optTolerance		= tk.DoubleVar()
-		self.optIterations		= tk.IntVar()
+	def delComponentDir(self):
+		tmp = map(int, self.componentFilesList.curselection())[0]
+		self.componentFilesList.delete(tmp,0)
+		self.setButtonStates()
 
 	def setButtonStates(self):
 		ok=True
-		if(len(list(self.targetFilesList.get(0,tk.END)))<1):
-			ok=False
-		if(len(list(list(self.componentFilesList.get(0,tk.END))))<1):
-			ok=False
+		
 		if(len(self.runTitle.get())==0):
 			ok=False
+		
+		if(len(list(self.targetFilesList.get(0,tk.END)))<1):
+			ok=False
+			self.removeTargetButton.config(state=tk.DISABLED)
+		else:
+			self.removeTargetButton.config(state=tk.NORMAL)
+		if(len(list(list(self.componentFilesList.get(0,tk.END))))<1):
+			ok=False
+			self.removeComponentButton.config(state=tk.DISABLED)
+		else:
+			self.removeComponentButton.config(state=tk.NORMAL)
+			
 		if(ok):
 			self.startButton.config(state=tk.NORMAL)
 		else:
 			self.startButton.config(state=tk.DISABLED)
-
-	def setMenuStates(self):
-		for o in self.optMenuOptions:
-			self.optMethodMenubutton.menu.add_command(label=o, command=self.optMethodMenu)
 
 	def setListStates(self, evt):
 		w = evt.widget
@@ -240,6 +147,38 @@ class RunWindow(tk.Frame):
 			self.componentCorrsEntry.config(state=tk.DISABLED)
 		else:
 			self.componentCorrsEntry.config(state=tk.NORMAL)
+			
+	def createControlVars(self):
+		self.runTitle 			= tk.StringVar()
+		self.saveResults 		= tk.StringVar()
+		self.targetFiles		= tk.StringVar() #NOTE: not used - bug in .get() returns as string, not list
+		self.componentFiles		= tk.StringVar() #NOTE: see above, must call self.componentFilesList(box).get() instead
+		self.ensembleSize		= tk.IntVar()
+		self.numEnsembles		= tk.IntVar()
+		self.gCrossFreq			= tk.DoubleVar()
+		self.gMutateFreq		= tk.DoubleVar()
+		self.gSourceRatio		= tk.DoubleVar()
+		self.minFitness			= tk.DoubleVar()
+		self.minFitnessCheck	= tk.IntVar()
+		self.minRSD				= tk.DoubleVar()
+		self.minRSDCheck		= tk.IntVar()
+		self.maxGenerations		= tk.IntVar()
+		self.maxGenerationsCheck= tk.IntVar()
+		self.bestFitCheck		= tk.IntVar()
+		self.componentStats		= tk.DoubleVar()
+		self.componentStatsCheck= tk.IntVar()
+		self.componentStatsCheck.set(1) #always on in MESMER >0.3
+		self.componentCorr		= tk.DoubleVar()
+		self.componentCorrCheck= tk.IntVar()
+		self.componentCorrCheck.set(1) #always on in MESMER >0.3
+		self.pluginExtrasCheck	= tk.IntVar()
+		self.pluginExtrasCheck.set(1) #enabled by default
+		self.optimizationStateCheck = tk.IntVar()
+		self.optMethod			= tk.IntVar()
+		self.optMethodOptions = ('None','Blind Random','Local Random','Truncated Newtonian','L-BFGS-B','Powell','Simplex')
+		self.optMethodOption	= tk.StringVar()
+		self.optTolerance		= tk.DoubleVar()
+		self.optIterations		= tk.IntVar()
 
 	def createToolTips(self):
 		self.runTitleTT 		= ToolTip(self.runTitleEntry,		follow_mouse=0,text='Set the title to be used for the run.')
@@ -296,9 +235,9 @@ class RunWindow(tk.Frame):
 		self.addTargetButton.grid(in_=self.f_setup,column=3,row=3,sticky=tk.SW)
 		self.removeTargetButton = tk.Button(self.f_setup, text='Remove', command=self.delTargetFile,state=tk.DISABLED)
 		self.removeTargetButton.grid(in_=self.f_setup,column=3,row=4,sticky=tk.NW)
-		self.addComponentButton = tk.Button(self.f_setup, text='Add...', command=self.addComponentFile)
+		self.addComponentButton = tk.Button(self.f_setup, text='Add...', command=self.addComponentDir)
 		self.addComponentButton.grid(in_=self.f_setup,column=3,row=5,sticky=tk.SW)
-		self.removeComponentButton = tk.Button(self.f_setup, text='Remove', command=self.delComponentFile,state=tk.DISABLED)
+		self.removeComponentButton = tk.Button(self.f_setup, text='Remove', command=self.delComponentDir,state=tk.DISABLED)
 		self.removeComponentButton.grid(in_=self.f_setup,column=3,row=6,sticky=tk.NW)
 
 		#
@@ -418,11 +357,11 @@ class RunWindow(tk.Frame):
 		self.f_buttons.grid(column=3,row=2,padx=4,ipady=10)
 		self.f_buttons.grid_propagate(0)
 
-		self.sConfigButton = tk.Button(self.f_buttons, text='Load Config...', command=self.loadControlVarArgs)
+		self.sConfigButton = tk.Button(self.f_buttons, text='Load Config...', command=lambda:loadControlVarArgs(self) )
 		self.sConfigButton.grid(in_=self.f_buttons,column=0,row=0,sticky=tk.S)
-		self.sConfigButton = tk.Button(self.f_buttons, text='Save Config...', command=self.saveControlVarArgs)
+		self.sConfigButton = tk.Button(self.f_buttons, text='Save Config...', command=lambda:saveControlVarArgs(self) )
 		self.sConfigButton.grid(in_=self.f_buttons,column=0,row=1,sticky=tk.N)
-		self.startButton = tk.Button(self.f_buttons, text='Start Run', command=self.closeWindow,default=tk.ACTIVE,state=tk.DISABLED)
+		self.startButton = tk.Button(self.f_buttons, text='Start Run',default=tk.ACTIVE,state=tk.DISABLED, command=self.setupAndStartRun )
 		self.startButton.grid(in_=self.f_buttons,column=0,row=2,pady=4,sticky=tk.S)
-		self.closeWindowButton = tk.Button(self.f_buttons, text='Cancel', command=self.closeWindow)
-		self.closeWindowButton.grid(in_=self.f_buttons,column=0,row=3,pady=4,sticky=tk.N)
+		self.closeButton = tk.Button(self.f_buttons, text='Cancel', command=self.close)
+		self.closeButton.grid(in_=self.f_buttons,column=0,row=3,pady=4,sticky=tk.N)

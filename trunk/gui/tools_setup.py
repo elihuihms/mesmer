@@ -1,8 +1,78 @@
+import os
 import Tkinter as tk
 
 from lib.setup_functions	import parse_arguments
 
-def makeMESMERArgsFromWindow(w):
+def loadControlVarArgs(w):
+	tmp = tkFileDialog.askopenfilename(title='Select MESMER run config file:',parent=w)
+	if(tmp == ''):
+		return
+	string = open(tmp).read()
+	string.replace("\n",'')
+	string.replace("\r",'')
+	args = parse_arguments(string)
+	w.setControlVarsFromMESMERArgs(args)
+
+def saveControlVarArgs(w):
+	text = makeArgsStringFromWindow(w)
+	if(text == None):
+		return
+
+	tmp = tkFileDialog.asksaveasfile(title='Select name and location for MESMER config file:',initialfile='args.txt',parent=w)
+	if(tmp == None):
+		return
+	tmp.write(text)
+	tmp.close()
+	
+def setControlVarsFromMESMERArgs(w, args):
+	w.runTitle.set(args.name)
+	w.saveResults.set(os.path.normpath(os.path.join(w.basedir,args.dir)))
+	if(args.target != None):
+		tmp = []
+		for f in args.target:
+			tmp.append( os.path.normpath(f) )
+		w.targetFiles.set(tuple(tmp))
+	if(args.components != None):
+		tmp = []
+		for f in args.components:
+			for g in f:
+				tmp.append( os.path.normpath(g) )
+		w.componentFiles.set(tuple(tmp))
+	w.ensembleSize.set(args.size)
+	w.numEnsembles.set(args.ensembles)
+	w.gCrossFreq.set(args.Gcross)
+	w.gMutateFreq.set(args.Gmutate)
+	w.gSourceRatio.set(args.Gsource)
+	if(args.Fmin>=0):
+		w.minFitness.set(args.Fmin)
+		w.minFitnessCheck.set(1)
+	if(args.Smin>=0):
+		w.minRSD.set(args.Smin)
+		w.minRSDCheck.set(1)
+	if(args.Gmax>=0):
+		w.maxGenerations.set(args.Gmax)
+		w.maxGenerationsCheck.set(1)
+	if(args.Pbest):
+		w.bestFitCheck.set(1)
+	if(args.Pstats >= 0):
+		w.componentStatsCheck.set(1)
+		w.componentStats.set(float(args.Pstats))
+	if(args.Pcorr < 100):
+		w.componentCorrCheck.set(1)
+	w.componentCorr.set(args.Pcorr)
+	if(args.Pextra):
+		w.pluginExtrasCheck.set(1)
+	if(args.Popt):
+		w.optimizationStateCheck.set(1)
+	w.optMethod.set( args.Ralgorithm )
+	w.optMethodOption.set( w.optMethodOptions[w.optMethod.get()] )
+	w.optTolerance.set(args.Rprecision)
+	w.optIterations.set(args.Rn)
+
+	w.setCheckboxStates()
+	w.setButtonStates()
+		
+def makeMESMERArgsFromWindow( w ):
 	args = parse_arguments('')
 	args.name = w.runTitle.get().replace(' ','_')
 	args.dir = w.saveResults.get()
@@ -50,8 +120,11 @@ def makeMESMERArgsFromWindow(w):
 		for k in p_args: #don't overwrite any arguments already explicitly specified
 			if not k in args:
 				args[k] = p_args[k]
+				
+	return args
 
-	args = vars(args)
+def makeArgsStringFromWindow( w ):
+	args = vars( makeMESMERArgsFromWindow(w)  )
 
 	ret = []
 	booleans = ('Rforce','Pstats','Pbest','Popt','Pextra','Pstate','force','uniform','resume','dbm')
