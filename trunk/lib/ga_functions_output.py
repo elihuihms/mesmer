@@ -11,9 +11,9 @@ from datetime			import datetime
 from exceptions			import *
 from ga_functions_misc	import *
 from ga_functions_stats	import *
-from utility_functions	import mean_stdv
+from utility_functions	import *
 
-def print_generation_state( args, ensemble_stats, restraint_stats ):
+def print_generation_state( args, counter, ensemble_stats, restraint_stats ):
 	"""
 	Prints the status of the current generation via print_msg()
 
@@ -57,6 +57,8 @@ def print_generation_state( args, ensemble_stats, restraint_stats ):
 
 	print_msg( "" )
 	sys.stdout.flush()
+
+	save_to_db( counter, (ensemble_stats,restraint_stats) )
 
 	return
 
@@ -187,19 +189,18 @@ def write_ensemble_stats( args, counter, targets, ensembles ):
 
 	stats = get_ratio_stats( targets, ensembles )
 
-	path = os.path.abspath( "%s%sensemble_statistics_%05i.tbl" % (args.dir,os.sep,counter) )
-
-	try:
-		f = open( path, 'w' )
-	except IOError:
-		print "ERROR: Could not write ensemble statistics to file \"%s\"" % (path)
-		return False
-
-	f.write( "%s\tPrevalence\tAverage\t\tStdev\n" % (''.rjust(32)) )
-
 	# go through each target
 	for t in stats:
-		f.write( "\t%s\n" % (t) )
+
+		path = os.path.abspath( "%s%scomponent_statistics_%s_%05i.tbl" % (args.dir,os.sep,t,counter) )
+
+		try:
+			f = open( path, 'w' )
+		except IOError:
+			print "ERROR: Could not write ensemble statistics to file \"%s\"" % (path)
+			return False
+
+		f.write( "%s\tPrevalence\tAverage\t\tStdev\n" % (''.rjust(32)) )
 
 		# order components by prevalence
 		component_counts = []
@@ -238,26 +239,24 @@ def write_optimization_state( args, counter, targets, ensembles ):
 	ensembles	- List of mesEnsembles
 	"""
 
-	path = os.path.abspath( "%s%soptimization_state_%05i.tbl" % (args.dir,os.sep,counter) )
-
-	try:
-		f = open( path, 'w' )
-	except IOError:
-		print "ERROR: Could not optimization state information to file \"%s\"" % (path)
-		return False
-
 	for t in targets:
-		f.write("\t%s" % (t.name))
-	f.write("\n")
 
-	for (i,e) in enumerate(ensembles):
-		f.write("%i\t" % (i))
+		path = os.path.abspath( "%s%soptimization_state_%s_%05i.tbl" % (args.dir,os.sep,t,counter) )
 
-		a = []
-		for t in targets:
-			a.append( str(e.opt_status[t.name]) )
+		try:
+			f = open( path, 'w' )
+		except IOError:
+			print "ERROR: Could not optimization state information to file \"%s\"" % (path)
+			return False
 
-		f.write("%s\n" % ("\t".join(a)) )
+		for (i,e) in enumerate(ensembles):
+			f.write("%i\t" % (i))
+
+			a = []
+			for t in targets:
+				a.append( str(e.opt_status[t.name]) )
+
+			f.write("%s\n" % ("\t".join(a)) )
 
 	f.close()
 	return True

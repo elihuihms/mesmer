@@ -39,13 +39,12 @@ weights = None
 if(len(args.input)>1):
 	tmp = scipy.genfromtxt( args.input[1], unpack=True, dtype=None, skip_header=2 )
 
-	if(len(tmp)>=last):
-		weights = []
-		for i in range(args.size):
-			if(i<last):
-				weights.append(	tmp[i][3] )
-			else:
-				weights.append( 0 )
+	weights = []
+	for i in range(args.size):
+		if(i<len(tmp)):
+			weights.append(	tmp[i][3] )
+		else:
+			weights.append( 0 )
 
 data, names = [], []
 for i in range(args.size):
@@ -70,7 +69,7 @@ plot.gray()
 plot.clf()
 
 x,y,s,c = [],[],[],[]
-for i in range(args.size):
+for i in range(last):
 	for j in range(last):
 		x.append( i )
 		y.append( j )
@@ -78,16 +77,14 @@ for i in range(args.size):
 
 		if(weights == None):
 			c.append( (0.5,0.5,0.5) )
-			break
-
-		if(i==j):
-			if(names[i] in args.highlight):
-				c.append( (1-weights[i],0,0) )
+		elif(i==j):
+			if(str(names[i]) in args.highlight):
+				c.append( (max(0,1-weights[i]),0,0) )
 			else:
-				c.append( [1-weights[i]]*3 )
+				c.append( [max(0,1-weights[i])]*3 )
 		else:
-			if(names[i] in args.highlight and names[j] in args.highlight):
-				c.append( (1-(weights[i]+weights[j]),0,0) )
+			if(str(names[i]) in args.highlight and str(names[j]) in args.highlight):
+				c.append( (max(0,1-(weights[i]+weights[j])),0,0) )
 			else:
 				c.append( [max(0,1-(weights[i]+weights[j]))]*3 )
 

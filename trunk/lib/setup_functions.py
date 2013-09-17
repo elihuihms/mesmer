@@ -3,7 +3,7 @@ import shutil
 import argparse
 
 from exceptions				import *
-from utility_functions		import print_msg
+from utility_functions		import *
 
 def parse_arguments(str=None):
 	"""
@@ -104,6 +104,11 @@ def make_results_dir( args ):
 		print_msg('',os.path.join(args.dir,"mesmer_log.txt"))
 	except:
 		raise mesSetupError("ERROR: Couldn't open MESMER log file")
+
+	#try:
+	save_to_db( 'args', args, os.path.join(args.dir,'mesmer_log.db') )
+	#except:
+	#	raise mesSetupError("ERROR: Couldn't open MESMER results database file")
 
 	if(oWrite):
 		print_msg("INFO: Overwriting old result directory \"%s\"" % (args.dir))

@@ -59,7 +59,7 @@ def run_ga( args, plugins, targets, components ):
 		restraint_stats = get_restraint_stats( args, targets, best_scored )
 
 		# print the status and selected statistics
-		print_generation_state( args, ensemble_stats, restraint_stats )
+		print_generation_state( args, generation_counter, ensemble_stats, restraint_stats )
 
 		if(args.Pstats):
 			# print component correlations from the current ensembles
