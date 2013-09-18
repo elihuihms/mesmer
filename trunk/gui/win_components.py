@@ -198,8 +198,6 @@ class ComponentsWindow(tk.Frame):
 		self.calcDataMenuType.set( tmp[0] )
 		self.calcDataMenu = tk.OptionMenu(self.f_container,self.calcDataMenuType,*tmp,command=self.openCalcWindow)
 		self.calcDataMenu.grid(in_=self.f_container,column=2,row=0,sticky=tk.W,columnspan=2)
-#		self.calcSAXSButton = tk.Button(self.f_container,text='Calculate...',command=self.openSAXSCalcWindow)
-#		self.calcSAXSButton.grid(in_=self.f_container,column=2,row=0,sticky=tk.W,columnspan=2)
 
 		self.rowHeaderSelectLabel = tk.Label(self.f_container,text='Select')
 		self.rowHeaderSelectLabel.grid(in_=self.f_container,column=0,row=1)

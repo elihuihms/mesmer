@@ -5,6 +5,7 @@ Contains several useful functions for displaying or saving information/statistic
 import os
 import os.path
 import operator
+import shelve
 
 from datetime			import datetime
 
@@ -58,7 +59,20 @@ def print_generation_state( args, counter, ensemble_stats, restraint_stats ):
 	print_msg( "" )
 	sys.stdout.flush()
 
-	save_to_db( counter, (ensemble_stats,restraint_stats) )
+	# write to MESMER results db
+	db = shelve.open( os.path.join(args.dir,'mesmer_log.db') )
+
+	if(db.has_key('ensemble_stats')):
+		a,b = db['ensemble_stats'], db['restraint_stats']
+	else:
+		a,b = [],[]
+
+	a.append(ensemble_stats)
+	db['ensemble_stats'] = a
+	b.append(restraint_stats)
+	db['restraint_stats'] = b
+
+	db.close()
 
 	return
 

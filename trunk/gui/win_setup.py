@@ -10,7 +10,7 @@ import tkMessageBox
 from lib.setup_functions	import parse_arguments
 from gui.tools_TkTooltip	import ToolTip
 from gui.tools_setup		import *
-from gui.tools_analysis		import startRun
+from gui.tools_run			import startRun
 
 class SetupWindow(tk.Frame):
 	def __init__(self, master, parent):
@@ -44,12 +44,12 @@ class SetupWindow(tk.Frame):
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()
-			
+
 	def close(self):
 		self.master.destroy()
-		
+
 	def setupAndStartRun(self):
-		if( startRun( self.parent, self.prefs['mesmer_exe_path'], makeMESMERArgsFromWindow(self) ) ):
+		if( startRun( self, self.prefs['mesmer_exe_path'] ) ):
 			self.close()
 
 	def setResultsPath(self):
@@ -83,10 +83,10 @@ class SetupWindow(tk.Frame):
 
 	def setButtonStates(self):
 		ok=True
-		
+
 		if(len(self.runTitle.get())==0):
 			ok=False
-		
+
 		if(len(list(self.targetFilesList.get(0,tk.END)))<1):
 			ok=False
 			self.removeTargetButton.config(state=tk.DISABLED)
@@ -97,7 +97,7 @@ class SetupWindow(tk.Frame):
 			self.removeComponentButton.config(state=tk.DISABLED)
 		else:
 			self.removeComponentButton.config(state=tk.NORMAL)
-			
+
 		if(ok):
 			self.startButton.config(state=tk.NORMAL)
 		else:
@@ -147,7 +147,7 @@ class SetupWindow(tk.Frame):
 			self.componentCorrsEntry.config(state=tk.DISABLED)
 		else:
 			self.componentCorrsEntry.config(state=tk.NORMAL)
-			
+
 	def createControlVars(self):
 		self.runTitle 			= tk.StringVar()
 		self.saveResults 		= tk.StringVar()

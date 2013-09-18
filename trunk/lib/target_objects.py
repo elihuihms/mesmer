@@ -83,7 +83,7 @@ class mesTarget:
 
 					try:
 						messages = p.load_restraint( restraint, b, self.plugin_data[b['type']] )
-					except MESMERPluginError as e:
+					except mesPluginError as e:
 						print_msg("ERROR: plugin \"%s\" could not create a restraint from the target file \"%s\" lines %i-%i." % (p.name,file,b['l_start'],b['l_end']))
 						print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,e.msg))
 						return False

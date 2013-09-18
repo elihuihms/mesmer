@@ -167,13 +167,13 @@ class plugin( mesPluginDB ):
 		if(args.file == None):
 			try:
 				values = scipy.genfromtxt( StringIO( ''.join(block['content'])), unpack=True )
-			except ValueError, exc:
-				raise mesPluginError("Could not parse 2D data in target file - %s " % exc.message())
+			except Exception as e:
+				raise mesPluginError("Could not parse 2D data in target file - %s " % e)
 		else:
 			try:
 				values = scipy.genfromtxt(args.file, unpack=True)
-			except ValueError, exc:
-				raise mesPluginError("Could not read file \"%s\" - %s" % (args.file, exc.message()))
+			except Exception as e:
+				raise mesPluginError("Could not read file \"%s\" - %s" % (args.file, e))
 
 		if( len(values) < 2 ):
 			raise mesPluginError("Target data must contain at least two columns: x y")
@@ -237,13 +237,13 @@ class plugin( mesPluginDB ):
 		if(args.file == None):
 			try:
 				values = scipy.genfromtxt( StringIO( ''.join(block['content'])), unpack=True )
-			except ValueError, exc:
-				raise mesPluginError("Could not parse 2D data in component file - %s" % exc.message())
+			except Exception as e:
+				raise mesPluginError("Could not parse 2D data in component file - %s" % e)
 		else:
 			try:
 				values = scipy.genfromtxt(args.file, unpack=True)
-			except ValueError, exc:
-				raise mesPluginError("Could not read file \"%s\" - %s" % (args.file, exc.message()))
+			except Exception as e:
+				raise mesPluginError("Could not read file \"%s\" - %s" % (args.file, e))
 
 		if(len(values) != 2):
 			raise mesPluginError("Component data must be at least of the format: x y")

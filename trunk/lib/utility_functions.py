@@ -36,18 +36,6 @@ def print_msg( text, file=None, NL=True ):
 
 	print text,
 
-def save_to_db( key, object, file=None ):
-
-	global _lastDBFile
-
-	if(file != None):
-		_lastDBFile = file
-
-	if( _lastDBFile != None ):
-		handle = shelve.open(_lastDBFile,'c')
-		handle[ str(key) ] = object
-		handle.close()
-
 def get_input_blocks( file ):
 	"""
 	Splits a file into blocks for handing off to plugins

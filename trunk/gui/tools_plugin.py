@@ -23,9 +23,17 @@ def getTargetPluginOptions( path ):
 
 def getGUICalcPlugins( path ):
 	try:
-		plugins = load_plugins( path, 'gui_c' )
+		plugins = load_plugins( path, 'gui_c', path )
 	except mesPluginError as e:
 		tkMessageBox.showerror("Error",'Failed to load one or more GUI data plugins: %s' % (e.msg))
+
+	return plugins
+
+def getGUIPlotPlugins( path ):
+	try:
+		plugins = load_plugins( path, 'gui_p', path )
+	except mesPluginError as e:
+		tkMessageBox.showerror("Error",'Failed to load one or more GUI plot plugins: %s' % (e.msg))
 
 	return plugins
 

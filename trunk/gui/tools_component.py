@@ -108,16 +108,17 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 			w.widgetRowFolders[i].set( dir )
 			break
 
-	# get options for the plugin
-	options = convertParserToOptions( plugin.parser )
-	w.newWindow = tk.Toplevel(w)
-	w.optWindow = OptionsWindow(w.newWindow,options)
-	w.newWindow.focus_set()
-	w.newWindow.grab_set()
-	w.newWindow.transient(w)
-	w.newWindow.wait_window(w.newWindow)
-
-	plugin.setup( pdbs, dir, options )
+	if( plugin.parser ): # get options for the plugin
+		options = convertParserToOptions( plugin.parser )
+		w.newWindow = tk.Toplevel(w)
+		w.optWindow = OptionsWindow(w.newWindow,options)
+		w.newWindow.focus_set()
+		w.newWindow.grab_set()
+		w.newWindow.transient(w)
+		w.newWindow.wait_window(w.newWindow)
+		plugin.setup( pdbs, dir, options )
+	else:
+		plugin.setup( pdbs, dir )
 
 	# open the status window
 	w.newWindow = tk.Toplevel(w)

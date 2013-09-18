@@ -1,6 +1,8 @@
 import os
+import sys
 import shutil
 import argparse
+import shelve
 
 from exceptions				import *
 from utility_functions		import *
@@ -18,9 +20,14 @@ def parse_arguments(str=None):
 				continue
 			yield arg
 
+	class mesParser(argparse.ArgumentParser):
+		def error(self, message):
+			self.print_usage()
+			sys.exit(1)
+
 	# argument groups are just used for more attractive formatting when help is invoked
 	argparse.ArgumentParser.convert_arg_line_to_args = convert_arg_line_to_args
-	parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
+	parser = mesParser(fromfile_prefix_chars='@')
 
 	group0 = parser.add_argument_group('Target and component files')
 	group0.add_argument('-target',		action='append',									metavar='FILE.target',			help='MESMER target file')
@@ -105,10 +112,12 @@ def make_results_dir( args ):
 	except:
 		raise mesSetupError("ERROR: Couldn't open MESMER log file")
 
-	#try:
-	save_to_db( 'args', args, os.path.join(args.dir,'mesmer_log.db') )
-	#except:
-	#	raise mesSetupError("ERROR: Couldn't open MESMER results database file")
+	try:
+		db = shelve.open( os.path.join(args.dir,'mesmer_log.db') )
+		db['args'] = args
+		db.close()
+	except:
+		raise mesSetupError("ERROR: Couldn't open MESMER results database file")
 
 	if(oWrite):
 		print_msg("INFO: Overwriting old result directory \"%s\"" % (args.dir))

@@ -29,12 +29,12 @@ class MainWindow(tk.Frame):
 		self.createWidgets()
 		self.createToolTips()
 		self.updateWidgets()
-		
+
 		self.masters	= []
 		self.windows	= []
 		self.setupMaster	= None
 		self.configMaster	= None
-			
+
 	def loadPrefs(self):
 		self.Ready = True
 
@@ -73,7 +73,7 @@ class MainWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()
-		
+
 	def makeTarget(self):
 		self.masters.append( tk.Toplevel(self.master) )
 		self.windows.append( TargetWindow(self.masters[-1]) )
@@ -81,16 +81,16 @@ class MainWindow(tk.Frame):
 	def makeComponents(self):
 		self.masters.append( tk.Toplevel(self.master) )
 		self.windows.append( ComponentsWindow(self.masters[-1]) )
-		
+
 	def openAnalysis(self):
 		self.masters.append( tk.Toplevel(self.master) )
 		self.windows.append( AnalysisWindow(self.masters[-1]) )
-	
+
 	def setupMESMER(self):
 		if(self.setupMaster == None or not self.setupMaster.winfo_exists()):
 			self.setupMaster = tk.Toplevel(self.master)
 			self.setupWindow = SetupWindow(self.setupMaster,self)
-	
+
 	def setConfig(self):
 		if(self.configMaster == None or not self.configMaster.winfo_exists()):
 			self.configMaster = tk.Toplevel(self.master)
@@ -117,7 +117,7 @@ class MainWindow(tk.Frame):
 		self.analyzeDataButton.config(state=state)
 
 	def createWidgets(self):
-		self.f_buttons = tk.Frame(self,borderwidth=0)
+		self.f_buttons = tk.Frame(self)
 		self.f_buttons.place(relx=0.5,rely=0.5,anchor=tk.CENTER)
 
 		self.f_logo = tk.Frame(self.f_buttons)

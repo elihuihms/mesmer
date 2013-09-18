@@ -1,5 +1,6 @@
 import os
 import Tkinter as tk
+import tkFileDialog
 
 from lib.setup_functions	import parse_arguments
 
@@ -14,7 +15,7 @@ def loadControlVarArgs(w):
 	w.setControlVarsFromMESMERArgs(args)
 
 def saveControlVarArgs(w):
-	text = makeArgsStringFromWindow(w)
+	text = makeStringFromArgs( makeMESMERArgsFromWindow(w) )
 	if(text == None):
 		return
 
@@ -23,7 +24,7 @@ def saveControlVarArgs(w):
 		return
 	tmp.write(text)
 	tmp.close()
-	
+
 def setControlVarsFromMESMERArgs(w, args):
 	w.runTitle.set(args.name)
 	w.saveResults.set(os.path.normpath(os.path.join(w.basedir,args.dir)))
@@ -71,7 +72,7 @@ def setControlVarsFromMESMERArgs(w, args):
 
 	w.setCheckboxStates()
 	w.setButtonStates()
-		
+
 def makeMESMERArgsFromWindow( w ):
 	args = parse_arguments('')
 	args.name = w.runTitle.get().replace(' ','_')
@@ -96,6 +97,8 @@ def makeMESMERArgsFromWindow( w ):
 	else:
 		args.Gmax = None
 	args.Pbest = (w.bestFitCheck.get()>0)
+	args.Popt = (w.optimizationStateCheck.get()>0)
+	args.Pextra = (w.pluginExtrasCheck.get()>0)
 	if(w.componentStatsCheck.get()>0):
 		args.Pstats = True
 		args.Pmin = w.componentStats.get()
@@ -106,7 +109,6 @@ def makeMESMERArgsFromWindow( w ):
 		args.Pcorr = w.componentCorr.get()
 	else:
 		args.Pcorr = 100
-	args.Popt = (w.optimizationStateCheck.get()>0)
 	try:
 		args.Ralgorithm = w.optMethodOptions.index(w.optMethodOption.get())
 	except:
@@ -120,11 +122,11 @@ def makeMESMERArgsFromWindow( w ):
 		for k in p_args: #don't overwrite any arguments already explicitly specified
 			if not k in args:
 				args[k] = p_args[k]
-				
+
 	return args
 
-def makeArgsStringFromWindow( w ):
-	args = vars( makeMESMERArgsFromWindow(w)  )
+def makeStringFromArgs( a ):
+	args = vars( a )
 
 	ret = []
 	booleans = ('Rforce','Pstats','Pbest','Popt','Pextra','Pstate','force','uniform','resume','dbm')

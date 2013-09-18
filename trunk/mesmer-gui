@@ -2,8 +2,8 @@
 
 import Tkinter as tk
 
-from gui.win_analysis		import AnalysisWindow
+from gui.win_main		import MainWindow
 
 root = tk.Tk()
-app = AnalysisWindow(root)
+app = MainWindow(root)
 app.mainloop()

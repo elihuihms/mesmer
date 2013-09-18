@@ -1,7 +1,7 @@
 import argparse
 
 class guiCalcPlugin():
-	def __init__(self):
+	def __init__(self, path):
 		self.name = ''
 		self.version = ''
 		self.type = 'None'
@@ -39,3 +39,15 @@ class guiCalcPlugin():
 
 	def __del__(self):
 		pass
+
+class guiPlotPlugin():
+	def __init__(self, path):
+		self.version = ''
+		self.types = ()
+		self.parser = argparse.ArgumentParser(prog=self.name)
+
+	def plot(self, path, options=None):
+		pass
+
+
+
