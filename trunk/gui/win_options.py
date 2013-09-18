@@ -9,6 +9,8 @@ class OptionsWindow(tk.Frame):
 		self.master.title('Set Options')
 		self.master.resizable(width=False, height=False)
 
+		self.master.protocol('WM_DELETE_WINDOW', self.saveWindow)
+
 		self.options = options
 
 		tk.Frame.__init__(self,master)
@@ -76,7 +78,7 @@ class OptionsWindow(tk.Frame):
 				self.optionEntries[-1].grid(in_=self.container,column=1,row=rowCounter,sticky=tk.W)
 			rowCounter+=1
 
-		self.cancelButton = tk.Button(self.container,text='Cancel',command=self.cancelWindow)
-		self.cancelButton.grid(in_=self.container,column=0,row=rowCounter,sticky=tk.E,pady=8)
-		self.saveButton = tk.Button(self.container,text='Save',command=self.saveWindow,default=tk.ACTIVE)
-		self.saveButton.grid(in_=self.container,column=1,row=rowCounter,sticky=tk.W,pady=8)
+		#self.cancelButton = tk.Button(self.container,text='Cancel',command=self.cancelWindow)
+		#self.cancelButton.grid(in_=self.container,column=0,row=rowCounter,sticky=tk.E,pady=8)
+		self.saveButton = tk.Button(self.container,text='Apply',command=self.saveWindow,width=8,default=tk.ACTIVE)
+		self.saveButton.grid(in_=self.container,row=rowCounter,column=0,columnspan=2,pady=(8,0))

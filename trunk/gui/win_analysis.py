@@ -3,6 +3,7 @@ import tkFileDialog
 import tkMessageBox
 
 from gui.tools_analysis	import *
+from gui.tools_plot		import *
 from gui.tools_plugin	import getGUIPlotPlugins
 from win_log			import LogWindow
 
@@ -23,6 +24,7 @@ class AnalysisWindow(tk.Frame):
 
 		self.logWindow = None
 		self.logWindowMaster = None
+		self.pluginOptions = {}
 
 		self.path = path
 		self.pHandle = pHandle
@@ -60,13 +62,12 @@ class AnalysisWindow(tk.Frame):
 	def setWorkFolder(self):
 		tmp = tkFileDialog.askdirectory(title='Select Results Directory',mustexist=True,parent=self)
 		if(tmp != ''):
-			loadResultsDB(self,tmp)
+			openRunDir(self, tmp)
 
 	def setAttributeTable(self):
 		tmp = tkFileDialog.askopenfilename(title='Select PDB attribute table',parent=self)
 		if(tmp != ''):
 			self.attributeTable.set(tmp)
-			setWidgetAvailibility(self,0)
 
 	def openLogWindow( self, live=False ):
 		if(self.logWindowMaster == None or not self.logWindowMaster.winfo_exists()):
@@ -79,9 +80,9 @@ class AnalysisWindow(tk.Frame):
 			self.openLogButton.config(state=tk.DISABLED)
 		else:
 			self.logWindow.updateLog( os.path.join( self.activeDir.get(), 'mesmer_log.txt') )
+		self.logWindowMaster.lower( self.master )
 
 	def updateWidgets(self):
-		setWidgetAvailibility(self,0)
 		pass
 
 	def createControlVars(self):
@@ -125,7 +126,7 @@ class AnalysisWindow(tk.Frame):
 		self.generationsList.config(yscrollcommand=self.generationsListScroll.set)
 		self.generationsListScroll.config(command=self.generationsList.yview)
 		self.generationsList.bind('<<ListboxSelect>>',lambda evt: setGenerationSel(self,evt))
-		self.histogramPlotButton = tk.Button(self.f_generations,text='Ensemble Histogram...')
+		self.histogramPlotButton = tk.Button(self.f_generations,text='Ensemble Histogram...',state=tk.DISABLED,command=lambda: plotHistogram(self))
 		self.histogramPlotButton.grid(in_=self.f_generations,column=0,row=2,padx=(6,0),pady=(0,4),sticky=tk.W)
 
 		self.f_targets = tk.LabelFrame(self.container,text='Targets')
@@ -138,11 +139,11 @@ class AnalysisWindow(tk.Frame):
 		self.targetsListScroll.config(command=self.targetsList.yview)
 		self.targetsList.bind('<<ListboxSelect>>',lambda evt: setTargetSel(self,evt))
 
-		self.attributePlotButton = tk.Button(self.f_targets,text='Attribute Plot...',state=tk.DISABLED)
+		self.attributePlotButton = tk.Button(self.f_targets,text='Attribute Plot...',state=tk.DISABLED,command=lambda: plotAttributes(self))
 		self.attributePlotButton.grid(in_=self.f_targets,column=0,row=1,padx=(6,0),sticky=tk.W)
-		self.correlationPlotButton = tk.Button(self.f_targets,text='Correlation Plot...',command=lambda: makeCorrelationPlot(self))
+		self.correlationPlotButton = tk.Button(self.f_targets,text='Correlation Plot...',state=tk.DISABLED,command=lambda: makeCorrelationPlot(self))
 		self.correlationPlotButton.grid(in_=self.f_targets,column=1,row=1,columnspan=2)
-		self.writePDBsButton = tk.Button(self.f_targets,text='Write PDBs...')
+		self.writePDBsButton = tk.Button(self.f_targets,text='Write PDBs...',state=tk.DISABLED,command=lambda: makePDBs(self))
 		self.writePDBsButton.grid(in_=self.f_targets,column=3,row=1,columnspan=2)
 
 		self.attributeTableEntry = tk.Entry(self.f_targets,textvariable=self.attributeTable,width=30)
@@ -166,7 +167,7 @@ class AnalysisWindow(tk.Frame):
 		self.f_footer = tk.Frame(self.container)
 		self.f_footer.grid(in_=self.container,column=0,row=6,columnspan=3)
 
-		self.openLogButton = tk.Button(self.f_footer,text='Open Log',width=8,command=lambda: openLogWindow(self))
+		self.openLogButton = tk.Button(self.f_footer,text='Open Log',width=8,command=self.openLogWindow)
 		self.openLogButton.grid(in_=self.f_footer,column=0,row=0,pady=(4,0))
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',width=8,command=self.close)
 		self.cancelButton.grid(in_=self.f_footer,column=1,row=0,pady=(4,0))

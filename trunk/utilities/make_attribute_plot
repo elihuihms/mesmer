@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
 group0 = parser.add_argument_group('Table specification')
 group0.add_argument('table', 	default=None,								help='A file containing tab-delimited statistics of the available components')
-group0.add_argument('-Ncol',	default=0,		metavar='N',	type=int,	help='The column containing the component names')
+group0.add_argument('-nCol',	default=0,		metavar='N',	type=int,	help='The column containing the component names')
 group0.add_argument('-xCol',	default=1,		metavar='N',	type=int,	help='The column containing the desired component attribute')
 group0.add_argument('-yCol',	default=2,		metavar='N',	type=int,	help='The column to use as y-axis data')
 
@@ -50,7 +50,7 @@ if(args.table==None):
 	exit()
 
 # generate master data lists
-tmp = scipy.genfromtxt( args.table, usecols=(args.Ncol,args.xCol,args.yCol), dtype=str, unpack=True )
+tmp = scipy.genfromtxt( args.table, usecols=(args.nCol,args.xCol,args.yCol), dtype=str, unpack=True )
 
 n = len(tmp[0])
 tbl_names = list(tmp[0])

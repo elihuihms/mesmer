@@ -98,9 +98,8 @@ def setOptionsFromBlock( options, block ):
 			raise Exception("Encountered an option that could not be parsed properly: %s" % options[k]['dest'])
 	return options
 
-def makeStringFromOptions( options ):
-	string = ''
-
+def makeListFromOptions( options ):
+	ret = []
 	for k in options:
 		if( not 'value' in options[k] ):
 			if options[k]['required']:
@@ -109,13 +108,16 @@ def makeStringFromOptions( options ):
 
 		if(options[k]['nargs'] == 0):
 			if options[k]['value']:
-				string+="%s " % options[k]['option_strings'][0]
+				ret.append( options[k]['option_strings'][0] )
 		elif( options[k]['value'] == None or options[k]['value'] == 'None' or options[k]['value'] == '' ):
 			if options[k]['required']:
 				raise Exception("Encountered a required option without a value: %s" % options[k]['dest'])
 		elif(options[k]['nargs'] == None):
-			string+="%s %s " % (options[k]['option_strings'][0],options[k]['value'])
+			ret.append( options[k]['option_strings'][0] )
+			ret.append( str(options[k]['value']) )
 		else:
 			raise Exception("Encountered an option that could not be converted to a string properly: %s" % options[k]['dest'])
+	return ret
 
-	return string
+def makeStringFromOptions( options ):
+	return ' '.join( makeListFromOptions(options) )

@@ -5,10 +5,24 @@ import tkFileDialog
 import tkMessageBox
 
 from threading		import Thread
-from subprocess		import Popen,PIPE
 from Queue			import Queue, Empty
 
 from win_options	import OptionsWindow
+
+def openRunDir( w, path ):
+
+	p1 = os.path.join(path,'mesmer_log.db')
+	p2 = os.path.join(path,'mesmer_log.db.db')
+
+	if(not os.path.exists(p1) and not os.path.exists(p2)):
+		tkMessageBox.showerror("Error","Could not find MESMER results DB in \"%s\"" % path,parent=w)
+		return
+
+	w.activeDir.set(path)
+	w.currentSelection = [None,None,None]
+	w.openLogWindow()
+	updateGenerationList(w, path)
+	w.statusText.set('Opened existing run')
 
 def connectToRun( w, path, pHandle ):
 
@@ -16,7 +30,7 @@ def connectToRun( w, path, pHandle ):
 	p2 = os.path.join(path,'mesmer_log.db.db')
 
 	if(w.connectCounter > 10): # try for ten seconds to find the mesmer results DB
-		tkMessageBox.showerror("Error","Failure reading from MESMER DB.",parent=w)
+		tkMessageBox.showerror("Error","Could not find MESMER results DB in \"%s\". Perhaps MESMER crashed?" % path,parent=w)
 		return
 
 	if(not os.path.exists(p1) and not os.path.exists(p2)):
@@ -63,22 +77,9 @@ def updateWindowResults( w, path, pHandle ):
 		w.statusText.set('Error')
 		return
 
+	updateGenerationList( w, path )
+
 	w.updateHandle = w.after( 1000, updateWindowResults, *(w,path,pHandle) )
-
-	try:
-		w.resultsDB = shelve.open( os.path.join(path,'mesmer_log.db'), 'r' )
-	except:
-		return
-
-	# append new generations to the list
-	if(w.resultsDB.has_key('ensemble_stats') and len(w.resultsDB['ensemble_stats']) > w.generationsList.size()):
-		string = "%s\t\t\t%s\t%s\t%s" % (
-			"%05i" % (len(w.resultsDB['ensemble_stats']) -1),
-			"%.3e" % w.resultsDB['ensemble_stats'][-1]['total'][0],
-			"%.3e" % w.resultsDB['ensemble_stats'][-1]['total'][1],
-			"%.3e" % w.resultsDB['ensemble_stats'][-1]['total'][2]
-			)
-		w.generationsList.insert(tk.END, string )
 
 	try:
 		while(True):
@@ -100,34 +101,22 @@ def updateWindowResults( w, path, pHandle ):
 
 	return
 
-def makeCorrelationPlot( w ):
-	p1 = os.path.join(w.activeDir.get(), 'component_correlations_%05i.tbl' % w.currentSelection[0] )
-	p2 = os.path.join(w.activeDir.get(), 'component_statistics_%s_%05i.tbl' % (w.currentSelection[1],w.currentSelection[0]) )
-	if( os.path.isfile(p1) and os.path.isfile(p2) ):
-		cmd = os.path.join(w.prefs['mesmer_util_path'],'make_correlation_plot')
-		try:
-			Popen([cmd,p1,p2,'-size','20'])
-		except OSError:
-			tkMessageBox.showerror("Error","Could not open the correlation plotter",parent=w)
-			return
+def updateGenerationList( w, path ):
+	try:
+		w.resultsDB = shelve.open( os.path.join(path,'mesmer_log.db'), 'r' )
+	except:
+		return
 
-def plotRestraint(w):
-	for p in w.plot_plugins:
-		if (w.currentSelection[2] in p.types):
-
-			path = (os.path.join(w.activeDir.get(), 'restraints_%s_%s_%05i.out' % (w.currentSelection[1],w.currentSelection[2],w.currentSelection[0])))
-
-			if( p.parser ): # get options for the plugin
-				options = convertParserToOptions( plugin.parser )
-				w.newWindow = tk.Toplevel(w)
-				w.optWindow = OptionsWindow(w.newWindow,options)
-				w.newWindow.focus_set()
-				w.newWindow.grab_set()
-				w.newWindow.transient(w)
-				w.newWindow.wait_window(w.newWindow)
-				p.plot( path, options )
-			else:
-				p.plot( path )
+	# append new generations to the list
+	if(w.resultsDB.has_key('ensemble_stats') and len(w.resultsDB['ensemble_stats']) > w.generationsList.size()):
+		string = "%s\t\t\t%s\t%s\t%s" % (
+			"%05i" % (len(w.resultsDB['ensemble_stats']) -1),
+			"%.3e" % w.resultsDB['ensemble_stats'][-1]['total'][0],
+			"%.3e" % w.resultsDB['ensemble_stats'][-1]['total'][1],
+			"%.3e" % w.resultsDB['ensemble_stats'][-1]['total'][2]
+			)
+		w.generationsList.insert(tk.END, string )
+	return
 
 def setGenerationSel( w, evt=None ):
 	if(len(w.generationsList.curselection())<1):
@@ -147,6 +136,7 @@ def setGenerationSel( w, evt=None ):
 	w.targetsList.selection_set(0)
 	w.targetsList.see(0)
 	setTargetSel( w )
+	setWidgetAvailibility( w )
 
 def setTargetSel( w, evt=None ):
 	if(len(w.targetsList.curselection())<1):
@@ -171,6 +161,7 @@ def setTargetSel( w, evt=None ):
 	w.restraintsList.selection_set(0)
 	w.restraintsList.see(0)
 	setRestraintSel( w )
+	setWidgetAvailibility( w )
 
 def setRestraintSel( w,evt=None ):
 	if(len(w.restraintsList.curselection())<1):
@@ -186,16 +177,25 @@ def setRestraintSel( w,evt=None ):
 	else:
 		w.fitPlotButton.config(state=tk.DISABLED)
 
-def setWidgetAvailibility( w, generation ):
-	if(os.path.isfile( os.path.join(w.activeDir.get(), 'component_statistics_%05i.tbl' % generation) )):
-		w.attributePlotButton.config(state=tk.NORMAL)
-		if(w.attributeTable.get() != ''):
-			w.attributePlotButton.config(state=tk.NORMAL)
-		else:
-			w.attributePlotButton.config(state=tk.DISABLED)
+def setWidgetAvailibility( w ):
+	if( w.currentSelection[0] == None):
+		w.histogramPlotButton.config(state=tk.DISABLED)
 	else:
+		w.histogramPlotButton.config(state=tk.NORMAL)
+
+	if( w.currentSelection[0] == None or w.currentSelection[1] == None ):
+		w.correlationPlotButton.config(state=tk.DISABLED)
+		w.writePDBsButton.config(state=tk.DISABLED)
+	else:
+		w.correlationPlotButton.config(state=tk.NORMAL)
+		w.writePDBsButton.config(state=tk.NORMAL)
+
+	if( w.currentSelection[0] == None or w.currentSelection[1] == None or w.attributeTable.get() == ''):
 		w.attributePlotButton.config(state=tk.DISABLED)
 		w.attributePlotButton.config(state=tk.DISABLED)
+	else:
+		w.attributePlotButton.config(state=tk.NORMAL)
+		w.attributePlotButton.config(state=tk.NORMAL)
 
 
 

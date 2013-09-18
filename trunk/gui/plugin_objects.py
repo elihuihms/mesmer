@@ -42,6 +42,7 @@ class guiCalcPlugin():
 
 class guiPlotPlugin():
 	def __init__(self, path):
+		self.name = ''
 		self.version = ''
 		self.types = ()
 		self.parser = argparse.ArgumentParser(prog=self.name)
