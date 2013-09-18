@@ -17,6 +17,7 @@ class TargetWindow(tk.Frame):
 		self.master.geometry('720x180+100+100')
 		self.master.title('Target Builder')
 		self.master.resizable(width=False, height=False)
+		self.master.protocol('WM_DELETE_WINDOW', self.close)
 
 		tk.Frame.__init__(self,master,width=720,height=180)
 		self.grid()
@@ -31,7 +32,7 @@ class TargetWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
+			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()

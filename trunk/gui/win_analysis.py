@@ -1,17 +1,20 @@
 import Tkinter as tk
+import tkFont
 import tkFileDialog
 import tkMessageBox
 
+import gui.tools_run # to avoid circular import of AnalysisWindow
 from gui.tools_analysis	import *
 from gui.tools_plot		import *
 from gui.tools_plugin	import getGUIPlotPlugins
-from win_log			import LogWindow
+from gui.win_log			import LogWindow
 
 class AnalysisWindow(tk.Frame):
 	def __init__(self, master, path=None, pHandle=None):
 		self.master = master
 		self.master.title('MESMER Run / Analysis')
 		self.master.resizable(width=False, height=False)
+		self.master.protocol('WM_DELETE_WINDOW', self.close)
 
 		tk.Frame.__init__(self,master)
 		self.grid()
@@ -31,13 +34,13 @@ class AnalysisWindow(tk.Frame):
 		if( path != None and pHandle != None ):
 			self.abortButton.config(state=tk.NORMAL)
 			self.connectCounter = 0
-			connectToRun(self,path,pHandle)
+			gui.tools_run.connectToRun(self,path,pHandle)
 
 		self.updateWidgets()
 
 	def loadPrefs(self):
 		try:
-			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
+			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()
@@ -95,12 +98,14 @@ class AnalysisWindow(tk.Frame):
 		self.container = tk.Frame(self)
 		self.container.grid(in_=self,padx=6,pady=6)
 
+		monospaceFont = tkFont.Font(family='Courier',weight='bold')
+
 		self.f_logo = tk.Frame(self.container)
 		self.f_logo.grid(column=0,row=0,columnspan=3,sticky=tk.W,pady=(0,8))
-		self.LogoImage = tk.PhotoImage(file='gui/mesmer_logo.gif')
+		self.LogoImage = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'mesmer_logo.gif'))
 		self.LogoLabel = tk.Label(self.f_logo,image=self.LogoImage)
 		self.LogoLabel.pack(side=tk.LEFT)
-		self.versionLabel = tk.Label(self.f_logo,text='GUI version 2013.08.26')
+		self.versionLabel = tk.Label(self.f_logo,text='GUI version 2013.09.18')
 		self.versionLabel.pack(side=tk.LEFT,anchor=tk.NE)
 
 		self.activeDirLabel = tk.Label(self.container,text='Work Folder:')
@@ -119,7 +124,7 @@ class AnalysisWindow(tk.Frame):
 
 		self.f_generations = tk.LabelFrame(self.container,text='Generations')
 		self.f_generations.grid(in_=self.container,column=0,row=3,columnspan=3)
-		self.generationsList = tk.Listbox(self.f_generations,width=48,height=6,selectmode=tk.BROWSE,exportselection=False)
+		self.generationsList = tk.Listbox(self.f_generations,width=48,height=6,font=monospaceFont,selectmode=tk.BROWSE,exportselection=False)
 		self.generationsList.grid(in_=self.f_generations,sticky=tk.W,padx=(6,0),pady=(2,0),column=0,row=0)
 		self.generationsListScroll = tk.Scrollbar(self.f_generations,orient=tk.VERTICAL)
 		self.generationsListScroll.grid(in_=self.f_generations,column=2,row=0,sticky=tk.W+tk.N+tk.S,pady=(2,0))
@@ -131,7 +136,7 @@ class AnalysisWindow(tk.Frame):
 
 		self.f_targets = tk.LabelFrame(self.container,text='Targets')
 		self.f_targets.grid(in_=self.container,column=0,row=4,columnspan=3)
-		self.targetsList = tk.Listbox(self.f_targets,width=48,height=5,selectmode=tk.BROWSE,exportselection=False)
+		self.targetsList = tk.Listbox(self.f_targets,width=48,height=5,font=monospaceFont,selectmode=tk.BROWSE,exportselection=False)
 		self.targetsList.grid(in_=self.f_targets,sticky=tk.W,padx=(6,0),pady=(2,0),column=0,row=0,columnspan=5)
 		self.targetsListScroll = tk.Scrollbar(self.f_targets,orient=tk.VERTICAL)
 		self.targetsListScroll.grid(in_=self.f_targets,column=6,row=0,sticky=tk.W+tk.N+tk.S,pady=(2,0))
@@ -153,7 +158,7 @@ class AnalysisWindow(tk.Frame):
 
 		self.f_restraints = tk.LabelFrame(self.container,text='Restraints')
 		self.f_restraints.grid(in_=self.container,column=0,row=5,columnspan=3)
-		self.restraintsList = tk.Listbox(self.f_restraints,width=48,height=5,selectmode=tk.BROWSE,exportselection=False)
+		self.restraintsList = tk.Listbox(self.f_restraints,width=48,height=5,font=monospaceFont,selectmode=tk.BROWSE,exportselection=False)
 		self.restraintsList.grid(in_=self.f_restraints,sticky=tk.W,padx=(6,0),pady=(2,0),column=0,row=0)
 		self.restraintsListScroll = tk.Scrollbar(self.f_restraints,orient=tk.VERTICAL)
 		self.restraintsListScroll.grid(in_=self.f_restraints,column=1,row=0,sticky=tk.W+tk.N+tk.S,pady=(2,0))
@@ -167,7 +172,7 @@ class AnalysisWindow(tk.Frame):
 		self.f_footer = tk.Frame(self.container)
 		self.f_footer.grid(in_=self.container,column=0,row=6,columnspan=3)
 
-		self.openLogButton = tk.Button(self.f_footer,text='Open Log',width=8,command=self.openLogWindow)
+		self.openLogButton = tk.Button(self.f_footer,text='Open Log',width=8,state=tk.DISABLED,command=self.openLogWindow)
 		self.openLogButton.grid(in_=self.f_footer,column=0,row=0,pady=(4,0))
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',width=8,command=self.close)
 		self.cancelButton.grid(in_=self.f_footer,column=1,row=0,pady=(4,0))

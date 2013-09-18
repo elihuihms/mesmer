@@ -16,16 +16,16 @@ def makeCorrelationPlot( w ):
 		cmd = os.path.join(w.prefs['mesmer_util_path'],'make_correlation_plot')
 		try:
 			Popen([cmd,p1,p2,'-size','20'])
-		except OSError:
-			tkMessageBox.showerror("Error","Could not open the correlation plotter",parent=w)
+		except Exception as e:
+			tkMessageBox.showerror("Error","Could not open the correlation plot: %s" % (e),parent=w)
 			return
 	elif( os.access( p1, os.R_OK ) ):
 		tkMessageBox.showwarning("Warning","Component statistics not available, plotting only unweighted correlations",parent=w)
 		cmd = os.path.join(w.prefs['mesmer_util_path'],'make_correlation_plot')
 		try:
 			Popen([cmd,p1,'-size','20'])
-		except OSError:
-			tkMessageBox.showerror("Error","Could not open the correlation plotter",parent=w)
+		except Exception as e:
+			tkMessageBox.showerror("Error","Could not open correlation plot: %s" % (e),parent=w)
 			return
 	else:
 		tkMessageBox.showerror("Error","Could not open generation correlation file \"%s\"" % p1,parent=w)
@@ -114,6 +114,7 @@ def plotHistogram( w ):
 
 	n, bins, patches = P.hist(w.resultsDB['ensemble_stats'][w.currentSelection[0]]['scores'], 50, normed=1, histtype='stepfilled')
 	P.setp(patches, 'facecolor', 'r', 'alpha', 0.75)
+	P.show()
 
 def makePDBs( w ):
 	if(w.currentSelection[0] == None or w.currentSelection[1] == None):
@@ -132,9 +133,9 @@ def makePDBs( w ):
 			break
 		tmp.append(dir)
 		title = 'Added %s. Select another?' % os.path.basename(dir)
-	print len(tmp)
 	if(len(tmp)<1):
 		return
+
 	pdb_dirs = ' '.join(tmp)
 
 	if( 'pdbOutput' not in w.pluginOptions ):

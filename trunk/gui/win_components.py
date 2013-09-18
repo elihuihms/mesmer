@@ -17,6 +17,7 @@ class ComponentsWindow(tk.Frame):
 		self.master.geometry('540x372+100+100')
 		self.master.title('Component Builder')
 		self.master.resizable(width=False, height=False)
+		self.master.protocol('WM_DELETE_WINDOW', self.close)
 
 		tk.Frame.__init__(self,master,width=540,height=372)
 		self.grid()
@@ -33,7 +34,7 @@ class ComponentsWindow(tk.Frame):
 		self.Ready = False
 
 		try:
-			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
+			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()
@@ -94,7 +95,6 @@ class ComponentsWindow(tk.Frame):
 	def loadComponentPDBs(self):
 		tmp = tkFileDialog.askdirectory(title='Select folder containing PDBs:',mustexist=True,parent=self)
 		if(tmp != ''):
-			self.prefs['last_pdb_dir'] = tmp
 			files = glob.glob(os.path.join(tmp,'*.pdb'))
 			for f in files:
 				self.componentPDBsList.insert(tk.END, f)
@@ -147,7 +147,6 @@ class ComponentsWindow(tk.Frame):
 		self.updateWidgets()
 
 	def close(self):
-		self.prefs.close()
 		self.master.destroy()
 
 	def createToolTips(self):

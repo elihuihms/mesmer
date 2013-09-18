@@ -8,6 +8,12 @@ class LogWindow(tk.Frame):
 
 		tk.Frame.__init__(self,master)
 
+		def ignore():
+			# note that a bug in Apple's 10.6 python install prevents this from working as advertised
+			# http://bugs.python.org/issue12584
+			pass
+		self.master.protocol('WM_DELETE_WINDOW',ignore)
+
 		master.columnconfigure(0,weight=1)
 		master.rowconfigure(0,weight=1)
 		self.grid(column=0,row=0,sticky=tk.N+tk.W+tk.E+tk.S)
@@ -37,7 +43,7 @@ class LogWindow(tk.Frame):
 
 	def updateLog( self, path ):
 		if(self.winfo_exists()):
-			rows = int(self.logText.index('end').split('.')[0])
+			rows = int(self.logText.index('end').split('.')[0])-1
 			f = open( path )
 			for (i,l) in enumerate(f.readlines()):
 				if(i>=rows):

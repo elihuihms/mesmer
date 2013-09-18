@@ -13,6 +13,7 @@ class ConfigWindow(tk.LabelFrame):
 		self.mainWindow = mainWindow
 		self.master.resizable(width=False, height=False)
 		self.master.title('Configuration Panel')
+		self.master.protocol('WM_DELETE_WINDOW', self.close)
 
 		tk.LabelFrame.__init__(self,master,width=420,height=150,borderwidth=0)
 		self.grid()
@@ -26,7 +27,7 @@ class ConfigWindow(tk.LabelFrame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
+			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()
@@ -65,12 +66,13 @@ class ConfigWindow(tk.LabelFrame):
 			self.prefs['mesmer_dir'] = os.path.dirname(self.mesmerEXEPath.get())
 			self.prefs['mesmer_exe_path'] = self.mesmerEXEPath.get()
 			self.prefs['mesmer_util_path'] = self.mesmerUtilPath.get()
-			self.prefs.close()
+			self.prefs.sync()
 			self.mainWindow.Ready = True
 			self.mainWindow.updateWidgets()
 			self.master.destroy()
 
 	def close(self):
+		self.prefs.close()
 		self.master.destroy()
 
 	def createControlVars(self):

@@ -20,11 +20,11 @@ class MainWindow(tk.Frame):
 		self.master.resizable(width=False, height=False)
 		self.master.title('MESMER')
 
-		self.loadPrefs()
-
 		tk.Frame.__init__(self,master,width=500,height=300)
 		self.grid()
 		self.grid_propagate(0)
+
+		self.loadPrefs()
 
 		self.createWidgets()
 		self.createToolTips()
@@ -39,7 +39,7 @@ class MainWindow(tk.Frame):
 		self.Ready = True
 
 		try:
-			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
+			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps the program is running in a read-only directory?',parent=self)
 			self.master.destroy()
@@ -47,11 +47,11 @@ class MainWindow(tk.Frame):
 		if( self.prefs.has_key('mesmer_dir') ):
 			path0 = self.prefs['mesmer_dir']
 			path1 = self.prefs['mesmer_exe_path']
-			path2 = os.path.join(self.prefs['mesmer_util_path'],'make_components')
+			path2 = self.prefs['mesmer_util_path']
 		else:
-			path0 = os.getcwd()
+			path0 = os.path.dirname(os.path.dirname(__file__))
 			path1 = os.path.join(path0,'mesmer')
-			path2 = os.path.join(path0,'utilities','make_components')
+			path2 = os.path.join(path0,'utilities')
 
 		if(not os.path.isdir(path0)):
 			self.Ready = False
@@ -59,13 +59,14 @@ class MainWindow(tk.Frame):
 			self.Ready = False
 		elif(not os.access(path1, os.X_OK)):
 			self.Ready = False
-		if(not os.access(path2, os.X_OK)):
+		if(not os.access(os.path.join(path2,'make_components'), os.X_OK)):
 			self.Ready = False
 
 		if(self.Ready):
 			self.prefs['mesmer_dir'] = path0
 			self.prefs['mesmer_exe_path'] = path1
 			self.prefs['mesmer_util_path'] = os.path.join(path0,'utilities')
+			self.prefs.sync()
 
 		# preload plugins
 		try:
@@ -73,6 +74,8 @@ class MainWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()
+
+		self.prefs.close()
 
 	def makeTarget(self):
 		self.masters.append( tk.Toplevel(self.master) )
@@ -122,10 +125,10 @@ class MainWindow(tk.Frame):
 
 		self.f_logo = tk.Frame(self.f_buttons)
 		self.f_logo.grid(column=0,row=0,pady=20)
-		self.LogoImage = tk.PhotoImage(file='gui/mesmer_logo.gif')
+		self.LogoImage = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'mesmer_logo.gif'))
 		self.LogoLabel = tk.Label(self.f_logo,image=self.LogoImage)
 		self.LogoLabel.pack(side=tk.TOP)
-		self.versionLabel = tk.Label(self.f_logo,text='GUI version 2013.08.26')
+		self.versionLabel = tk.Label(self.f_logo,text='GUI version 2013.09.18')
 		self.versionLabel.pack(side=tk.TOP,anchor=tk.NE)
 
 		self.createTargetButton = tk.Button(self.f_buttons, text='Create Target', command=self.makeTarget,width=20,height=1)

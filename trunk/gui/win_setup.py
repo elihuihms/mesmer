@@ -17,6 +17,7 @@ class SetupWindow(tk.Frame):
 		self.master = master
 		self.master.title('Configure MESMER Run')
 		self.master.resizable(width=False, height=False)
+		self.master.protocol('WM_DELETE_WINDOW', self.close)
 		self.parent = parent
 
 		tk.Frame.__init__(self,master)
@@ -40,7 +41,7 @@ class SetupWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = shelve.open( os.path.join(os.getcwd(),'gui','preferences') )
+			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()
@@ -193,10 +194,10 @@ class SetupWindow(tk.Frame):
 
 		self.f_logo = tk.Frame(self.f_setup, width=390, height=31 )
 		self.f_logo.grid(column=0,row=0,columnspan=5)
-		self.LogoImage = tk.PhotoImage(file='gui/mesmer_logo.gif')
+		self.LogoImage = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'mesmer_logo.gif'))
 		self.LogoLabel = tk.Label(self.f_logo,image=self.LogoImage)
 		self.LogoLabel.pack(side=tk.LEFT)
-		self.versionLabel = tk.Label(self.f_logo,text='GUI version 2013.08.26')
+		self.versionLabel = tk.Label(self.f_logo,text='GUI version 2013.09.18')
 		self.versionLabel.pack(side=tk.LEFT,anchor=tk.NE)
 
 		self.runTitleLabel = tk.Label(self.f_setup,text='Run Title:')

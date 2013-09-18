@@ -7,115 +7,43 @@ import tkMessageBox
 from threading		import Thread
 from Queue			import Queue, Empty
 
-from win_options	import OptionsWindow
+from gui.win_options	import OptionsWindow
+from gui.tools_run	import *
 
 def openRunDir( w, path ):
 
 	p1 = os.path.join(path,'mesmer_log.db')
-	p2 = os.path.join(path,'mesmer_log.db.db')
+	p2 = os.path.join(path,'mesmer_log.db.db') # some DB schemes do this
 
 	if(not os.path.exists(p1) and not os.path.exists(p2)):
 		tkMessageBox.showerror("Error","Could not find MESMER results DB in \"%s\"" % path,parent=w)
 		return
 
+	w.resultsDBPath = p1
+
 	w.activeDir.set(path)
 	w.currentSelection = [None,None,None]
 	w.openLogWindow()
+	w.openLogButton.config(state=tk.NORMAL)
 	updateGenerationList(w, path)
 	w.statusText.set('Opened existing run')
 
-def connectToRun( w, path, pHandle ):
-
-	p1 = os.path.join(path,'mesmer_log.db')
-	p2 = os.path.join(path,'mesmer_log.db.db')
-
-	if(w.connectCounter > 10): # try for ten seconds to find the mesmer results DB
-		tkMessageBox.showerror("Error","Could not find MESMER results DB in \"%s\". Perhaps MESMER crashed?" % path,parent=w)
-		return
-
-	if(not os.path.exists(p1) and not os.path.exists(p2)):
-		w.connectCounter+=1
-		w.updateHandle = w.after( 1000, connectToRun, *(w,path,pHandle) )
-		return
-
-	try:
-		w.resultsDB = shelve.open( os.path.join(path,'mesmer_log.db'), 'r' )
-	except:
-		tkMessageBox.showerror("Error","Error loading the MESMER log database from \"%s\"." % path,parent=w)
-		return
-
-	w.activeDir.set(path)
-	w.currentSelection = [None,None,None]
-
-	def getMESMEROutput( out, queue ):
-		for line in iter(out.readline, b''):
-			queue.put(line)
-		out.close()
-
-	w.MESMEROutput_Q = Queue()
-	w.MESMEROutput_T = Thread(target=getMESMEROutput, args=(pHandle.stdout, w.MESMEROutput_Q))
-	w.MESMEROutput_T.daemon = True
-	w.MESMEROutput_T.start()
-
-	w.openLogWindow( True )
-	w.updateHandle = w.after( 1000, updateWindowResults, *(w,path,pHandle) )
-	w.activeDirEntry.config(state=tk.DISABLED)
-	w.activeDirButton.config(state=tk.DISABLED)
-
-def updateWindowResults( w, path, pHandle ):
-
-	pHandle.poll()
-	if(pHandle.returncode == None):
-		w.abortButton.config(state=tk.NORMAL)
-	elif(pHandle.returncode == 0):
-		w.abortButton.config(state=tk.DISABLED)
-		w.statusText.set('Finished')
-		return
-	else:
-		tkMessageBox.showerror("Error","MESMER exited with error code %i. Please check the output log for more information." % pHandle.returncode,parent=w)
-		w.abortButton.config(state=tk.DISABLED)
-		w.statusText.set('Error')
-		return
-
-	updateGenerationList( w, path )
-
-	w.updateHandle = w.after( 1000, updateWindowResults, *(w,path,pHandle) )
-
-	try:
-		while(True):
-			line = w.MESMEROutput_Q.get_nowait()
-			if( 'Reading target file' in line):
-				w.statusText.set('Reading targets...')
-			elif( 'Component loading progress' in line):
-				w.statusText.set('Loading components...')
-			elif( 'Optimizing parent component ratios' in line):
-				w.statusText.set('Optimizing component ratios...')
-			elif( 'Optimizing offspring component ratios' in line):
-				w.statusText.set('Optimizing component ratios...')
-			elif( 'Calculating best fit statistics' in line):
-				w.statusText.set('Finding best fit intervals...')
-
-			w.logWindow.logText.insert(tk.END,line)
-	except:
-		return
-
-	return
-
 def updateGenerationList( w, path ):
 	try:
-		w.resultsDB = shelve.open( os.path.join(path,'mesmer_log.db'), 'r' )
+		w.resultsDB = shelve.open( w.resultsDBPath, 'r' )
 	except:
-		return
+		return # perhaps a concurrent read/write on an older DB implementation (10.6, I'm lookin' at you)
 
 	# append new generations to the list
-	if(w.resultsDB.has_key('ensemble_stats') and len(w.resultsDB['ensemble_stats']) > w.generationsList.size()):
-		string = "%s\t\t\t%s\t%s\t%s" % (
-			"%05i" % (len(w.resultsDB['ensemble_stats']) -1),
-			"%.3e" % w.resultsDB['ensemble_stats'][-1]['total'][0],
-			"%.3e" % w.resultsDB['ensemble_stats'][-1]['total'][1],
-			"%.3e" % w.resultsDB['ensemble_stats'][-1]['total'][2]
+	if(w.resultsDB.has_key('ensemble_stats')):
+		for i in range(w.generationsList.size(),len(w.resultsDB['ensemble_stats'])):
+			string = "%s%s%s%s" % (
+			"%05i".ljust(14) % i,
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i]['total'][0],
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i]['total'][1],
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i]['total'][2]
 			)
-		w.generationsList.insert(tk.END, string )
+			w.generationsList.insert(tk.END, string )
 	return
 
 def setGenerationSel( w, evt=None ):
@@ -125,11 +53,11 @@ def setGenerationSel( w, evt=None ):
 
 	w.targetsList.delete(0, tk.END)
 	for name in w.resultsDB['ensemble_stats'][w.currentSelection[0] ]['target']:
-		string = "%s\t%s\t%s\t%s" % (
-			name[:16].ljust(16),
-			"%.3e" % w.resultsDB['ensemble_stats'][ w.currentSelection[0] ]['target'][name][0],
-			"%.3e" % w.resultsDB['ensemble_stats'][ w.currentSelection[0] ]['target'][name][1],
-			"%.3e" % w.resultsDB['ensemble_stats'][ w.currentSelection[0] ]['target'][name][2]
+		string = "%s%s%s%s" % (
+			name[:14].ljust(14),
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][ w.currentSelection[0] ]['target'][name][0],
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][ w.currentSelection[0] ]['target'][name][1],
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][ w.currentSelection[0] ]['target'][name][2]
 			)
 		w.targetsList.insert(tk.END, string )
 
@@ -150,11 +78,11 @@ def setTargetSel( w, evt=None ):
 	for type in w.resultsDB['restraint_stats'][ w.currentSelection[0] ]:
 		if(type == 'Total'):
 			break
-		string = "%s\t%s\t%s\t%s" % (
-		type.ljust(16),
-		"%.3e" % w.resultsDB['restraint_stats'][ w.currentSelection[0] ][type][ w.currentSelection[1] ][0],
-		"%.3e" % w.resultsDB['restraint_stats'][ w.currentSelection[0] ][type][ w.currentSelection[1] ][1],
-		"%.3e" % w.resultsDB['restraint_stats'][ w.currentSelection[0] ][type][ w.currentSelection[1] ][2]
+		string = "%s%s%s%s" % (
+		type.ljust(14),
+		"%.3e".ljust(6) % w.resultsDB['restraint_stats'][ w.currentSelection[0] ][type][ w.currentSelection[1] ][0],
+		"%.3e".ljust(6) % w.resultsDB['restraint_stats'][ w.currentSelection[0] ][type][ w.currentSelection[1] ][1],
+		"%.3e".ljust(6) % w.resultsDB['restraint_stats'][ w.currentSelection[0] ][type][ w.currentSelection[1] ][2]
 		)
 		w.restraintsList.insert(tk.END, string )
 
