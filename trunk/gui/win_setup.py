@@ -47,6 +47,7 @@ class SetupWindow(tk.Frame):
 			self.master.destroy()
 
 	def close(self):
+		self.prefs.close()
 		self.master.destroy()
 
 	def setupAndStartRun(self):

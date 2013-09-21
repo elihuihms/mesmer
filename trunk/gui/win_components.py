@@ -34,9 +34,9 @@ class ComponentsWindow(tk.Frame):
 		self.Ready = False
 
 		try:
-			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
+			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'r' )
 		except:
-			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
+			tkMessageBox.showerror("Error",'Cannot read preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
 			self.master.destroy()
 
 		try:

@@ -1,3 +1,5 @@
+import os
+import shelve
 import Tkinter as tk
 import tkFont
 import tkFileDialog
@@ -7,7 +9,7 @@ import gui.tools_run # to avoid circular import of AnalysisWindow
 from gui.tools_analysis	import *
 from gui.tools_plot		import *
 from gui.tools_plugin	import getGUIPlotPlugins
-from gui.win_log			import LogWindow
+from gui.win_log		import LogWindow
 
 class AnalysisWindow(tk.Frame):
 	def __init__(self, master, path=None, pHandle=None):
@@ -33,10 +35,7 @@ class AnalysisWindow(tk.Frame):
 		self.pHandle = pHandle
 		if( path != None and pHandle != None ):
 			self.abortButton.config(state=tk.NORMAL)
-			self.connectCounter = 0
 			gui.tools_run.connectToRun(self,path,pHandle)
-
-		self.updateWidgets()
 
 	def loadPrefs(self):
 		try:
@@ -50,17 +49,17 @@ class AnalysisWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading GUI plot plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()
+			
+	def close(self):
+		if( self.pHandle and self.pHandle.poll() == None):
+			self.abortCurrentRun()
+		self.master.destroy()
 
 	def abortCurrentRun(self):
 		result = tkMessageBox.askyesno('Cancel Run',"Are you sure you want to cancel a run in progress?")
 		if(result):
 			self.pHandle.kill()
 			self.abortButton.config(state=tk.DISABLED)
-
-	def close(self):
-		if( self.pHandle and self.pHandle.poll() == None):
-			self.abortCurrentRun()
-		self.master.destroy()
 
 	def setWorkFolder(self):
 		tmp = tkFileDialog.askdirectory(title='Select Results Directory',mustexist=True,parent=self)
@@ -71,22 +70,106 @@ class AnalysisWindow(tk.Frame):
 		tmp = tkFileDialog.askopenfilename(title='Select PDB attribute table',parent=self)
 		if(tmp != ''):
 			self.attributeTable.set(tmp)
+		
+	def updateGenerationList( self ):
+		try:
+			self.resultsDB = shelve.open( self.resultsDBPath, 'r' )
+		except:
+			return # perhaps a concurrent read/write on an older DB implementation (10.6, I'm lookin' at you)
+	
+		# append new generations to the list
+		if(self.resultsDB.has_key('ensemble_stats')):
+			for i in range(self.generationsList.size(),len(self.resultsDB['ensemble_stats'])):
+				string = "%s%s%s%s" % (
+				"%05i".ljust(14) % i,
+				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][i]['total'][0],
+				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][i]['total'][1],
+				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][i]['total'][2]
+				)
+				self.generationsList.insert(tk.END, string )
+		return
 
-	def openLogWindow( self, live=False ):
-		if(self.logWindowMaster == None or not self.logWindowMaster.winfo_exists()):
-			self.logWindowMaster = tk.Toplevel(self.master)
-			self.logWindow = LogWindow(self.logWindowMaster)
+	def setGenerationSel( self, evt=None ):
+		if(len(self.generationsList.curselection())<1):
+			return
+		self.currentSelection[0] = int(self.generationsList.curselection()[0])
+	
+		self.targetsList.delete(0, tk.END)
+		for name in self.resultsDB['ensemble_stats'][self.currentSelection[0] ]['target']:
+			string = "%s%s%s%s" % (
+				name[:14].ljust(14),
+				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'][name][0],
+				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'][name][1],
+				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'][name][2]
+				)
+			self.targetsList.insert(tk.END, string )
+	
+		self.targetsList.selection_set(0)
+		self.targetsList.see(0)
+		self.setTargetSel()
+		self.setWidgetAvailibility()
+		return
+	
+	def setTargetSel( self, evt=None ):
+		if(len(self.targetsList.curselection())<1):
+			return
+	
+		for (i,name) in enumerate(self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'].keys()):
+			if(i == int(self.targetsList.curselection()[0])):
+				self.currentSelection[1] = name
+	
+		self.restraintsList.delete(0, tk.END)
+		for type in self.resultsDB['restraint_stats'][ self.currentSelection[0] ]:
+			if(type == 'Total'):
+				break
+			string = "%s%s%s%s" % (
+			type.ljust(14),
+			"%.3e".ljust(6) % self.resultsDB['restraint_stats'][ self.currentSelection[0] ][type][ self.currentSelection[1] ][0],
+			"%.3e".ljust(6) % self.resultsDB['restraint_stats'][ self.currentSelection[0] ][type][ self.currentSelection[1] ][1],
+			"%.3e".ljust(6) % self.resultsDB['restraint_stats'][ self.currentSelection[0] ][type][ self.currentSelection[1] ][2]
+			)
+			self.restraintsList.insert(tk.END, string )
+	
+		self.restraintsList.selection_set(0)
+		self.restraintsList.see(0)
+		self.setRestraintSel()
+		self.setWidgetAvailibility()
+		return
+	
+	def setRestraintSel( self, evt=None ):
+		if(len(self.restraintsList.curselection())<1):
+			return
+	
+		for (i,type) in enumerate(self.resultsDB['restraint_stats'][ self.currentSelection[0] ].keys()):
+			if(i == int(self.restraintsList.curselection()[0])):
+				self.currentSelection[2] = type
+	
+		path = (os.path.join(self.activeDir.get(), 'restraints_%s_%s_%05i.out' % (self.currentSelection[1],self.currentSelection[2],int(self.currentSelection[0]))))
+		if(os.path.exists(path)):
+			self.fitPlotButton.config(state=tk.NORMAL)
 		else:
-			self.logWindow.logText.delete(1.0,tk.END)
-		if(live):
-			self.logWindow.cancelButton.config(state=tk.DISABLED)
-			self.openLogButton.config(state=tk.DISABLED)
+			self.fitPlotButton.config(state=tk.DISABLED)
+		return
+	
+	def setWidgetAvailibility( self ):
+		if( self.currentSelection[0] == None):
+			self.histogramPlotButton.config(state=tk.DISABLED)
 		else:
-			self.logWindow.updateLog( os.path.join( self.activeDir.get(), 'mesmer_log.txt') )
-		self.logWindowMaster.lower( self.master )
-
-	def updateWidgets(self):
-		pass
+			self.histogramPlotButton.config(state=tk.NORMAL)
+	
+		if( self.currentSelection[0] == None or self.currentSelection[1] == None ):
+			self.correlationPlotButton.config(state=tk.DISABLED)
+			self.writePDBsButton.config(state=tk.DISABLED)
+		else:
+			self.correlationPlotButton.config(state=tk.NORMAL)
+			self.writePDBsButton.config(state=tk.NORMAL)
+	
+		if( self.currentSelection[0] == None or self.currentSelection[1] == None or self.attributeTable.get() == ''):
+			self.attributePlotButton.config(state=tk.DISABLED)
+			self.attributePlotButton.config(state=tk.DISABLED)
+		else:
+			self.attributePlotButton.config(state=tk.NORMAL)
+			self.attributePlotButton.config(state=tk.NORMAL)
 
 	def createControlVars(self):
 		self.activeDir = tk.StringVar()
@@ -130,7 +213,7 @@ class AnalysisWindow(tk.Frame):
 		self.generationsListScroll.grid(in_=self.f_generations,column=2,row=0,sticky=tk.W+tk.N+tk.S,pady=(2,0))
 		self.generationsList.config(yscrollcommand=self.generationsListScroll.set)
 		self.generationsListScroll.config(command=self.generationsList.yview)
-		self.generationsList.bind('<<ListboxSelect>>',lambda evt: setGenerationSel(self,evt))
+		self.generationsList.bind('<<ListboxSelect>>',self.setGenerationSel)
 		self.histogramPlotButton = tk.Button(self.f_generations,text='Ensemble Histogram...',state=tk.DISABLED,command=lambda: plotHistogram(self))
 		self.histogramPlotButton.grid(in_=self.f_generations,column=0,row=2,padx=(6,0),pady=(0,4),sticky=tk.W)
 
@@ -142,7 +225,7 @@ class AnalysisWindow(tk.Frame):
 		self.targetsListScroll.grid(in_=self.f_targets,column=6,row=0,sticky=tk.W+tk.N+tk.S,pady=(2,0))
 		self.targetsList.config(yscrollcommand=self.targetsListScroll.set)
 		self.targetsListScroll.config(command=self.targetsList.yview)
-		self.targetsList.bind('<<ListboxSelect>>',lambda evt: setTargetSel(self,evt))
+		self.targetsList.bind('<<ListboxSelect>>',self.setTargetSel)
 
 		self.attributePlotButton = tk.Button(self.f_targets,text='Attribute Plot...',state=tk.DISABLED,command=lambda: plotAttributes(self))
 		self.attributePlotButton.grid(in_=self.f_targets,column=0,row=1,padx=(6,0),sticky=tk.W)
@@ -164,7 +247,7 @@ class AnalysisWindow(tk.Frame):
 		self.restraintsListScroll.grid(in_=self.f_restraints,column=1,row=0,sticky=tk.W+tk.N+tk.S,pady=(2,0))
 		self.restraintsList.config(yscrollcommand=self.restraintsListScroll.set)
 		self.restraintsListScroll.config(command=self.restraintsList.yview)
-		self.restraintsList.bind('<<ListboxSelect>>',lambda evt: setRestraintSel(self,evt))
+		self.restraintsList.bind('<<ListboxSelect>>',self.setRestraintSel)
 
 		self.fitPlotButton = tk.Button(self.f_restraints,text='Fit Plot...',width=12,command=lambda: plotRestraint(self))
 		self.fitPlotButton.grid(in_=self.f_restraints,column=0,row=1,padx=(6,0),pady=(0,4),sticky=tk.W)
@@ -172,7 +255,7 @@ class AnalysisWindow(tk.Frame):
 		self.f_footer = tk.Frame(self.container)
 		self.f_footer.grid(in_=self.container,column=0,row=6,columnspan=3)
 
-		self.openLogButton = tk.Button(self.f_footer,text='Open Log',width=8,state=tk.DISABLED,command=self.openLogWindow)
+		self.openLogButton = tk.Button(self.f_footer,text='Open Log',width=8,state=tk.DISABLED,command=lambda: openLogWindow(self,self.path))
 		self.openLogButton.grid(in_=self.f_footer,column=0,row=0,pady=(4,0))
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',width=8,command=self.close)
 		self.cancelButton.grid(in_=self.f_footer,column=1,row=0,pady=(4,0))
