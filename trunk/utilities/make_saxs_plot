@@ -47,7 +47,7 @@ plot.xlim([min(data[0]),max(data[0])])
 plot.ylabel( args.yLabel )
 plot.yscale('log')
 
-b = plot.axes([0.5,0.5,0.43,0.43])
+b = plot.axes([0.55,0.55,0.38,0.38])
 b.plot( data[0], [1]*len(data[0]), 'r-', linewidth=2 )
 b.scatter( data[0], data[1]/data[2], c='k', facecolors='none' )
 plot.ylabel( r'$I(q)_{exp}/I(q)_{fit}$' )

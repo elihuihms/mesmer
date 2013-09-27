@@ -101,7 +101,7 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q, print_sta
 		for (i,e) in enumerate(ensembles):
 
 			if(i % divisor == 0) and (print_status):
-				sys.stdout.write("\r\tComponent ratio optimization progress: %i%%\n" % (100.*i/(n1*n2)+1) )
+				sys.stdout.write("\r\tComponent ratio optimization progress: %i%%" % (100.*i/(n1*n2)+1) )
 				sys.stdout.flush()
 
 			if(e.optimized[t.name]):

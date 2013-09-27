@@ -1,15 +1,5 @@
 """
 Creates a MESMER restraint from a general list of data (NOEs, Pseudocontact shifts, etc.)
-
-Target file arguments:
--file <file>	- Read a separate file containing whitespace-delimited data instead of the target file
--col <n>		- The column of values in the list to use
--sse			- Report fitness as a sum square of error
--harm			- Report fitness as sum deviation from a flat-bottomed harmonic potential for each term (intervals should be provided in -col N+1 column)
--Q				- Report fitness as a quality (Q) factor, normalized against the RMS of the experimental data
-
-Component file arguments:
--file <file>	- Read a file containing whitespace-delimited data instead of from the target file
 """
 
 import argparse
@@ -29,17 +19,18 @@ class plugin( mesPluginDB ):
 		mesPluginDB.__init__(self, args)
 
 		self.name = 'default_LIST'
-		self.version = '2013.07.19'
-		self.type = ('LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9')
+		self.version = '2013.09.24'
+		self.type = (
+			'LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9',
+			'TABL','TABL0','TABL1','TABL2','TABL3','TABL4','TABL5','TABL6','TABL7','TABL8','TABL9')
 
-		self.target_parser = argparse.ArgumentParser(prog=self.type[0])
+		self.target_parser = argparse.ArgumentParser(prog=self.name)
 		self.target_parser.add_argument('-file', 	action='store',								help='An external whitespace-delimited file containing LIST parameters.')
-		self.target_parser.add_argument('-col', 	action='store',	type=int,	required=True,	help='The column of data to use as the restraint')
-		self.target_parser.add_argument('-sse', 	action='store_true',						help='Calculate fitness as a simple (normalized) sum square of error')
-		self.target_parser.add_argument('-harm', 	action='store_true',						help='Calculate fitness from a flat-bottomed harmonic, using the interval present in -col N+1')
-		self.target_parser.add_argument('-Q', 		action='store_true',						help='Calculate fitness as an Q factor (quality factor).')
-		self.target_parser.add_argument('-R', 		action='store_true',						help='Calculate fitness as a reciprocal of the correlation coefficient (1/R^2).')
+		self.target_parser.add_argument('-rCol', 	action='store',	type=int,	required=True,	help='The column of data to use as the restraint')
+		self.target_parser.add_argument('-dCol',	action='store', type=int,					help='The column of data to use as a restraint interval when fitting Harmonic restraints')
 		self.target_parser.add_argument('-plot', 	action='store_true',						help='Create a plot window at each generation showing fit to data')
+		self.target_parser.add_argument('-fitness',	default='',	choices=['','SSE','Harmonic','Quality','Rsquare'],
+																				help='Method used to calculate goodness-of-fit. Leave blank to use chi squared with explict dY data specified by -dcol')
 
 		self.component_parser = argparse.ArgumentParser(prog=self.name)
 		self.component_parser.add_argument('-file',	action='store',	help='An external whitespace-delimited file containing LIST parameters.')
@@ -135,8 +126,11 @@ class plugin( mesPluginDB ):
 
 		restraint.data['args'] = args
 
-		if (not args.sse) and (not args.harm) and (not args.Q) and (not args.R):
-			raise mesPluginError('Must specify at least one fitness calculation type!')
+		# restraint checking
+		if( args.fitness=='' and not args.dCol ):
+			raise mesPluginError('Must specify a column containing uncertainty values via -dCol when fitness is calculated via chisquare')
+		if( args.fitness=='Harmonic' and not args.dCol ):
+			raise mesPluginError('Must specify a column containing a fitting interval via -dCol when fitting Harmonic restraints')
 
 		if(args.file):
 			try:
@@ -144,30 +138,43 @@ class plugin( mesPluginDB ):
 				table = f.readlines()
 				f.close()
 			except:
-				raise mesPluginError("Error reading from file \"%s\": %s" % (file,sys.exc_info()[1]))
+				raise mesPluginError("Error opening file \"%s\" for reading: %s" % (file,sys.exc_info()[1]))
 		else:
 			table = block['content']
 
 		data = []
 		for line in table:
 			line = line.strip()
-			data.append( [field.strip() for field in line.split()] )
+			if( line != ''):
+				data.append( [field.strip() for field in line.split()] )
 
 		restraint.data['x'] = []
 		restraint.data['y'] = []
-		restraint.data['d'] = []  # only used in -harm
+		restraint.data['d'] = []
 
+		keys = []
 		for e in data:
-			if( len(e) >= args.col ):
-				key = '.'.join( e[:args.col] )
+			try:
+				key = '.'.join( e[:args.rCol] )
 				restraint.data['x'].append(key)
-				restraint.data['y'].append( float(e[args.col]) )
+				restraint.data['y'].append( float(e[args.rCol]) )
+			except ValueError:
+				raise mesPluginError("Error reading restraint value from provided target data. Line in question: \"%s\"" % (e))
+			except IndexError:
+				raise mesPluginError("Error reading restraint value from shortened line in target data. Line in question: \"%s\"" % (e))
 
-				# save error/interval information
-				if(args.harm) and (len(e) >= args.harm):
-					restraint.data['d'].append( float(e[args.harm]) )
-				elif(args.harm):
-					raise mesPluginError("Error determining harmonic interval from \"%s\". Line in question looks like: \"%s\""%(file,e))
+			# save error/interval information
+			if(args.fitness=='Harmonic' or args.fitness=='Harmonic'):
+				try:
+					restraint.data['d'].append( float(e[args.dCol]) )
+				except ValueError:
+					raise mesPluginError("Error determining harmonic interval value from provided target data. Line in question: \"%s\"" % (e))
+				except IndexError:
+					raise mesPluginError("Error obtaining harmonic interval value from shortened line in target data. Line in question: \"%s\"" % (e))
+
+			if( key in keys):
+				raise mesPluginError("Found a duplicate key (\"%s\") while reading target data." % (key))
+			keys.append(key)
 
 		return messages
 
@@ -196,26 +203,30 @@ class plugin( mesPluginDB ):
 				table = f.readlines()
 				f.close()
 			except:
-				raise mesPluginError("Error reading from file \"%s\": %s" % (file,sys.exc_info()[1]))
+				raise mesPluginError("Error opening file \"%s\" for reading: %s" % (file,sys.exc_info()[1]))
 		else:
 			table = block['content']
 
 		data = []
 		for line in table:
 			line = line.strip()
-			data.append( [field.strip() for field in line.split()] )
-
-		col = attribute.restraint.data['args'].col
+			if(line != ''):
+				data.append( [field.strip() for field in line.split()] )
 
 		temp = {}
 		temp['y'] = [0.0]*len(attribute.restraint.data['x'])
 		seen = attribute.restraint.data['x'][:]
 		for e in data:
-			key = '.'.join( e[:col] )
+			key = '.'.join( e[:attribute.restraint.data['args'].rCol] )
 			if( key in attribute.restraint.data['x'] ):
-				i = attribute.restraint.data['x'].index(key)
-				temp['y'][ i ] = float(e[col])
-				seen.remove(key)
+				try:
+					i = attribute.restraint.data['x'].index(key)
+					temp['y'][ i ] = float(e[attribute.restraint.data['args'].rCol])
+					seen.remove(key)
+				except ValueError:
+					raise mesPluginError("Error determining harmonic interval value from provided target data. Line in question: \"%s\"" % (e))
+				except IndexError:
+					raise mesPluginError("Error obtaining harmonic interval value from shortened line in target data. Line in question: \"%s\"" % (e))
 
 		for n in seen:
 			messages.append("Couldn't find key \"%s\"!" % n)
@@ -262,14 +273,14 @@ class plugin( mesPluginDB ):
 		# average the attribute data - this is slow due to the lookup penalty each time. Optimize?
 		ensemble_data['y'] = average( [self.get(a.data['key'])['y'] for a in attributes], 0, ratios )
 
-		if( restraint.data['args'].sse ):
+		if( restraint.data['args'].fitness=='SSE' ):
 			return get_sse( restraint.data['y'], ensemble_data['y'] )
 
-		elif( restraint.data['args'].harm ):
+		elif( restraint.data['args'].fitness=='Harmonic' ):
 			n = len(restraint.data['x'])
 			return sum([tools.get_flat_harmonic(restraint.data['y'][i],restraint.data['d'][i],ensemble_data['y'][i]) for i in range(n)])
 
-		elif( restraint.data['args'].Q ):
+		elif( restraint.data['args'].fitness=='Quality' ):
 			# Calculate quality (Q) factor
 			# Described in Cornilescu et al. (1998) J. Am. Chem. Soc.
 
@@ -278,6 +289,8 @@ class plugin( mesPluginDB ):
 				restraint.data['rms'] = tools.get_rms(array(restraint.data['y']))
 
 			return tools.get_rms(restraint.data['y'] - ensemble_data['y']) / restraint.data['rms']
-		elif( restraint.data['args'].R ):
+		elif( restraint.data['args'].fitness=='Rsquared' ):
 			(slope,intercept,r,p,stderr) = linregress( restraint.data['y'], ensemble_data['y'] )
 			return 1.0/(r**2)
+		else:
+			return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )

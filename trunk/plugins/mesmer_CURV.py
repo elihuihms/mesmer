@@ -22,26 +22,23 @@ class plugin( mesPluginDB ):
 		mesPluginDB.__init__(self, args)
 
 		self.name = 'default_CURV'
-		self.version = '2013.07.16'
+		self.version = '2013.09.24'
 		self.type = (
 			'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',
 			'SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9',
 			'DEER','DEER0','DEER1','DEER2','DEER3','DEER4','DEER5','DEER6','DEER7','DEER8','DEER9'
 			)
 
-		self.target_parser = argparse.ArgumentParser(prog=self.type[0])
+		self.target_parser = argparse.ArgumentParser(prog=self.name)
 		self.target_parser.add_argument('-file',		metavar='FILE', 		help='Read an external file containing the experimental data')
 		self.target_parser.add_argument('-scale',		action='store_true',	help='Allow scaling of the calculated curve to improve fitting')
 		self.target_parser.add_argument('-offset',		action='store_true',	help='Allow the application of an offset to improve fitting')
-		self.target_parser.add_argument('-sse',			action='store_true',	help='Use no point weighting while fitting')
-		self.target_parser.add_argument('-relative',	action='store_true',	help='Use relative weighting instead of explicit dy data')
-		self.target_parser.add_argument('-poisson',		action='store_true',	help='Use poisson weighting instead of explicit dy data')
-		self.target_parser.add_argument('-saxs',		action='store_true',	help='Treat experimental curve as SAXS data. ')
 		self.target_parser.add_argument('-saxs_offset', type=float,				help='Improve fits to SAXS curves at higher specified scattering angles by applying an additional offset.')
-		self.target_parser.add_argument('-deer',		action='store_true',	help='Treat experimental curve as DEER data, fit by optimizing the modulation depth')
 		self.target_parser.add_argument('-plot',		action='store_true',	help='Create a plot window at each generation showing fit to data (requires matplotlib)')
+		self.target_parser.add_argument('-fitness',		default='',	choices=['','SSE','Pearson','Poisson'],
+																				help='Method used to calculate goodness-of-fit. Leave blank to use chi squared with explict dY data')
 
-		self.component_parser = argparse.ArgumentParser(prog=self.type[0])
+		self.component_parser = argparse.ArgumentParser(prog=self.name)
 		self.component_parser.add_argument('-file',		metavar='FILE',			help='Read an external file containing the predicted data')
 
 		self._plot_handles = {}
@@ -137,7 +134,7 @@ class plugin( mesPluginDB ):
 
 		# generate a plot figure if necessary
 		if(target_data['args'].plot):
-			self.showplot( restraint.type, restraint.data['x'], restraint.data['y'], y_fit, target_data['args'].saxs )
+			self.showplot( restraint.type, restraint.data['x'], restraint.data['y'], y_fit, (target_data['type'] == 'SAXS') )
 
 		return []
 
@@ -183,24 +180,26 @@ class plugin( mesPluginDB ):
 
 		# autodetect restraint types
 		if( restraint.type[0:4] == 'SAXS' ):
-			args.saxs = True
+			target_data['type'] = 'SAXS'
 		elif( restraint.type[0:4] == 'DEER' ):
-			args.deer = True
+			target_data['type'] = 'DEER'
+		else:
+			target_data['type'] = ''
 
 		# argument consistency checks
-		if( args.deer and (args.scale or args.offset) ):
+		if( target_data['type'] == 'DEER' and (args.scale or args.offset) ):
 			raise mesPluginError("Scaling or offset options not available when fitting DEER data")
 
 		# set the per-point weighting to be used during fitting
-		if( args.sse ):
+		if( args.fitness == 'SSE' ):
 			# X^2 = (Y - Y_fit)^2
 			restraint.data['d'] = [1.0] * len(restraint.data['x'])
 
-		elif( args.relative ):
+		elif( args.fitness == 'Pearson' ):
 			# X^2 = ((Y - Y_fit) / Y)^2
 			restraint.data['d'] = restraint.data['y']
 
-		elif( args.poisson ):
+		elif( args.fitness == 'Poisson' ):
 			# X^2 = ((Y - Y_fit) / sqrt(Y))^2
 			restraint.data['d'] = [ math.sqrt(y) for y in restraint.data['y'] ]
 
@@ -312,7 +311,7 @@ class plugin( mesPluginDB ):
 		n = len(restraint.data['x'])
 
 		# optimize modulation depth to fit DEER data
-		if(target_data['args'].deer):
+		if(target_data['type'] == 'DEER'):
 
 			tmp = [0.0]*n
 			def opt( l ):
@@ -332,7 +331,7 @@ class plugin( mesPluginDB ):
 			# determine starting q value index if not already calculated
 			if( not 'saxs_offset_n' in target_data):
 				for i in range(n):
-					if( restraint.data['x'][i] > target_data['args'].saxs ):
+					if( restraint.data['x'][i] > target_data['args'].saxs_offset ):
 						target_data['saxs_offset_n'] = i
 						break
 

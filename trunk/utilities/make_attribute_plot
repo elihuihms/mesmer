@@ -5,6 +5,11 @@ import scipy
 import matplotlib as mpl
 import math
 import random
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+from lib.output_parsers import get_ensembles_from_state
 
 parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
@@ -23,15 +28,12 @@ group1.add_argument('-plotArgs',	nargs=2,	action='append',	default=[],	metavar='
 group1.add_argument('-plotProp',	nargs=2,	action='append',	default=[],	metavar='',	help='Set properties for the figure as ARG VALUE')
 group1.add_argument('-figsize',		nargs=2,	default=[6,6],	type=int,	metavar='N',	help='Set figure size and ratio: X Y')
 group1.add_argument('-axes',		nargs=4,	default=None,	type=int,	metavar='N',	help='The scales for the axes: xmin, xmax, ymin, ymax')
-group1.add_argument('-pointScale',				default=20,		type=int,	metavar='20',	help='Change the scaling of the attribute scatter plot points')
+group1.add_argument('-pointScale',				default=20,		type=int,	metavar='20',	help='Set scaling of the component plot points')
+group1.add_argument('-pointColor',	nargs=4,	default=[0,0,0,0.2], type=float,	metavar='N',	help='Set color (R G B A) of componenent plot points')
 
-group2 = parser.add_argument_group('Overlay options')
-group2.add_argument('-lineWidth',				default=3,		type=int,	metavar='3.0',	help='Change the width of the selected component plot circles')
-group2.add_argument('-spec',	default=None,	metavar='<SPEC>',		help='A specification file')
-group2.add_argument('-specColor',	nargs=3,	default=[1.0,0.5,0.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the specification overlay')
-group2.add_argument('-specWeight',				default=-1.0,	type=float,			help='When plotting target specifications, drop components weighted lower than this amount')
-group2.add_argument('-specLog',		action='store_true', default=False,				help='Use log of spec weight for shading')
+group2 = parser.add_argument_group('Component statistic overlay options')
 group2.add_argument('-stats',	default=None,	metavar='<STATS>',		help='A MESMER ensemble statistics file')
+group2.add_argument('-statWidth',				default=3,		type=int,	metavar='3.0',	help='Change the width of the selected component plot circles')
 group2.add_argument('-statColor',	nargs=3,	default=[0.0,0.5,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the ensemble statistics overlay')
 group2.add_argument('-statNorm',	action='store_true', default=False,				help='Normalize variable color saturation for component prevalence')
 group2.add_argument('-statSame',	action='store_true', default=False,				help='Do not use variable color saturation for component prevalence')
@@ -39,14 +41,40 @@ group2.add_argument('-statWeight',				default=-1.0,	type=float,			help='When plo
 group2.add_argument('-statPrevalence',			default=-1.0,	type=float,			help='When plotting MESMER statistics, drop components with prevalences lower than this amount')
 group2.add_argument('-statSubsample',			default=100,	type=float,			help='Randomly subsample selected conformers by a percentage.')
 
-group3 = parser.add_argument_group('Output options')
-group3.add_argument('-nogui', 	action='store_true',	default=False,	help='Don\'t display image.')
-group3.add_argument('-figure', 					default=None,	help='The file to write the resulting figure to.')
+group3 = parser.add_argument_group('Ensemble statistics overlay options')
+group2.add_argument('-state',			default=None,	metavar='<STATS>',		help='A MESMER ensemble state file')
+group2.add_argument('-stateTarget',		default=None,	metavar='NAME',		help='The name of the target to view ensemble collections for. Leave blank to use the first target name')
+group3.add_argument('-stateSolutions',	default=4,		type=int,	metavar='N',	help='The number of unique ensemble solutions to show')
+group3.add_argument('-stateSize',		default=20,		type=int,	metavar='20',	help='Set scaling of the highlight plot circles')
+group3.add_argument('-stateWidth',		default=3,		type=int,	metavar='3.0',	help='Set the width of the highlight plot circles')
+group3.add_argument('-stateConnWidth',	default=2,		type=float,	metavar='2.0',	help='Set the width of the lines connecting ensemble components')
+group3.add_argument('-stateColors',		nargs='*',	default=[],		metavar='C',	help='A series of matplotlib colors to use for highlighting different ensemble solutions')
+
+group4 = parser.add_argument_group('Synthetic target specification overlay options')
+group4.add_argument('-spec',	default=None,	metavar='<SPEC>',		help='A specification file')
+group4.add_argument('-specColor',	nargs=3,	default=[1.0,0.5,0.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the specification overlay')
+group4.add_argument('-specWeight',				default=-1.0,	type=float,			help='When plotting target specifications, drop components weighted lower than this amount')
+group4.add_argument('-specLog',		action='store_true', default=False,				help='Use log of spec weight for shading')
+
+group5 = parser.add_argument_group('Highlighting overlay options')
+group5.add_argument('-highlight',		nargs='*',	default=[],		metavar='NAME',	help='List of component names to highlight')
+group5.add_argument('-highlightID',	nargs='*',	default=[],	type=int,	metavar='N',	help='Highlight unique ensemble IDs provided by get_ensemble_stats')
+group5.add_argument('-highlightSize',	default=20,		type=int,	metavar='20',	help='Set scaling of the highlight plot circles')
+group5.add_argument('-highlightWidth',	default=3,		type=int,	metavar='3.0',	help='Set the width of the highlight plot circles')
+group5.add_argument('-highlightColor',	nargs=3,	default=[1.0,0.0,0.0],	type=float,	metavar='N',	help='Set color (R G B) to use for highlighting')
+
+group6 = parser.add_argument_group('Output options')
+group6.add_argument('-nogui', 	action='store_true',	default=False,	help='Don\'t display image.')
+group6.add_argument('-figure', 					default=None,	help='The file to write the resulting figure to.')
 
 args = parser.parse_args()
 
 if(args.table==None):
-	print "You must provide a component attribute table"
+	print "ERROR: You must provide a component attribute table"
+	exit()
+
+if(len(args.highlightID)>0 and not args.state):
+	print "ERROR: To highlight a specific ensemble ID please provide an ensemble state file."
 	exit()
 
 # generate master data lists
@@ -69,7 +97,7 @@ if( args.spec ):
 		try:
 			k = tbl_names.index(tmp[0][i])
 		except:
-			print "Target specification contains a component (%s) that does not exist in the attribute table." % tmp[0][i]
+			print "ERROR: Target specification contains a component (%s) that does not exist in the attribute table." % tmp[0][i]
 			exit()
 		tbl_weights[k] = float(tmp[1][i])
 
@@ -91,7 +119,7 @@ if( args.stats ):
 		try:
 			k = tbl_names.index(arr[0])
 		except:
-			print "Ensemble statistics file contains a component (%s) that does not exist in the attribute table." % arr[0]
+			print "ERROR: Ensemble statistics file contains a component (%s) that does not exist in the attribute table." % arr[0]
 			exit()
 		c_xvals.append( tbl_xvals[k] )
 		c_yvals.append( tbl_yvals[k] )
@@ -142,7 +170,7 @@ if( args.spec ):
 		plot.scatter( x, y, facecolors=c, edgecolors='none', s=args.pointScale, zorder=1 )
 
 else:
-	plot.scatter( tbl_xvals, tbl_yvals, facecolor=(0,0,0,0.5), edgecolors='none', s=args.pointScale, zorder=1 )
+	plot.scatter( tbl_xvals, tbl_yvals, facecolor=args.pointColor, edgecolors='none', s=args.pointScale, zorder=1 )
 
 if( args.stats ):
 	o = scipy.argsort( c_prevl )
@@ -174,7 +202,71 @@ if( args.stats ):
 			else:
 				c[i] = (p[i]/100.0*args.statColor[0],p[i]/100.0*args.statColor[1],p[i]/100.0*args.statColor[2])
 
-		plot.scatter( x, y, edgecolors=c, s=s, zorder=2, facecolors='none', linewidth=args.lineWidth )
+		plot.scatter( x, y, edgecolors=c, s=s, zorder=2, facecolors='none', linewidth=args.statWidth )
+
+if( args.state ):
+
+	try:
+		ensemble_stats = get_ensembles_from_state( args.state, unique=True )
+	except Exception as e:
+		print "ERROR: Could not load ensemble information from state file. Reason: %s" % (e)
+		exit()
+
+	keys = ensemble_stats.keys()
+	if( not args.stateTarget ):
+		args.stateTarget = keys[0]
+	elif( not args.stateTarget in keys ):
+		print "ERROR: The target \"%s\" specified does not exist in the provided ensemble state file" % (args.stateTarget)
+		exit()
+
+	if( len(args.highlightID)>0 ):
+		id_list = args.highlightID
+	else:
+		id_list = min(args.stateSolutions, len(ensemble_stats[ args.stateTarget ]) )
+		random.shuffle(ensemble_stats[ args.stateTarget ])
+
+	colorCounter = 0
+	args.stateColors.extend( ['b','g','r','c','m','y','w' ] )
+	for i in id_list:
+		x,y,s = [],[],[]
+
+		for (j,name) in enumerate( ensemble_stats[ args.stateTarget ][i]['components'] ):
+			try:
+				index = tbl_names.index(name)
+			except ValueError:
+				print "ERROR: the component \"%s\" from the ensemble state file doesn't exist in the attribute table." % (name)
+				exit()
+
+			x.append( tbl_xvals[index] )
+			y.append( tbl_yvals[index] )
+			s.append( 30*args.stateSize*ensemble_stats[ args.stateTarget ][i]['weights'][j] )
+
+
+		if( len(args.highlightID)>0 and i in args.highlightID ):
+			plot.scatter( x, y, edgecolors=args.stateColors[colorCounter % len(args.stateColors)], s=s, zorder=3, facecolors='none', linewidth=args.stateWidth )
+			#plot.plot( x, y, c=args.stateColors[colorCounter % len(args.stateColors)], linewidth=args.stateConnWidth )
+		elif( len(args.highlightID)==0 ):
+			plot.scatter( x, y, edgecolors=args.stateColors[colorCounter % len(args.stateColors)], s=s, zorder=3, facecolors='none', linewidth=args.stateWidth )
+			plot.plot( x, y, c=args.stateColors[colorCounter % len(args.stateColors)], linewidth=args.stateConnWidth )
+
+		colorCounter+=1
+
+if( len(args.highlight) > 0 ):
+	x,y,s,c = [],[],[],[]
+
+	for name in args.highlight:
+		try:
+			index = tbl_names.index(name)
+		except ValueError:
+			print "ERROR: the component \"%s\" from highlight list doesn't exist in the attribute table." % (name)
+			exit()
+
+		x.append( tbl_xvals[index] )
+		y.append( tbl_yvals[index] )
+		s.append( 20*args.highlightSize )
+		c.append( args.highlightColor )
+
+	plot.scatter( x, y, edgecolors=c, s=s, zorder=4, facecolor='none', linewidth=args.highlightWidth )
 
 for (arg,val) in args.plotArgs:
 	mpl.rcParams[ arg ] = val

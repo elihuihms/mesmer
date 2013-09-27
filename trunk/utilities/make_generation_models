@@ -48,6 +48,9 @@ component_w = []
 for l in lines:
 	fields = l.strip().split()
 
+	if(len(fields)<4):
+		continue
+
 	if( float(fields[1]) < args.Pmin ):
 		continue
 	if( float(fields[3]) < args.Wmin ):

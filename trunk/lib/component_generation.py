@@ -38,7 +38,7 @@ def match_data_files( names, dirs ):
 
 	for d in dirs:
 		for n in names:
-			matches = glob.glob( "%s%s%s.*" % (d,os.sep,n) )
+			matches = glob.glob( "%s%s%s*" % (d,os.sep,n) )
 
 			if( len(matches) == 0 ):
 				raise ComponentGenException("ERROR: Data file for component \"%s\" not found in directory \"%s\"" % (n,d))
@@ -50,11 +50,9 @@ def match_data_files( names, dirs ):
 	return ret
 
 def write_component_files( data_vals, data_dirs, template, dir ):
-
 	# create the component file
 	for name in data_vals:
-
-		new = template[:]
+		new = template[:] # make a copy
 
 		# replace all of the value fields first
 		for (i,s) in enumerate(data_vals[name]):

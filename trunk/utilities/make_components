@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 
-
-#
-# Creates MESMER component files
-#
-
 import sys
 import os
 import argparse
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from lib.component_generation import *
+from lib.component_generation	import *
+from lib.exceptions				import *
 
 parser = argparse.ArgumentParser(usage='make_conformers [options]')
 
@@ -40,19 +36,19 @@ template = handle.read()
 handle.close()
 
 try:
-	component_vals = getComponentValues( args.values )
+	component_vals = get_component_values( args.values )
 except ComponentGenException as e:
 	print e.msg
 	sys.exit(4)
 
 try:
-	component_dirs = matchDataFiles( component_vals.keys(), args.data )
+	component_dirs = match_data_files( component_vals.keys(), args.data )
 except ComponentGenException as e:
 	print e.msg
 	sys.exit(5)
 
 try:
-	writeComponentFiles( component_vals, component_dirs, template, args.out )
+	write_component_files( component_vals, component_dirs, template, args.out )
 except  ComponentGenException as e:
 	print e.msg
 	sys.exit(6)
