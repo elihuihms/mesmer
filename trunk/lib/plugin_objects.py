@@ -30,13 +30,13 @@ class mesPluginBasic:
 		try:
 			self.target_parser.print_help()
 		except:
-			raise MESMERPluginError("Could not display target argument help for parser \"%s\"" % self.name)
+			raise mesPluginError("Could not display target argument help for parser \"%s\"" % self.name)
 		print ""
 		print "Component file argument help:"
 		try:
 			self.component_parser.print_help()
 		except:
-			raise MESMERPluginError("Could not display component argument help for parser \"%s\"" % self.name)
+			raise mesPluginError("Could not display component argument help for parser \"%s\"" % self.name)
 
 	# base type stubs
 
@@ -59,9 +59,16 @@ class mesPluginDB( mesPluginBasic ):
 
 	def __init__( self, args ):
 
-		self._db_path = os.path.join(tempfile.gettempdir(),uuid.uuid1().hex)
-		self._db_handle = shelve.open(self._db_path,'c')
-
+		if( args.scratch ):
+			self._db_path = os.path.join(args.scratch,uuid.uuid1().hex)
+		else:
+			self._db_path = os.path.join(tempfile.gettempdir(),uuid.uuid1().hex)
+			
+		try:
+			self._db_handle = shelve.open(self._db_path,'c')
+		except:
+			raise mesPluginError("Could not create temporary scratch DB to store component data: \"%s\"" % self._db_path)
+			
 		# some db implementations append a .db to the provided path
 		if( os.path.exists("%s%s" % (self._db_path,'.db')) ):
 			self._db_path = "%s%s" % (self._db_path,'.db')

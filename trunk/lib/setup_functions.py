@@ -69,6 +69,7 @@ def parse_arguments(str=None):
 	group5.add_argument('-uniform',		action='store_true',default=False,									help='Load ensembles uniformly from available components instead of randomly')
 	group5.add_argument('-force',		action='store_true',default=False,									help='Enable overwriting of previous output directories.')
 	group5.add_argument('-threads',		action='store',		default=1,		type=int,		metavar='N',	help='Number of multiprocessing threads to use.')
+	group5.add_argument('-scratch',		action='store',		default=None,					metavar='DIR',	help='Scratch directory in which to save temporary files.')
 	group5.add_argument('-dbm',			action='store_true',default=False,									help='Use a component database instead of maintaining in memory (much slower, significantly reduced memory footprint')
 	group5.add_argument('-plugin',		action='store',										metavar='NAME',	help='Print information about the specified plugin and exit.')
 

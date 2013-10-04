@@ -13,7 +13,7 @@ from lib.ga_functions_main		import run_ga
 
 def main():
 	_mes_version	= "0.6a"
-	_mes_build		= "2013.09.16.0"
+	_mes_build		= "2013.10.04.0"
 
 	# obtain the parameters for the run
 	args = parse_arguments()
