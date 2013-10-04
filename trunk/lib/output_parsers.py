@@ -1,69 +1,62 @@
 import scipy
+import copy
 
 def get_ensembles_from_state( path, unique=False ):
 	"""
-	Returns a dict with ensemble info loaded from a MESMER ensemble state file
+	Returns a list with ensemble info loaded from a MESMER ensemble state file
 	"""
 
 	f = open( path )
 
 	header = f.readline()
-	M = ( len(header.split()) -3) / 2 # size of ensembles
+	M = ( len(header.split()) -2) / 2 # size of ensembles
 
-	targets = {}
+	ensembles = []
 	for (i,line) in enumerate(f.readlines()):
 
-		# split out the ensemble weights and components for each target
+		# split out the ensemble weights and components
 		a = line.split()
-		if(len(a) == 2*M +3):
+		if(len(a) == 2*M +2):
 
-			if( a[M+1] not in targets ):
-				targets[ a[M+1] ] = []
-
-			targets[ a[M+1] ].append( {
-				'fitness'	:float(a[M+2]),
+			ensembles.append( {
+				'fitness'	:float(a[M+1]),
 				'components':a[1:M+1],
-				'weights'	:map(float,a[M+3:])
+				'weights'	:map(float,a[M+2:])
 				} )
 
-	if( not unique ):
-		return targets
+	if( not unique ): # if we're just reading the ensemble list, return now
+		return ensembles
 
-	N = len( targets[targets.keys()[0]] ) #number of ensembles
+	ensemble_sets = []
+	ensemble_counts = []
+	ensemble_fitnesses = []
+	ensemble_weights = []
 
-	ret = {}
-	for t in targets:
+	for e in ensembles:
+		test_set = set(e['components'])
 
-		ensemble_sets = []
-		ensemble_counts = []
-		ensemble_fitnesses = []
-		ensemble_weights = []
+		# sort the component weights consistently by component name
+		o = scipy.argsort( e['components'] )
+		w = scipy.take(e['weights'],o)
 
-		for i in range(N):
-			test_set = set(targets[t][i]['components'])
+		try:
+			index = ensemble_sets.index( test_set )
+		except ValueError:
+			ensemble_sets.append( test_set )
+			ensemble_counts.append( 1 )
+			ensemble_fitnesses.append( e['fitness'] )
+			ensemble_weights.append( w )
+			continue
 
-			# sort the component weights consistently by component name
-			o = scipy.argsort( targets[t][i]['components'] )
-			w = scipy.take(targets[t][i]['weights'],o)
+		ensemble_counts[ index ] += 1
+		ensemble_fitnesses[ index ] += e['fitness']
+		for j in range(M):
+			ensemble_weights[ index ][j] += w[j]
 
-			try:
-				index = ensemble_sets.index( test_set )
-			except ValueError:
-				ensemble_sets.append( test_set )
-				ensemble_counts.append( 1 )
-				ensemble_fitnesses.append( targets[t][i]['fitness'] )
-				ensemble_weights.append( w )
-				continue
-
-			ensemble_counts[ index ] += 1
-			ensemble_fitnesses[ index ] += targets[t][i]['fitness']
-			for j in range(M):
-				ensemble_weights[ index ][j] += w[j]
-
-		ret[ t ] = []
-		for i in range(len(ensemble_sets)):
-			avg_fitness = ensemble_fitnesses[i] / ensemble_counts[i]
-			avg_weights = ensemble_weights[i] / ensemble_counts[i]
-			ret[ t ].append( {'fitness':avg_fitness,'components':list(ensemble_sets[i]),'weights':avg_weights,'count':ensemble_counts[i]} )
+	ret = []
+	for i in range(len(ensemble_sets)):
+		avg_fitness = ensemble_fitnesses[i] / ensemble_counts[i]
+		avg_weights = ensemble_weights[i] / ensemble_counts[i]
+		ret.append( {'fitness':avg_fitness,'components':list(ensemble_sets[i]),'weights':avg_weights,'count':ensemble_counts[i]} )
 
 	return ret

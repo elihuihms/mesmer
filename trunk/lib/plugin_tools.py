@@ -46,7 +46,7 @@ else:
 		n = len(y)
 		diffs = y - y_fit
 		diffs /= dy
-		return sum(scipy.square(diffs)) / (n -1)
+		return sum(scipy.square(diffs)) / n
 
 	def get_scale( y, dy, y_fit ):
 		"""

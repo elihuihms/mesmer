@@ -255,7 +255,7 @@ def write_optimization_state( args, counter, targets, ensembles ):
 
 	for t in targets:
 
-		path = os.path.abspath( "%s%soptimization_state_%s_%05i.tbl" % (args.dir,os.sep,t,counter) )
+		path = os.path.abspath( "%s%soptimization_state_%s_%05i.tbl" % (args.dir,os.sep,t.name,counter) )
 
 		try:
 			f = open( path, 'w' )
@@ -283,51 +283,50 @@ def write_ensemble_state( args, counter, targets, ensembles ):
 
 	Arguments:
 	args		- MESMER argument parameters
-	counter		- int, the current generation number
-	targets		- list of targets
-	ensembles	- list, list of ensembles for which to write status
+	counter		- the current generation number
+	targets		- list of mesTargets
+	ensembles	- list of mesEnsembles for which to write status
 	"""
 
-	path = os.path.abspath( "%s%sensembles_%05i.tbl" % (args.dir,os.sep,counter) )
+	for t in targets:
 
-	try:
-		f = open( path, 'w' )
-	except IOError:
-		print "ERROR: Could not write ensemble state to file"
-		return False
+		path = os.path.abspath( "%s%sensembles_%s_%05i.tbl" % (args.dir,os.sep,t.name,counter) )
+		try:
+			f = open( path, 'w' )
+		except IOError:
+			print "ERROR: Could not write ensemble state to file"
+			return False
 
-	header = []
-	str_list = []
-	for (i,e) in enumerate(ensembles):
+		str_list = ['#']
+		for i in range(len(ensembles[0].component_names)):
+			str_list.append('component')
 
-		header.append('#')
-		str_list.append( "%05i" % (i) )
+		str_list.append('fitness')
 
-		for c in e.component_names:
-			header.append('component')
-			str_list.append(c)
-
-		for t in targets:
-			header.append('target')
-			str_list.append(t.name)
-			header.append('fitness')
-			str_list.append( "%.3e" % (sum(e.fitness[t.name].itervalues())) )
-
-			for w in e.ratios[t.name]:
-				header.append('ratio')
-				str_list.append( "%.3f" % (w) )
-
-		header.append("\n")
-
-		# write the header only once
-		if(i==0):
-			f.write("\t".join(header))
-		del header[:]
+		for i in range(len(ensembles[0].component_names)):
+			str_list.append('ratio')
 
 		str_list.append("\n")
 
 		f.write("\t".join(str_list))
 		del str_list[:]
 
-	f.close()
+		for (i,e) in enumerate(ensembles):
+			str_list.append( "%05i" % (i) )
+
+			for c in e.component_names:
+				str_list.append(c)
+
+			str_list.append( "%.3e" % (sum(e.fitness[t.name].itervalues())) )
+
+			for w in e.ratios[t.name]:
+				str_list.append( "%.3f" % (w) )
+
+			str_list.append("\n")
+
+			f.write("\t".join(str_list))
+			del str_list[:]
+
+		f.close()
+
 	return True

@@ -15,7 +15,6 @@ parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 group0 = parser.add_argument_group('Input options')
 group0.add_argument('table',	default=None,	metavar='<TABLE>',			help='A file containing tab-delimited statistics of the available components')
 group0.add_argument('state', 	default=None,	metavar='<STATE>',			help='A MESMER ensemble state file')
-group0.add_argument('-target',	default=None,	metavar='NAME',				help='Specify the target name to build the ensemble list for')
 group0.add_argument('-nCol',	default=0,		metavar='N',	type=int,	help='The column containing the component names')
 group0.add_argument('-dCols',	nargs='+',	default=[1],		metavar='N',	type=int,	help='Column numbers containing the attributes to sort ensembles by')
 #group0.add_argument('-dVals',	nargs='*',	default=None,		metavar='N',	type=float,	help='Attribute values to sort ensembles by')
@@ -59,15 +58,8 @@ except Exception as e:
 	print "ERROR: Couldn't read ensembles from state file. Reason: %s" % (e)
 	exit()
 
-keys = ensembles.keys()
-if( not args.target ):
-	args.target = keys[0]
-elif( not args.target in keys ):
-	print "ERROR: The target \"%s\" specified does not exist in the provided ensemble state file" % (args.target)
-	exit()
-
 ensemble_attributes,ensemble_weights = [], []
-for e in ensembles[ args.target ]:
+for e in ensembles:
 	ensemble_attributes.append( [] )
 	ensemble_weights.append( e['weights'] )
 
@@ -122,16 +114,11 @@ order = scipy.argsort( sortable )
 if( args.R):
 	order = order[::-1]
 
-indexes = scipy.take( range(len(ensembles[ args.target ])), order )
+indexes = scipy.take( range(len(ensembles)), order )
 sortable = scipy.take( sortable, order )
-ensembles[ args.target ] = scipy.take( ensembles[ args.target ], order )
-
-if( not args.N ):
-	args.N = len(ensembles[ args.target ])
 
 print "#\tsort\tfitness\tcomponents"
-for i in range(0,args.N):
-	e = ensembles[ args.target ][ i ]
+for (i,e) in enumerate(scipy.take( ensembles, order )):
 	print "%i\t%.3f\t%.3f\t%s" % ( indexes[i], sortable[i], e['fitness'], ' '.join(e['components']) )
 
 

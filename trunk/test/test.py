@@ -61,7 +61,11 @@ def test_mesmer(path, args):
 		'-ensembles',
 		'1000',
 		'-Gmax',
-		'0'
+		'0',
+		'-Pbest',
+		'-Popt',
+		'-Pextra',
+		'-Pstate'
 	]
 
 	run_process( cmd, os.path.join(path,'out','cam_mesmer_1.txt') )

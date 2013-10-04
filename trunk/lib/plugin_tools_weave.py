@@ -30,7 +30,7 @@ def get_chisq_reduced( y, dy, yfit ):
 		sum += pow(( (double) Y1(i) - (double) YFIT1(i)) / (double) DY1(i), 2);
 	}
 
-	return_val = sum/(Ny[0] -1);
+	return_val = sum / Ny[0];
 	"""
 
 	return inline( code, ['y','dy','yfit'], verbose=0, extra_compile_args=_compile_args )

@@ -29,12 +29,12 @@ group1.add_argument('-plotProp',	nargs=2,	action='append',	default=[],	metavar='
 group1.add_argument('-figsize',		nargs=2,	default=[6,6],	type=int,	metavar='N',	help='Set figure size and ratio: X Y')
 group1.add_argument('-axes',		nargs=4,	default=None,	type=int,	metavar='N',	help='The scales for the axes: xmin, xmax, ymin, ymax')
 group1.add_argument('-pointScale',				default=20,		type=int,	metavar='20',	help='Set scaling of the component plot points')
-group1.add_argument('-pointColor',	nargs=4,	default=[0,0,0,0.2], type=float,	metavar='N',	help='Set color (R G B A) of componenent plot points')
+group1.add_argument('-pointColor',	nargs=4,	default=[0,0,0,0.1], type=float,	metavar='N',	help='Set color (R G B A) of componenent plot points')
 
 group2 = parser.add_argument_group('Component statistic overlay options')
 group2.add_argument('-stats',	default=None,	metavar='<STATS>',		help='A MESMER ensemble statistics file')
 group2.add_argument('-statWidth',				default=3,		type=int,	metavar='3.0',	help='Change the width of the selected component plot circles')
-group2.add_argument('-statColor',	nargs=3,	default=[0.0,0.5,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the ensemble statistics overlay')
+group2.add_argument('-statColor',	nargs=4,	default=[0.0,0.5,1.0,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the ensemble statistics overlay')
 group2.add_argument('-statNorm',	action='store_true', default=False,				help='Normalize variable color saturation for component prevalence')
 group2.add_argument('-statSame',	action='store_true', default=False,				help='Do not use variable color saturation for component prevalence')
 group2.add_argument('-statWeight',				default=-1.0,	type=float,			help='When plotting MESMER statistics, drop components weighted lower than this amount')
@@ -43,7 +43,6 @@ group2.add_argument('-statSubsample',			default=100,	type=float,			help='Randoml
 
 group3 = parser.add_argument_group('Ensemble statistics overlay options')
 group2.add_argument('-state',			default=None,	metavar='<STATS>',		help='A MESMER ensemble state file')
-group2.add_argument('-stateTarget',		default=None,	metavar='NAME',		help='The name of the target to view ensemble collections for. Leave blank to use the first target name')
 group3.add_argument('-stateSolutions',	default=4,		type=int,	metavar='N',	help='The number of unique ensemble solutions to show')
 group3.add_argument('-stateSize',		default=20,		type=int,	metavar='20',	help='Set scaling of the highlight plot circles')
 group3.add_argument('-stateWidth',		default=3,		type=int,	metavar='3.0',	help='Set the width of the highlight plot circles')
@@ -196,11 +195,11 @@ if( args.stats ):
 		for i in range(len(keys)):
 			s[i] = w[i]*30*args.pointScale
 			if(args.statSame):
-				c[i] = (args.statColor[0],args.statColor[1],args.statColor[2])
+				c[i] = (args.statColor[0],args.statColor[1],args.statColor[2],args.statColor[3])
 			elif(args.statNorm):
-				c[i] = (p[i]/m*args.statColor[0],p[i]/m*args.statColor[1],p[i]/m*args.statColor[2])
+				c[i] = (p[i]/m*args.statColor[0],p[i]/m*args.statColor[1],p[i]/m*args.statColor[2],args.statColor[3])
 			else:
-				c[i] = (p[i]/100.0*args.statColor[0],p[i]/100.0*args.statColor[1],p[i]/100.0*args.statColor[2])
+				c[i] = (p[i]/100.0*args.statColor[0],p[i]/100.0*args.statColor[1],p[i]/100.0*args.statColor[2],args.statColor[3])
 
 		plot.scatter( x, y, edgecolors=c, s=s, zorder=2, facecolors='none', linewidth=args.statWidth )
 
@@ -212,25 +211,18 @@ if( args.state ):
 		print "ERROR: Could not load ensemble information from state file. Reason: %s" % (e)
 		exit()
 
-	keys = ensemble_stats.keys()
-	if( not args.stateTarget ):
-		args.stateTarget = keys[0]
-	elif( not args.stateTarget in keys ):
-		print "ERROR: The target \"%s\" specified does not exist in the provided ensemble state file" % (args.stateTarget)
-		exit()
-
 	if( len(args.highlightID)>0 ):
 		id_list = args.highlightID
-	else:
-		id_list = min(args.stateSolutions, len(ensemble_stats[ args.stateTarget ]) )
-		random.shuffle(ensemble_stats[ args.stateTarget ])
+	else: # randomly select a number of solutions
+		id_list = range(min(args.stateSolutions, len(ensemble_stats) ))
+		random.shuffle(ensemble_stats)
 
 	colorCounter = 0
 	args.stateColors.extend( ['b','g','r','c','m','y','w' ] )
 	for i in id_list:
 		x,y,s = [],[],[]
 
-		for (j,name) in enumerate( ensemble_stats[ args.stateTarget ][i]['components'] ):
+		for (j,name) in enumerate( ensemble_stats[i]['components'] ):
 			try:
 				index = tbl_names.index(name)
 			except ValueError:
@@ -239,8 +231,7 @@ if( args.state ):
 
 			x.append( tbl_xvals[index] )
 			y.append( tbl_yvals[index] )
-			s.append( 30*args.stateSize*ensemble_stats[ args.stateTarget ][i]['weights'][j] )
-
+			s.append( 30*args.stateSize*ensemble_stats[i]['weights'][j] )
 
 		if( len(args.highlightID)>0 and i in args.highlightID ):
 			plot.scatter( x, y, edgecolors=args.stateColors[colorCounter % len(args.stateColors)], s=s, zorder=3, facecolors='none', linewidth=args.stateWidth )
