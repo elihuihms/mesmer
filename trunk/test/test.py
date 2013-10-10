@@ -9,13 +9,17 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument('-make_components',	action='store_true',	default=False )
 parser.add_argument('-mesmer',			action='store_true',	default=False )
+parser.add_argument('-make_models',		action='store_true',	default=False )
 parser.add_argument('-all',				action='store_true',	default=False )
 
-def run_process( cmd, path ):
+def run_process( cmd, path, silent=False ):
 	out = open( path, 'w' )
 	handle = subprocess.Popen( cmd, stdout=out )
 	handle.wait()
 	out.close()
+
+	if(silent):
+		return handle
 
 	if(handle.returncode > 0):
 		print "\tError: %i - See %s" % (handle.returncode,path)
@@ -69,6 +73,41 @@ def test_mesmer(path, args):
 	]
 
 	run_process( cmd, os.path.join(path,'out','cam_mesmer_1.txt') )
+	return
+
+def test_make_models(path, args):
+	print "Testing make_models 1/2..."
+	cmd = [
+		os.path.join(os.path.dirname(path),'utilities','make_models'),
+		'-stats',
+		'data/cam_mesmer_1/component_statistics_test_cam_1_00000.tbl',
+		'-pdb',
+		'data/cam_pdbs.tgz',
+		'-out',
+		'out/cam_make_models_1.pdb',
+		'-Pmin',
+		'0',
+		'-Wmin',
+		'0'
+	]
+	run_process( cmd, os.path.join(path,'out','cam_make_models_1.txt') )
+
+	print "Testing make_models 2/2..."
+	cmd = [
+		os.path.join(os.path.dirname(path),'utilities','make_models'),
+		'-stats',
+		'data/cam_mesmer_1/component_statistics_test_cam_1_00000.tbl',
+		'-pdb',
+		'data/cam_pdbs',
+		'-out',
+		'out/cam_make_models_2.pdb',
+		'-Pmin',
+		'0',
+		'-Wmin',
+		'0'
+	]
+	run_process( cmd, os.path.join(path,'out','cam_make_models_2.txt') )
+	return
 
 if(__name__ == "__main__"):
 	path	= os.path.dirname(os.path.abspath(__file__))
@@ -85,3 +124,6 @@ if(__name__ == "__main__"):
 
 	if(args.mesmer or args.all):
 		test_mesmer( path, args )
+
+	if(args.make_models or args.all):
+		test_make_models(path, args)

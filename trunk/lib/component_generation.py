@@ -38,7 +38,7 @@ def match_data_files( names, dirs ):
 
 	for d in dirs:
 		for n in names:
-			matches = glob.glob( "%s%s%s*" % (d,os.sep,n) )
+			matches = glob.glob( "%s%s%s[._]*" % (d,os.sep,n) )
 
 			if( len(matches) == 0 ):
 				raise ComponentGenException("ERROR: Data file for component \"%s\" not found in directory \"%s\"" % (n,d))

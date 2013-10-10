@@ -1,0 +1,65 @@
+
+MESMER v. 0.6a build 2013.10.04.0
+(C)2012-2013 Elihu Ihms
+Arguments:
+	force	:	False
+	scratch	:	None
+	boots	:	200
+	Pmin	:	1.0
+	seed	:	1
+	Smin	:	0.01
+	dbm	:	False
+	Rn	:	10
+	Ralgorithm	:	3
+	size	:	1
+	ensembles	:	1000
+	Gmutate	:	1.0
+	Gmax	:	0
+	Pbest	:	True
+	Rprecision	:	0.01
+	Gsource	:	0.1
+	Pstate	:	True
+	resume	:	None
+	uniform	:	False
+	Pextra	:	True
+	Fmin	:	-1
+	Pstats	:	True
+	target	:	['/Volumes/FosterLab/users/ihms/Applications/mesmer/test/data/test_cam_1.target']
+	name	:	cam_mesmer_1
+	Pcorr	:	1.0
+	Rforce	:	False
+	plugin	:	None
+	components	:	[['/Volumes/FosterLab/users/ihms/Applications/mesmer/test/data/cam_components']]
+	Popt	:	True
+	threads	:	1
+	dir	:	/Volumes/FosterLab/users/ihms/Applications/mesmer/test/out/cam_mesmer_1
+	Gcross	:	0.8
+
+INFO: Reading target file "/Volumes/FosterLab/users/ihms/Applications/mesmer/test/data/test_cam_1.target"
+INFO: Target file "/Volumes/FosterLab/users/ihms/Applications/mesmer/test/data/test_cam_1.target" lines 3-67 - plugin "default_CURV" created 1.0x weighted "SAXS" restraint.
+INFO: Target file "/Volumes/FosterLab/users/ihms/Applications/mesmer/test/data/test_cam_1.target" lines 70-107 - plugin "default_LIST" created 1.0x weighted "TABL1" restraint.
+INFO: Target file "/Volumes/FosterLab/users/ihms/Applications/mesmer/test/data/test_cam_1.target" lines 110-140 - plugin "default_LIST" created 1.0x weighted "TABL2" restraint.
+INFO: Target file "/Volumes/FosterLab/users/ihms/Applications/mesmer/test/data/test_cam_1.target" lines 143-259 - plugin "default_LIST" created 1.0x weighted "TABL3" restraint.
+INFO: Target file "/Volumes/FosterLab/users/ihms/Applications/mesmer/test/data/test_cam_1.target" lines 262-436 - plugin "default_LIST" created 1.0x weighted "TABL4" restraint.
+INFO: Found 100 component files.
+
+Algorithm starting on 2013-10-10 20:20:46.251383.
+
+Generation 0
+
+	Current time: 2013-10-10 20:20:58.200666
+	Parent survival percentage: 49%
+
+		Best Score	|	Average		|	Stdev
+		------------------------------------------------------------
+		1.812e+00	|	8.154e+01	|	4.964e+01
+	SAXS	1.036e+00	|	7.852e+01	|	4.953e+01
+	TABL1	4.799e-01	|	1.274e+00	|	3.154e-01
+	TABL2	2.793e-01	|	1.399e+00	|	3.759e-01
+	TABL3	6.778e-03	|	2.032e-01	|	1.229e-01
+	TABL4	1.031e-02	|	1.508e-01	|	9.010e-02
+
+	test_cam_1
+		1.000 +/- 0.000	00050cam
+
+Generation counter has reached Gmax, exiting.
