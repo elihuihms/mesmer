@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import glob
+import tarfile
 
 from exceptions			import *
 from utility_functions	import print_msg

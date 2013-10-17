@@ -9,9 +9,9 @@ from subprocess			import Popen,PIPE,STDOUT
 from threading			import Thread
 from Queue				import Queue, Empty
 
-from gui.tools_setup	import makeMESMERArgsFromWindow,makeStringFromArgs
-from gui.tools_analysis	import openLogWindow
-from gui.win_analysis	import AnalysisWindow
+from lib.gui.tools_setup	import makeMESMERArgsFromWindow,makeStringFromArgs
+from lib.gui.tools_analysis	import openLogWindow
+from lib.gui.win_analysis	import AnalysisWindow
 
 def startRun( w, mesmerPath ):
 

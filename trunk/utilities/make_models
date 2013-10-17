@@ -3,6 +3,7 @@
 import argparse
 import os
 import sys
+import tarfile
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from lib.exceptions			import *
@@ -11,25 +12,24 @@ from lib.model_extraction	import *
 
 parser = argparse.ArgumentParser()
 
-group0 = parser.add_argument_group('PDBs from ensemble file')
-group0.add_argument('-state',							default=None,	metavar='ensembles_*.tbl',				help='MESMER ensemble state file')
-group0.add_argument('-id',		type=int,				default=0,		metavar='N',							help='Save components from the ensemble IDs provided by get_ensemble_stats')
-
-group1 = parser.add_argument_group('PDBs from statistics file')
-group1.add_argument('-stats',							default=None,	metavar='component_statistics_*.tbl',	help='MESMER component statistics file')
+group1 = parser.add_argument_group('Input options')
 group1.add_argument('-pdbs',	nargs='+',				default=[],		metavar='DIR',							help='Directory(s) containing named PDBs')
-group1.add_argument('-Pmin',	type=float,				default=5,		metavar='5%',							help='Minimum prevalence for components to be included')
-group1.add_argument('-Wmin',	type=float,				default=0.05,	metavar='0.05',							help='Minimum weighting for components to be included')
+group1.add_argument('-names',	nargs='*',				default=[],		metavar='NAME',							help='Extract named PDBs')
 
-group2 = parser.add_argument_group('Output options')
-group2.add_argument('-out',								required=True,	metavar='*.pdb',						help='Filename to save output PDB under')
-group2.add_argument('-wAttr',	action='store_true',	default=False,											help='Write UCSF Chimera attribute files for prevalence and weighting of each component')
+group1 = parser.add_argument_group('PDBs from ensemble file')
+group1.add_argument('-state',							default=None,	metavar='ensembles_*.tbl',				help='MESMER ensemble state file')
+group1.add_argument('-id',		type=int,				default=0,		metavar='N',							help='Save components from the ensemble IDs provided by get_ensemble_stats')
+
+group2 = parser.add_argument_group('PDBs from statistics file')
+group2.add_argument('-stats',							default=None,	metavar='component_statistics_*.tbl',	help='MESMER component statistics file')
+group2.add_argument('-Pmin',	type=float,				default=5,		metavar='5%',							help='Minimum prevalence for components to be included')
+group2.add_argument('-Wmin',	type=float,				default=0.05,	metavar='0.05',							help='Minimum weighting for components to be included')
+
+group3 = parser.add_argument_group('Output options')
+group3.add_argument('-out',								required=True,	metavar='*.pdb',						help='Filename to save output PDB under')
+group3.add_argument('-wAttr',	action='store_true',	default=False,											help='Write UCSF Chimera attribute files for prevalence and weighting of each component')
 
 args = parser.parse_args()
-
-if( args.stats == None and args.state == None ):
-	print "ERROR: Must provide an ensemble state or component statistics file"
-	sys.exit(1)
 
 if( len(args.pdbs) < 1):
 	print "ERROR: Must specify at least one directory or tarball containing PDBs"
@@ -60,7 +60,13 @@ for tmp in args.pdbs:
 		dirs.append( tmp )
 
 names, prevalences, weights = [], [], []
-if( args.state ):
+if( len(args.names) > 0 ):
+	for n in args.names:
+		names.append( n )
+		prevalences.append( 1.0 )
+		weights.append( 1.0 )
+
+elif( args.state ):
 	try:
 		ensemble_stats = get_ensembles_from_state( args.state, unique=True )
 	except Exception as e:
@@ -97,6 +103,9 @@ elif( args.stats ):
 		names.append( fields[0] )
 		prevalences.append( float(fields[1]) )
 		weights.append( float(fields[3]) )
+else:
+	print "ERROR: Must provide a component name, ensemble state or component statistics file"
+	sys.exit(1)
 
 if(len(names)==0):
 	print "WARNING: No components found."

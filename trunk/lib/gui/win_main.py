@@ -5,13 +5,13 @@ import shelve
 import Tkinter as tk
 import tkMessageBox
 
-from gui.tools_TkTooltip	import ToolTip
-from gui.tools_plugin		import getTargetPluginOptions
-from gui.win_target			import TargetWindow
-from gui.win_components		import ComponentsWindow
-from gui.win_setup			import SetupWindow
-from gui.win_config			import ConfigWindow
-from gui.win_analysis		import AnalysisWindow
+from lib.gui.tools_TkTooltip	import ToolTip
+from lib.gui.tools_plugin		import getTargetPluginOptions
+from lib.gui.win_target			import TargetWindow
+from lib.gui.win_components		import ComponentsWindow
+from lib.gui.win_setup			import SetupWindow
+from lib.gui.win_config			import ConfigWindow
+from lib.gui.win_analysis		import AnalysisWindow
 
 class MainWindow(tk.Frame):
 	def __init__(self, master=None):

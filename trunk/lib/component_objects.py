@@ -78,7 +78,7 @@ class mesComponent:
 
 							try:
 								messages = p.load_attribute( attribute, b, self.plugin_data[b['type']] )
-							except MESMERPluginError as e:
+							except mesPluginError as e:
 								print_msg("ERROR: plugin \"%s\" could not create an attribute from the component file \"%s\" lines %i-%i" % (p.name,file,b['l_start'],b['l_end']))
 								print_msg("ERROR: plugin \"%s\" reported: %s" % (p.name,e.msg))
 								return False

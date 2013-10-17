@@ -7,9 +7,9 @@ import tkFileDialog
 import copy
 
 from lib.utility_functions 	import get_input_blocks
-from gui.tools_TkTooltip	import ToolTip
-from gui.tools_component	import makeComponentsFromWindow,calcDataFromWindow
-from gui.tools_plugin		import getTargetPluginOptions,getGUICalcPlugins
+from lib.gui.tools_TkTooltip	import ToolTip
+from lib.gui.tools_component	import makeComponentsFromWindow,calcDataFromWindow
+from lib.gui.tools_plugin		import getTargetPluginOptions,getGUICalcPlugins
 
 class ComponentsWindow(tk.Frame):
 	def __init__(self, master=None):

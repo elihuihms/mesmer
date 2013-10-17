@@ -5,11 +5,11 @@ import tkFont
 import tkFileDialog
 import tkMessageBox
 
-import gui.tools_run # to avoid circular import of AnalysisWindow
-from gui.tools_analysis	import *
-from gui.tools_plot		import *
-from gui.tools_plugin	import getGUIPlotPlugins
-from gui.win_log		import LogWindow
+import lib.gui.tools_run # to avoid circular import of AnalysisWindow
+from lib.gui.tools_analysis	import *
+from lib.gui.tools_plot		import *
+from lib.gui.tools_plugin	import getGUIPlotPlugins
+from lib.gui.win_log		import LogWindow
 
 class AnalysisWindow(tk.Frame):
 	def __init__(self, master, path=None, pHandle=None):
@@ -35,7 +35,7 @@ class AnalysisWindow(tk.Frame):
 		self.pHandle = pHandle
 		if( path != None and pHandle != None ):
 			self.abortButton.config(state=tk.NORMAL)
-			gui.tools_run.connectToRun(self,path,pHandle)
+			lib.gui.tools_run.connectToRun(self,path,pHandle)
 
 	def loadPrefs(self):
 		try:
@@ -49,7 +49,7 @@ class AnalysisWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading GUI plot plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()
-			
+
 	def close(self):
 		if( self.pHandle and self.pHandle.poll() == None):
 			self.abortCurrentRun()
@@ -70,13 +70,13 @@ class AnalysisWindow(tk.Frame):
 		tmp = tkFileDialog.askopenfilename(title='Select PDB attribute table',parent=self)
 		if(tmp != ''):
 			self.attributeTable.set(tmp)
-		
+
 	def updateGenerationList( self ):
 		try:
 			self.resultsDB = shelve.open( self.resultsDBPath, 'r' )
 		except:
 			return # perhaps a concurrent read/write on an older DB implementation (10.6, I'm lookin' at you)
-	
+
 		# append new generations to the list
 		if(self.resultsDB.has_key('ensemble_stats')):
 			for i in range(self.generationsList.size(),len(self.resultsDB['ensemble_stats'])):
@@ -93,7 +93,7 @@ class AnalysisWindow(tk.Frame):
 		if(len(self.generationsList.curselection())<1):
 			return
 		self.currentSelection[0] = int(self.generationsList.curselection()[0])
-	
+
 		self.targetsList.delete(0, tk.END)
 		for name in self.resultsDB['ensemble_stats'][self.currentSelection[0] ]['target']:
 			string = "%s%s%s%s" % (
@@ -103,21 +103,21 @@ class AnalysisWindow(tk.Frame):
 				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'][name][2]
 				)
 			self.targetsList.insert(tk.END, string )
-	
+
 		self.targetsList.selection_set(0)
 		self.targetsList.see(0)
 		self.setTargetSel()
 		self.setWidgetAvailibility()
 		return
-	
+
 	def setTargetSel( self, evt=None ):
 		if(len(self.targetsList.curselection())<1):
 			return
-	
+
 		for (i,name) in enumerate(self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'].keys()):
 			if(i == int(self.targetsList.curselection()[0])):
 				self.currentSelection[1] = name
-	
+
 		self.restraintsList.delete(0, tk.END)
 		for type in self.resultsDB['restraint_stats'][ self.currentSelection[0] ]:
 			if(type == 'Total'):
@@ -129,41 +129,41 @@ class AnalysisWindow(tk.Frame):
 			"%.3e".ljust(6) % self.resultsDB['restraint_stats'][ self.currentSelection[0] ][type][ self.currentSelection[1] ][2]
 			)
 			self.restraintsList.insert(tk.END, string )
-	
+
 		self.restraintsList.selection_set(0)
 		self.restraintsList.see(0)
 		self.setRestraintSel()
 		self.setWidgetAvailibility()
 		return
-	
+
 	def setRestraintSel( self, evt=None ):
 		if(len(self.restraintsList.curselection())<1):
 			return
-	
+
 		for (i,type) in enumerate(self.resultsDB['restraint_stats'][ self.currentSelection[0] ].keys()):
 			if(i == int(self.restraintsList.curselection()[0])):
 				self.currentSelection[2] = type
-	
+
 		path = (os.path.join(self.activeDir.get(), 'restraints_%s_%s_%05i.out' % (self.currentSelection[1],self.currentSelection[2],int(self.currentSelection[0]))))
 		if(os.path.exists(path)):
 			self.fitPlotButton.config(state=tk.NORMAL)
 		else:
 			self.fitPlotButton.config(state=tk.DISABLED)
 		return
-	
+
 	def setWidgetAvailibility( self ):
 		if( self.currentSelection[0] == None):
 			self.histogramPlotButton.config(state=tk.DISABLED)
 		else:
 			self.histogramPlotButton.config(state=tk.NORMAL)
-	
+
 		if( self.currentSelection[0] == None or self.currentSelection[1] == None ):
 			self.correlationPlotButton.config(state=tk.DISABLED)
 			self.writePDBsButton.config(state=tk.DISABLED)
 		else:
 			self.correlationPlotButton.config(state=tk.NORMAL)
 			self.writePDBsButton.config(state=tk.NORMAL)
-	
+
 		if( self.currentSelection[0] == None or self.currentSelection[1] == None or self.attributeTable.get() == ''):
 			self.attributePlotButton.config(state=tk.DISABLED)
 			self.attributePlotButton.config(state=tk.DISABLED)

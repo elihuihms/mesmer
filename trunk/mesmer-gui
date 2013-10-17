@@ -2,7 +2,7 @@
 
 import Tkinter as tk
 
-from gui.win_main		import MainWindow
+from lib.gui.win_main		import MainWindow
 
 root = tk.Tk()
 app = MainWindow(root)

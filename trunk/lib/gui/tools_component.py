@@ -9,9 +9,9 @@ from datetime import datetime
 from lib.exceptions				import *
 from lib.component_generation	import *
 from lib.plugin_functions		import *
-from gui.win_options			import *
-from gui.win_status				import *
-from gui.tools_plugin			import *
+from lib.gui.win_options			import *
+from lib.gui.win_status				import *
+from lib.gui.tools_plugin			import *
 
 def makeComponentsFromWindow( w ):
 	paths = w.componentPDBsList.get(0,tk.END)

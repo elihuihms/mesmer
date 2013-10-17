@@ -4,8 +4,8 @@ import tkFileDialog
 import tkMessageBox
 import shelve
 
-from gui.tools_TkTooltip	import ToolTip
-from gui.tools_general		import getWhichPath
+from lib.gui.tools_TkTooltip	import ToolTip
+from lib.gui.tools_general		import getWhichPath
 
 class ConfigWindow(tk.LabelFrame):
 	def __init__(self, master, mainWindow):

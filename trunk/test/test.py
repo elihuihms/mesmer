@@ -79,8 +79,8 @@ def test_make_models(path, args):
 	print "Testing make_models 1/2..."
 	cmd = [
 		os.path.join(os.path.dirname(path),'utilities','make_models'),
-		'-stats',
-		'data/cam_mesmer_1/component_statistics_test_cam_1_00000.tbl',
+		'-state',
+		'data/cam_mesmer_1/ensembles_test_cam_1_00000.tbl',
 		'-pdb',
 		'data/cam_pdbs.tgz',
 		'-out',

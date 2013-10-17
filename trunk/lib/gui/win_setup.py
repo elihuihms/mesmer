@@ -8,9 +8,9 @@ import tkFileDialog
 import tkMessageBox
 
 from lib.setup_functions	import parse_arguments
-from gui.tools_TkTooltip	import ToolTip
-from gui.tools_setup		import *
-from gui.tools_run			import startRun
+from lib.gui.tools_TkTooltip	import ToolTip
+from lib.gui.tools_setup		import *
+from lib.gui.tools_run			import startRun
 
 class SetupWindow(tk.Frame):
 	def __init__(self, master, parent):
