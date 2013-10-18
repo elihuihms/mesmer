@@ -1,10 +1,10 @@
 import os
 import argparse
 
-from subprocess			import Popen
+from subprocess				import Popen
 
-from gui.plugin_objects import guiPlotPlugin
-from gui.tools_plugin	import makeStringFromOptions
+from lib.gui.plugin_objects import guiPlotPlugin
+from lib.gui.tools_plugin	import makeStringFromOptions
 
 class plugin(guiPlotPlugin):
 

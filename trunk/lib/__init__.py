@@ -1,1 +1,22 @@
-__package__ = "mesmer.lib"
+__all__ = [
+	'component_functions.py',
+	'component_generation.py',
+	'component_objects.py',
+	'ensemble_objects.py',
+	'exceptions.py',
+	'ga_functions_main.py',
+	'ga_functions_misc.py',
+	'ga_functions_output.py',
+	'ga_functions_stats.py',
+	'model_extraction.py',
+	'optimization_functions.py',
+	'output_parsers.py',
+	'plugin_functions.py',
+	'plugin_objects.py',
+	'plugin_tools.py',
+	'plugin_tools_weave.py',
+	'setup_functions.py',
+	'target_functions.py',
+	'target_objects.py',
+	'utility_functions.py'
+	]

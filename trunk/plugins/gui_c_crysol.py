@@ -2,11 +2,11 @@ import os
 import argparse
 import shutil
 
-from subprocess			import Popen,PIPE
+from subprocess				import Popen,PIPE
 
-from gui.plugin_objects import guiCalcPlugin
-from gui.tools_general	import getWhichPath
-from gui.tools_plugin	import makeStringFromOptions
+from lib.gui.plugin_objects import guiCalcPlugin
+from lib.gui.tools_general	import getWhichPath
+from lib.gui.tools_plugin	import makeStringFromOptions
 
 class plugin(guiCalcPlugin):
 
@@ -49,21 +49,11 @@ class plugin(guiCalcPlugin):
 		if not os.path.exists(pdb):
 			raise Exception( "Could not find \"%s\"" % (pdb) )
 
-		try:
-			shutil.copy(pdb,self.dir)
-		except:
-			raise SAXSCalcException( "Could not copy \"%s\" into directory \"%s\"" % (pdb,self.dir) )
-
 		cmd = [self.prog]
 		cmd.extend( makeStringFromOptions(self.options).split() )
-		cmd.append( base )
+		cmd.append( pdb )
 		pipe = Popen(cmd, cwd=self.dir, stdout=PIPE)
 		pipe.wait()
-
-		try:
-			os.remove( "%s%s%s" % (self.dir,os.sep,base) )
-		except:
-			raise Exception( "Could not remove temporary PDB \"%s\" from directory \%s\" " % (base,self.dir) )
 
 		tmp = "%s%s%s00.int" % (self.dir,os.sep,name)
 		if not os.path.exists(tmp):
