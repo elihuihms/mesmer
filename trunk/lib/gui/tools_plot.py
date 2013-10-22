@@ -44,16 +44,24 @@ def plotRestraint( w ):
 				if( p.name in w.pluginOptions ):
 					options = w.pluginOptions[ p.name ]
 				else:
-					w.pluginOptions[ p.name] = convertParserToOptions( plugin.parser )
+					w.pluginOptions[ p.name ] = convertParserToOptions( p.parser )
 				w.optWindowMaster = tk.Toplevel(w.master)
 				w.optWindow = OptionsWindow(w.optWindowMaster, w.pluginOptions[ p.name ] )
 				w.optWindowMaster.focus_set()
 				w.optWindowMaster.grab_set()
 				w.optWindowMaster.transient(w)
 				w.optWindowMaster.wait_window(w.optWindowMaster)
-				p.plot( path, w.pluginOptions[ p.name ] )
-			else:
-				p.plot( path )
+				if w.optWindow.returncode != 0:
+					return
+
+			try:
+				if( p.parser ):
+					p.plot( path, w.pluginOptions[ p.name ] )
+				else:
+					p.plot( path )
+				return
+			except Exception as e:
+				tkMessageBox.showerror("Error","Plotting plugin experienced an error: %s" % (e))
 
 def plotAttributes( w ):
 	p1 = w.attributeTable.get()
@@ -90,6 +98,8 @@ def plotAttributes( w ):
 	w.newWindow.grab_set()
 	w.newWindow.transient(w)
 	w.newWindow.wait_window()
+	if w.optWindow.returncode == 0:
+		p.plot( path, w.pluginOptions[ p.name ] )
 
 	cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_attribute_plot'),p1,'-stats',p2]
 	cmd.extend( makeListFromOptions( w.pluginOptions['attributePlotter'] ) )
@@ -150,6 +160,8 @@ def makePDBs( w ):
 	w.newWindow.grab_set()
 	w.newWindow.transient(w)
 	w.newWindow.wait_window()
+	if w.optWindow.returncode == 0:
+		p.plot( path, w.pluginOptions[ p.name ] )
 
 	name = "%05i_models.pdb" % w.currentSelection[0]
 	output = tkFileDialog.asksaveasfilename(title='Select name and location to save generation models:',initialfile=name,parent=w)

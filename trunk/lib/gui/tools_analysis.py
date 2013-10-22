@@ -13,6 +13,7 @@ def openRunDir( w, path ):
 		tkMessageBox.showerror("Error","Could not find MESMER results DB in \"%s\"" % path,parent=w)
 		return
 
+	w.path = path
 	w.resultsDBPath = p1
 
 	w.activeDir.set(path)
@@ -31,9 +32,9 @@ def openLogWindow( w, path=False ):
 		w.logWindow = LogWindow(w.logWindowMaster)
 	else:
 		w.logWindow.logText.delete(1.0,tk.END) # clear the log text
-	
+
 	if(path):
-		w.logWindow.updateLog( os.join(path,'mesmer_log.txt') ) # load log from file
+		w.logWindow.updateLog( os.path.join(path,'mesmer_log.txt') ) # load log from file
 	else:
 		w.logWindow.cancelButton.config(state=tk.DISABLED)
 		w.openLogButton.config(state=tk.DISABLED)

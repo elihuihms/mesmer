@@ -1,0 +1,39 @@
+Changes to github commit version 36df55fe9406041beb6c08491046e3e7a5b6e4ab from https://github.com/mscook/pyParaTools/
+
+ParaParser.py:
+
+	1. Removed conversion of RDC Axial and Rhombodial tensor terms to VVU on lines 652-653 of RDCParser object, such that they are stored as SI units in the object instead. See changes to FitPara.py!
+
+	2. Removed hard-coded field strength, temperature, and scaling values from lines 657-659 of RDCParser object
+
+	3. Added warning to RDCparser object when encountering bond vectors with less than two atom names. (Lines 834-840)
+
+	4. Modified atom name hack on line 837 such that the first atom in the table should be a proton (e.g. HN instead of NH)
+
+FitPara.py:
+
+	1. Uncommented convergence error message on lines 230-235
+
+	2. Moved conversion of Dax and Drh to Van Vleck units (VVU) for RDC fitting to lines 251-252. See ParaParser.py!
+
+	3. Added two different types of RDC fitting on lines 265-281. See accompanying changes to FitMethods.py
+
+FitMethods.py
+
+	1. Added new fitting model for PCS data on lines 189-216
+
+	2. Added two different fit models for RDC data to accompany FitPara.py changes on lines 530-565.
+
+ParaUtils.py
+
+	1. Added necessary output formatting for new PCS model fitting type on lines 268-271
+
+	2. Created an RDCFitsummary function to format fit results on lines 277-311
+
+CalcPara.py
+
+	1. Commented out average calculation on lines 60-63. CalcPara.PCS() will always return an empty list. (Should have just put a break before the pcs calc loop!)
+
+	2. Added Dax and Drh conversion to VV units on lines 127-128.
+
+	3. Commented out average calculation on lines 150-153. CalcPara.RDC() will always return an empty list.
