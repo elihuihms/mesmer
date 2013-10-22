@@ -26,6 +26,7 @@ def getGUICalcPlugins( path ):
 		plugins = load_plugins( path, 'gui_c', path )
 	except mesPluginError as e:
 		tkMessageBox.showerror("Error",'Failed to load one or more GUI data plugins: %s' % (e.msg))
+		raise e
 
 	return plugins
 

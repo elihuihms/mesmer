@@ -17,10 +17,11 @@ class OptionsWindow(tk.Frame):
 
 		self.grid()
 		self.createWidgets()
+		self.returncode = 0
 
 	def saveWindow(self):
 		# retrieve the set values, save back to the options dict
-		for (i,k) in enumerate(self.options):
+		for (i,k) in enumerate(sorted( self.options.keys() )):
 			try:
 				self.options[k]['value'] = self.optionValues[i].get()
 			except:
@@ -29,6 +30,7 @@ class OptionsWindow(tk.Frame):
 		self.master.destroy()
 
 	def cancelWindow(self):
+		self.returncode = 1
 		self.master.destroy()
 
 	def createWidgets(self):
@@ -42,14 +44,14 @@ class OptionsWindow(tk.Frame):
 		self.optionEntries	= []
 
 		rowCounter = 0
-		for k in self.options:
+		for k in sorted( self.options.keys() ):
 			option = self.options[k]
 			if(not 'value' in option.keys()):
 				option['value'] = option['default']
 
 			self.optionLabels.append( tk.Label(self.container,text=option['dest']) )
 			self.optionLabels[-1].grid(in_=self.container,column=0,row=rowCounter,sticky=tk.W)
-			self.optionToolTips = ToolTip(self.optionLabels[-1],follow_mouse=0,text=option['help'])
+			self.optionToolTips.append( ToolTip(self.optionLabels[-1],follow_mouse=0,text=option['help']) )
 
 			if(option['choices'] != None):
 				self.optionValues.append( tk.StringVar() )
@@ -78,7 +80,7 @@ class OptionsWindow(tk.Frame):
 				self.optionEntries[-1].grid(in_=self.container,column=1,row=rowCounter,sticky=tk.W)
 			rowCounter+=1
 
-		#self.cancelButton = tk.Button(self.container,text='Cancel',command=self.cancelWindow)
-		#self.cancelButton.grid(in_=self.container,column=0,row=rowCounter,sticky=tk.E,pady=8)
+		self.cancelButton = tk.Button(self.container,text='Cancel',command=self.cancelWindow)
+		self.cancelButton.grid(in_=self.container,column=0,row=rowCounter,sticky=tk.E,pady=(8,0))
 		self.saveButton = tk.Button(self.container,text='Apply',command=self.saveWindow,width=8,default=tk.ACTIVE)
-		self.saveButton.grid(in_=self.container,row=rowCounter,column=0,columnspan=2,pady=(8,0))
+		self.saveButton.grid(in_=self.container,row=rowCounter,column=1,sticky=tk.W,pady=(8,0))

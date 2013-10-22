@@ -45,7 +45,7 @@ def plotRestraint( w ):
 					options = w.pluginOptions[ p.name ]
 				else:
 					w.pluginOptions[ p.name] = convertParserToOptions( plugin.parser )
-				w.optWindowMaster = tk.Toplevel(w)
+				w.optWindowMaster = tk.Toplevel(w.master)
 				w.optWindow = OptionsWindow(w.optWindowMaster, w.pluginOptions[ p.name ] )
 				w.optWindowMaster.focus_set()
 				w.optWindowMaster.grab_set()
@@ -84,12 +84,12 @@ def plotAttributes( w ):
 		parser.add_argument('-statSubsample',		type=float,	default='',		help='Randomly subsample selected conformers by a percentage.')
 		w.pluginOptions['attributePlotter'] = convertParserToOptions( parser )
 
-	w.optWindowMaster = tk.Toplevel(w)
-	w.optWindow = OptionsWindow(w.optWindowMaster, w.pluginOptions['attributePlotter'] )
-	w.optWindowMaster.focus_set()
-	w.optWindowMaster.grab_set()
-	w.optWindowMaster.transient(w)
-	w.optWindowMaster.wait_window(w.optWindowMaster)
+	w.newWindow = tk.Toplevel(w.master)
+	w.optWindow = OptionsWindow(w.newWindow, w.pluginOptions['attributePlotter'] )
+	w.newWindow.focus_set()
+	w.newWindow.grab_set()
+	w.newWindow.transient(w)
+	w.newWindow.wait_window()
 
 	cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_attribute_plot'),p1,'-stats',p2]
 	cmd.extend( makeListFromOptions( w.pluginOptions['attributePlotter'] ) )
@@ -144,12 +144,12 @@ def makePDBs( w ):
 		parser.add_argument('-Wmin',	type=float,				default=0.05,	metavar='0.05',							help='Minimum weighting for components to be included')
 		w.pluginOptions['pdbOutput'] = convertParserToOptions( parser )
 
-	w.optWindowMaster = tk.Toplevel(w)
-	w.optWindow = OptionsWindow(w.optWindowMaster, w.pluginOptions['pdbOutput'] )
-	w.optWindowMaster.focus_set()
-	w.optWindowMaster.grab_set()
-	w.optWindowMaster.transient(w)
-	w.optWindowMaster.wait_window(w.optWindowMaster)
+	w.newWindow = tk.Toplevel(w.master)
+	w.optWindow = OptionsWindow(w.newWindow, w.pluginOptions['pdbOutput'] )
+	w.newWindow.focus_set()
+	w.newWindow.grab_set()
+	w.newWindow.transient(w)
+	w.newWindow.wait_window()
 
 	name = "%05i_models.pdb" % w.currentSelection[0]
 	output = tkFileDialog.asksaveasfilename(title='Select name and location to save generation models:',initialfile=name,parent=w)

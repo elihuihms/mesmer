@@ -1,5 +1,6 @@
 import os
 import shutil
+import tempfile
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
@@ -91,7 +92,20 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	if(plugin == None):
 		return
 
-	dir = tkFileDialog.asksaveasfilename(title='New folder to save calculated data:',parent=w, initialfile="%s_data" % (plugin.type) )
+	if( plugin.parser ): # get options for the plugin
+		options = convertParserToOptions( plugin.parser )
+		w.newWindow = tk.Toplevel(w.master)
+		w.optWindow = OptionsWindow(w.newWindow,options)
+		w.newWindow.transient(w)
+		w.newWindow.focus_set()
+		w.newWindow.grab_set()
+		w.newWindow.wait_window()
+		if w.optWindow.returncode > 0: # did user cancel the options window?
+			return
+	else:
+		options = None
+
+	dir = tkFileDialog.asksaveasfilename(title='Folder to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.type) )
 	if(dir == ''):
 		return
 	if(os.path.exists(dir)):
@@ -102,26 +116,20 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 		tkMessageBox.showerror("Error","Could not create folder \"%s\"" % dir)
 		return
 
+	try:
+		plugin.setup( pdbs, dir, options )
+	except Exception as e:
+		tkMessageBox.showerror("Error","Plugin reported a problem: %s" % (e))
+		return
+
 	# update the parent window row
 	for i in range(w.rowCounter):
 		if( w.widgetRowTypes[i].get() == plugin.type and w.widgetRowFolders[i].get() == '' ):
 			w.widgetRowFolders[i].set( dir )
 			break
 
-	if( plugin.parser ): # get options for the plugin
-		options = convertParserToOptions( plugin.parser )
-		w.newWindow = tk.Toplevel(w)
-		w.optWindow = OptionsWindow(w.newWindow,options)
-		w.newWindow.focus_set()
-		w.newWindow.grab_set()
-		w.newWindow.transient(w)
-		w.newWindow.wait_window(w.newWindow)
-		plugin.setup( pdbs, dir, options )
-	else:
-		plugin.setup( pdbs, dir )
-
 	# open the status window
-	w.newWindow = tk.Toplevel(w)
+	w.newWindow = tk.Toplevel(w.master)
 	w.statWindow = StatusWindow(w.newWindow,plugin.cancel,plugin.name)
 	w.newWindow.focus_set()
 	w.newWindow.grab_set()

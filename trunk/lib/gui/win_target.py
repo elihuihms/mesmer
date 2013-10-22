@@ -55,7 +55,7 @@ class TargetWindow(tk.Frame):
 			if(type in t):
 				break
 
-		self.newWindow = tk.Toplevel(self)
+		self.newWindow = tk.Toplevel(self.master)
 		self.optWindow = OptionsWindow(self.newWindow,self.widgetRowOptions[i][j])
 		self.newWindow.focus_set()
 		self.newWindow.grab_set()

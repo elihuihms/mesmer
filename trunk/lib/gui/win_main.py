@@ -39,7 +39,7 @@ class MainWindow(tk.Frame):
 		self.Ready = True
 
 		try:
-			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
+			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), flag='c', writeback=True )
 		except:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps the program is running in a read-only directory?',parent=self)
 			self.master.destroy()
@@ -49,7 +49,7 @@ class MainWindow(tk.Frame):
 			path1 = self.prefs['mesmer_exe_path']
 			path2 = self.prefs['mesmer_util_path']
 		else:
-			path0 = os.path.dirname(os.path.dirname(__file__))
+			path0 = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 			path1 = os.path.join(path0,'mesmer')
 			path2 = os.path.join(path0,'utilities')
 
@@ -62,11 +62,10 @@ class MainWindow(tk.Frame):
 		if(not os.access(os.path.join(path2,'make_components'), os.X_OK)):
 			self.Ready = False
 
-		if(self.Ready):
-			self.prefs['mesmer_dir'] = path0
-			self.prefs['mesmer_exe_path'] = path1
-			self.prefs['mesmer_util_path'] = os.path.join(path0,'utilities')
-			self.prefs.sync()
+		self.prefs['mesmer_dir'] = path0
+		self.prefs['mesmer_exe_path'] = path1
+		self.prefs['mesmer_util_path'] = os.path.join(path0,'utilities')
+		self.prefs.sync()
 
 		# preload plugins
 		try:
