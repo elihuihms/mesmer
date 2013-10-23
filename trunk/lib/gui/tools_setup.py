@@ -74,7 +74,15 @@ def setControlVarsFromMESMERArgs(w, args):
 	w.setButtonStates()
 
 def makeMESMERArgsFromWindow( w ):
-	args = parse_arguments('')
+
+	# get any machine-specific arguments
+	pre_args = []
+	if(w.prefs.has_key('run_arguments')):
+		tmp = w.prefs['run_arguments']
+		for k in tmp:
+			pre_args.extend( ["-%s" % k, str(tmp[k])] )
+
+	args = parse_arguments( ' '.join(pre_args) )
 	args.name = w.runTitle.get().replace(' ','_')
 	args.dir = w.saveResults.get()
 	args.target = list(w.targetFilesList.get(0,tk.END)) #see bug notice in createControlVars
@@ -115,13 +123,6 @@ def makeMESMERArgsFromWindow( w ):
 		args.Ralgorithm = 0
 	args.Rprecision = w.optTolerance.get()
 	args.Rn = w.optIterations.get()
-
-	# get any machine-specific arguments
-	if(w.prefs.has_key('run_arguments')):
-		p_args = w.prefs['run_arguments']
-		for k in p_args: #don't overwrite any arguments already explicitly specified
-			if not k in args:
-				args[k] = p_args[k]
 
 	return args
 

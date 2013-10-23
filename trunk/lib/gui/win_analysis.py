@@ -40,8 +40,8 @@ class AnalysisWindow(tk.Frame):
 	def loadPrefs(self):
 		try:
 			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
-		except:
-			tkMessageBox.showerror("Error",'Cannot read or create preferences file. Perhaps MESMER is running in a read-only directory?',parent=self)
+		except Exception as e:
+			tkMessageBox.showerror("Error",'Cannot read or create preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 
 		try:
