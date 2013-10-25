@@ -86,23 +86,21 @@ class mesEnsemble:
 
 		for i in range( self.size ):
 
-			# mutate this conformation?
+			# mutate this component?
 			if( random.random() < (Gmutate / self.size) ):
 
-				# mutate to a randomly-selected conformation from the pool
-				if( random.random() < Gsource ):
+				if( random.random() < Gsource ): # mutate to a randomly-selected component from the pool
 					name = random.choice( component_names )
 					if (name not in self.component_names):
 						self.component_names[ i ] = name
-						self.set_optimized(False)
 
-				# mutate to a randomly-selected component from one present in another ensemble
-				elif( random.random() < (1.0-Gsource) ):
+				else: # mutate to a randomly-selected component from one present in another ensemble
 					e = random.choice( ensembles )
 					name = random.choice( e.component_names )
 					if (name not in self.component_names):
 						self.component_names[ i ] = name
-						self.set_optimized(False)
+
+				self.set_optimized(False)
 
 		return
 
