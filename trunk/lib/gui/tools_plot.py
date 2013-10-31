@@ -122,9 +122,9 @@ def plotHistogram( w ):
 		tkMessageBox.showerror("Error","Could not import matplotlib's pylab",parent=w)
 		return
 
-	n, bins, patches = P.hist(w.resultsDB['ensemble_stats'][w.currentSelection[0]]['scores'], 50, normed=1, histtype='stepfilled')
-	P.setp(patches, 'facecolor', 'r', 'alpha', 0.75)
-	P.show()
+	#n, bins, patches = P.hist(w.resultsDB['ensemble_stats'][w.currentSelection[0]]['scores'], 50, normed=1, histtype='stepfilled')
+	#P.setp(patches, 'facecolor', 'r', 'alpha', 0.75)
+	#P.show()
 
 def makePDBs( w ):
 	if(w.currentSelection[0] == None or w.currentSelection[1] == None):

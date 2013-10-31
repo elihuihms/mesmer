@@ -67,11 +67,11 @@ def print_generation_state( args, counter, ensemble_stats, restraint_stats ):
 	else:
 		a,b = [],[]
 
-	a.append(ensemble_stats)
-	db['ensemble_stats'] = a
+	# large numbers of ensemble scores makes depickling run *extremely* slow, so no ensemble_stats['ratios']
+	a.append( (ensemble_stats['total'],ensemble_stats['ratio'],ensemble_stats['target']) )
 	b.append(restraint_stats)
-	db['restraint_stats'] = b
 
+	db['ensemble_stats'], db['restraint_stats'] = a, b
 	db.close()
 
 	return

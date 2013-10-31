@@ -3,6 +3,7 @@
 import argparse
 import scipy
 import matplotlib as mpl
+import sys
 
 parser = argparse.ArgumentParser(fromfile_prefix_chars='@')
 
@@ -32,7 +33,10 @@ args = parser.parse_args()
 data = [None]*len(args.input)
 for (i,f) in enumerate(args.input):
 	data[i] = [None,None]
-	(data[i][0],data[i][1]) = scipy.genfromtxt( f, usecols=(args.xCol,args.yCol), unpack=True )
+	(data[i][0],data[i][1]) = scipy.genfromtxt( f, dtype=float, usecols=(args.xCol,args.yCol), unpack=True )
+	if (True in scipy.isnan(data[i][0])) or (True in scipy.isnan(data[i][1])):
+		print "Failed reading valid numbers from specified column of \"%s\". Perhaps -xCol or -yCol are incorrect?" % (f)
+		sys.exit(1)
 
 # set up the plot figure
 if(args.nogui) and (args.figure):

@@ -6,7 +6,7 @@ import argparse
 import scipy
 
 parser = argparse.ArgumentParser()
-parser.add_argument('table', 	required=True,								help='A file containing tab-delimited statistics of the available components')
+parser.add_argument('table', 												help='A file containing tab-delimited statistics of the available components')
 parser.add_argument('-nCol',	default=0,		metavar='N',	type=int,	help='The column containing the component names')
 parser.add_argument('-dCol',	default=1,		metavar='N',	type=int,	help='The column containing the desired component attribute')
 parser.add_argument('-mean',	default=None,					type=float,	help='The value to use as the center of the distribution. Defaults to the mean of the selected dataset.')

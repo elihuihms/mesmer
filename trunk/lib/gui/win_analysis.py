@@ -71,24 +71,6 @@ class AnalysisWindow(tk.Frame):
 		if(tmp != ''):
 			self.attributeTable.set(tmp)
 
-	def updateGenerationList( self ):
-		try:
-			self.resultsDB = shelve.open( self.resultsDBPath, 'r' )
-		except:
-			return # perhaps a concurrent read/write on an older DB implementation (10.6, I'm lookin' at you)
-
-		# append new generations to the list
-		if(self.resultsDB.has_key('ensemble_stats')):
-			for i in range(self.generationsList.size(),len(self.resultsDB['ensemble_stats'])):
-				string = "%s%s%s%s" % (
-				"%05i".ljust(14) % i,
-				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][i]['total'][0],
-				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][i]['total'][1],
-				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][i]['total'][2]
-				)
-				self.generationsList.insert(tk.END, string )
-		return
-
 	def setGenerationSel( self, evt=None ):
 		if(len(self.generationsList.curselection())<1):
 			return

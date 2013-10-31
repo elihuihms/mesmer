@@ -15,10 +15,12 @@ def load_components( args, plugins, targets ):
 
 		if( os.path.isdir(f[0]) ):
 			files.extend( glob.glob( "%s%s*" % (f[0],os.sep) ) )
+		elif( os.path.isfile(f[0]) ):
+			files.extend( f[0] )
 		else:
-			files.extend( f )
+			raise mesComponentError("ERROR: Specified component or directory \"%s\" does not exist" % f[0])
 
-	if(len(files) < 0):
+	if(len(files) == 0):
 		raise mesComponentError("ERROR: No components specified.")
 
 	if( args.dbm ):

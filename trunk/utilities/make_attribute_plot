@@ -51,7 +51,7 @@ group3.add_argument('-stateColors',		nargs='*',	default=[],		metavar='C',	help='
 
 group4 = parser.add_argument_group('Synthetic target specification overlay options')
 group4.add_argument('-spec',	default=None,	metavar='<SPEC>',		help='A specification file')
-group4.add_argument('-specColor',	nargs=3,	default=[1.0,0.5,0.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the specification overlay')
+group4.add_argument('-specColor',	nargs=4,	default=[1.0,0.5,0.0,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the specification overlay')
 group4.add_argument('-specWeight',				default=-1.0,	type=float,			help='When plotting target specifications, drop components weighted lower than this amount')
 group4.add_argument('-specLog',		action='store_true', default=False,				help='Use log of spec weight for shading')
 
@@ -108,7 +108,6 @@ if( args.stats ):
 
 	f = open( args.stats, 'r' )
 	line = f.readline()
-	line = f.readline()
 	while(line):
 		line = f.readline().strip()
 		if(line == ''):
@@ -158,11 +157,12 @@ if( args.spec ):
 		for i in range(len(w)):
 			w[i] = 1/(-1.0 * math.log(w[i]))
 
+	plot.scatter( tbl_xvals, tbl_yvals, facecolor=args.pointColor, edgecolors='none', s=args.pointScale, zorder=1 )
 	if(len(w)>0):
 		m = max(w)
 		c = [None]*len(keys)
 		for i in range(len(keys)):
-			a = 0.5
+			a = args.specColor[2]
 			if(w[i]/m>0.15): # 15% alpha cutoff for clarity
 				a = 1.0
 			c[i] = (w[i]/m*args.specColor[0],w[i]/m*args.specColor[1],w[i]/m*args.specColor[2],a)

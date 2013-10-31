@@ -48,7 +48,7 @@ def startRun( w, mesmerPath ):
 	if(pHandle.poll() != None):
 		tkMessageBox.showerror("Error","Error starting a MESMER run.\nError:\n%s" % pHandle.stdout.read(),parent=w)
 		return False
-		
+
 	# create analysis window, attach to original MainWindow, w.parent = MainWindow
 	w.parent.masters.append( tk.Toplevel(w.parent.master) )
 	w.parent.windows.append( AnalysisWindow(w.parent.masters[-1],os.path.join(args.dir,args.name),pHandle) )
@@ -91,7 +91,7 @@ def connectToRun( w, path, pHandle ):
 	w.pHandle_T = Thread(target=readQueue, args=(pHandle.stdout, w.pHandle_Q))
 	w.pHandle_T.daemon = True
 	w.pHandle_T.start()
-	
+
 	# open the log window
 	openLogWindow( w )
 
@@ -102,8 +102,8 @@ def updateAnalysisWindow( w ):
 
 	w.pHandle.poll()
 	if(w.pHandle.returncode == None):
-		w.updateGenerationList()
 		w.updateHandle = w.after( 1000, updateAnalysisWindow, w )
+		updateGenerationList( w )
 		updateLogWindow( w )
 		return
 	elif(w.pHandle.returncode == 0):
@@ -124,7 +124,7 @@ def updateLogWindow( w ):
 			line = w.pHandle_Q.get_nowait()
 		except Empty: # read until queue is empty
 			return
-		
+
 		if( 'Reading target file' in line):
 			w.statusText.set('Reading targets...')
 		elif( 'Component loading progress' in line):
@@ -139,6 +139,6 @@ def updateLogWindow( w ):
 		count = int(w.logWindow.logText.index('end').split('.')[0])
 		if( "\r" in line ): # carriage return
 			w.logWindow.logText.delete("%i.0" % (count-2),"%i.0" % (count-1))
-		
+
 		w.logWindow.logText.insert(tk.END,line.replace("\r",''))
 	return

@@ -1,4 +1,5 @@
 import os
+import shelve
 import Tkinter as tk
 import tkMessageBox
 
@@ -9,20 +10,41 @@ def openRunDir( w, path ):
 	p1 = os.path.join(path,'mesmer_log.db')
 	p2 = os.path.join(path,'mesmer_log.db.db') # some DB schemes do this
 
-	if(not os.path.exists(p1) and not os.path.exists(p2)):
-		tkMessageBox.showerror("Error","Could not find MESMER results DB in \"%s\"" % path,parent=w)
+	if(not os.access(p1, os.R_OK) and not os.access(p2, os.R_OK)):
+		tkMessageBox.showerror("Error","Could not read MESMER results DB in \"%s\"" % path,parent=w)
 		return
 
 	w.path = path
 	w.resultsDBPath = p1
-
 	w.activeDir.set(path)
-	w.updateGenerationList()
 	w.currentSelection = [None,None,None]
 	w.openLogButton.config(state=tk.NORMAL)
 	w.statusText.set('Opened existing run')
 
+	updateGenerationList( w )
 	openLogWindow( w, path )
+	return
+
+def updateGenerationList( w ):
+
+	try:
+		w.resultsDB = shelve.open( w.resultsDBPath, 'r' )
+	except Exception as e:
+		w.master.config(cursor='')
+		tkMessageBox.showerror("Error",'Error opening results DB: %s' % (e),parent=w)
+		raise e
+
+	# append new generations to the list
+	if(w.resultsDB.has_key('ensemble_stats')):
+		for i in range(w.generationsList.size(),len(w.resultsDB['ensemble_stats'])):
+			string = "%s%s%s%s" % (
+			"%05i".ljust(14) % i,
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i]['total'][0],
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i]['total'][1],
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i]['total'][2]
+			)
+			w.generationsList.insert(tk.END, string )
+
 	return
 
 def openLogWindow( w, path=False ):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import shelve
 import Tkinter as tk
 import tkMessageBox
@@ -26,6 +27,7 @@ class MainWindow(tk.Frame):
 
 		self.loadPrefs()
 
+		self.createMenus()
 		self.createWidgets()
 		self.createToolTips()
 		self.updateWidgets()
@@ -42,7 +44,7 @@ class MainWindow(tk.Frame):
 			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read or create preferences file: %s' % (e),parent=self)
-			self.master.destroy()
+			self.close(1)
 
 		if( self.prefs.has_key('mesmer_dir') ):
 			path0 = self.prefs['mesmer_dir']
@@ -72,9 +74,35 @@ class MainWindow(tk.Frame):
 			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs['mesmer_dir'])
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
-			self.master.destroy()
+			self.close(1)
 
 		self.prefs.close()
+
+	def createMenus(self):
+		self.topMenu = tk.Menu(self.master)
+		self.master.config(menu=self.topMenu)
+
+		self.fileMenu = tk.Menu(self.topMenu)
+		self.fileMenu.add_command(label='Quit', accelerator="Ctrl+Q", command=self.close)
+
+		self.actionMenu = tk.Menu(self.topMenu)
+		self.actionMenu.add_command(label='Make Target', accelerator="Ctrl+T", command=self.makeTarget)
+		self.actionMenu.add_command(label='Make Components', accelerator="Ctrl+K", command=self.makeComponents)
+		self.actionMenu.add_command(label='Setup Run', accelerator="Ctrl+R", command=self.setupMESMER)
+		self.actionMenu.add_command(label='Analyze Run', accelerator="Ctrl+Y", command=self.openAnalysis)
+
+		self.topMenu.add_cascade(label="File", menu=self.fileMenu)
+		self.topMenu.add_cascade(label="Actions", menu=self.actionMenu)
+
+		self.master.bind_all("<Control-q>", lambda a: sys.exit(0) )
+		self.master.bind_all("<Control-t>", lambda a: self.makeTarget() )
+		self.master.bind_all("<Control-k>", lambda a: self.makeComponents() )
+		self.master.bind_all("<Control-r>", lambda a: self.setupMESMER() )
+		self.master.bind_all("<Control-y>", lambda a: self.openAnalysis() )
+
+	def close(self, returncode=0):
+		self.master.destroy()
+		sys.exit(returncode)
 
 	def makeTarget(self):
 		self.masters.append( tk.Toplevel(self.master) )
