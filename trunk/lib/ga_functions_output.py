@@ -28,7 +28,7 @@ def print_generation_state( args, counter, ensemble_stats, restraint_stats ):
 
 	print_msg( "" )
 	print_msg( "\tCurrent time: %s" % datetime.utcnow() )
-	print_msg( "\tParent survival percentage: %i%%" % (100*ensemble_stats['ratio']) )
+	print_msg( "\tParent survival percentage: %i%%, %i unique ensembles" % (100*ensemble_stats['ratio'],ensemble_stats['unique']) )
 	print_msg( "\n\t\tBest Score\t|\tAverage\t\t|\tStdev" )
 	print_msg( "\t\t------------------------------------------------------------" )
 	print_msg( "\t\t%.3e\t|\t%.3e\t|\t%.3e" % (

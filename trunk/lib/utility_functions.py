@@ -99,3 +99,16 @@ def mean_stdv(x):
 	std = math.sqrt(std / float(n-1))
 
 	return mean, std
+
+def extract_list_elements( l, k ):
+	""" Returns a new list containing only the specified indexes"""
+	new = []
+	for i in k:
+		new.append(l[i])
+	return new
+
+def map_2d( l, func ):
+	for i in range(len(l)):
+		l[i] = map( func, l[i] )
+	return l
+

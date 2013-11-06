@@ -254,7 +254,8 @@ def get_best_ensembles( args, targets, parents, offspring ):
 	'scores':	sorted_scores,
 	'total':	total_stats,
 	'target':	target_stats,
-	'ratio':	float(args.ensembles - counter) / args.ensembles
+	'ratio':	float(args.ensembles - counter) / args.ensembles,
+	'unique':	len(get_unique_ensembles(best_scored))
 	}
 
 	return (best_scored,stats)
