@@ -8,25 +8,27 @@ import glob
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-import lib.setup
-import lib.plugin_functions
-import lib.ga_objects_ensemble
-import lib.ga_functions_output as output
+from lib.plugin_functions		import load_plugins, unload_plugins
+from lib.target_functions		import load_targets
+from lib.component_functions	import load_components
+from lib.ensemble_objects		import mesEnsemble
+from lib.ga_functions_output	import print_plugin_state
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-target',		action='append',	required=True,					metavar='FILE',		help='Target file to use as template')
 parser.add_argument('-components',	action='append',	required=True,	nargs='*',		metavar='FILE/DIR',	help='MESMER component files or directory ')
 parser.add_argument('-spec',							required=True,					metavar='SPEC',		help='The synthetic target specification file')
 parser.add_argument('-dir',								default='./',					metavar='./',		help='Directory to write synthetic data to')
+parser.add_argument('-scratch',							default=None)
 
 args = parser.parse_args()
 args.dbm = False
 args.plugin = ''
 
 # god help you if there's errors here - no checking!
-plugins = lib.plugin_functions.load_plugins('%s/plugins/' % os.path.realpath('..'), 'mesmer', args=args)
-targets = lib.setup.load_all_targets( args, plugins )
-components = lib.setup.load_all_components( args, plugins, targets )
+plugins = load_plugins(	os.path.dirname(os.path.dirname(__file__)), 'mesmer', args )
+targets = load_targets( args, plugins )
+components = load_components( args, plugins, targets )
 
 if(None in components):
 	exit()
@@ -42,7 +44,7 @@ for i in range(n):
 		exit()
 	spec[1][i] = float(spec[1][i])
 
-e = lib.ga_objects_ensemble.mesEnsemble( plugins, targets, n )
+e = mesEnsemble( plugins, targets, n )
 e.component_names = spec[0]
 o = e.get_fitness(components, plugins, targets[0], spec[1])
 
@@ -50,6 +52,6 @@ print "Fits to provided target data:"
 for k in o:
 	print "\t%s : %.3f" % (k,o[k])
 
-output.print_plugin_state( args, 0, plugins, targets, [e])
+print_plugin_state( args, 0, plugins, targets, [e])
 
-lib.plugin_functions.unload_plugins( plugins )
+unload_plugins( plugins )

@@ -1,16 +1,23 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import glob
 import shutil
 import argparse
 import subprocess
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-make_components',	action='store_true',	default=False )
-parser.add_argument('-mesmer',			action='store_true',	default=False )
-parser.add_argument('-make_models',		action='store_true',	default=False )
-parser.add_argument('-all',				action='store_true',	default=False )
+
+group0 = parser.add_argument_group('Core')
+group0.add_argument('-mesmer',			action='store_true',	default=False )
+group0.add_argument('-all',				action='store_true',	default=False )
+
+group1 = parser.add_argument_group('Utilities')
+group1.add_argument('-utilities',		action='store_true',	default=False )
+group1.add_argument('-make_components',	action='store_true',	default=False )
+group1.add_argument('-make_models',		action='store_true',	default=False )
+group1.add_argument('-make_target',		action='store_true',	default=False )
 
 def run_process( cmd, path, silent=False, resultFile=None ):
 	out = open( path, 'w' )
@@ -23,20 +30,24 @@ def run_process( cmd, path, silent=False, resultFile=None ):
 
 	fail = False
 	if(handle.returncode > 0):
-		print "\tError: %i - See %s" % (handle.returncode,path)
+		print "ERROR: %i\n                    See %s" % (handle.returncode,path)
+		sys.stdout.flush()
 		fail = True
 
 	if resultFile and not os.path.exists(resultFile):
-		print "\tError: Expected output file \"%s\" not found. See %s" % (resultFile,path)
+		print "ERROR: %i\n                    Expected output file \"%s\" not found. See %s" % (handle.returncode,resultFile,path)
+		sys.stdout.flush()
 		fail = True
 
 	if not fail:
-		print "\tSuccess"
+		print "PASS"
+		sys.stdout.flush()
 
 	return handle
 
 def test_utilities(path, args):
-	print "Testing make_attribute_spec..."
+	print "make_attribute_spec".ljust(40),
+	sys.stdout.flush()
 	cmd = [
 		os.path.join(os.path.dirname(path),'utilities','make_attribute_spec'),
 		os.path.join(path,'data','cam_components_stats.tbl'),
@@ -54,7 +65,8 @@ def test_utilities(path, args):
 
 
 def test_make_components(path, args):
-	print "Testing make_components..."
+	print "make_components".ljust(40),
+	sys.stdout.flush()
 	cmd = [
 		os.path.join(os.path.dirname(path),'utilities','make_components'),
 		'-template',
@@ -74,7 +86,8 @@ def test_make_components(path, args):
 	run_process( cmd, os.path.join(path,'out','cam_components.txt') )
 
 def test_mesmer(path, args):
-	print "Testing mesmer..."
+	print "mesmer".ljust(40),
+	sys.stdout.flush()
 	cmd = [
 		os.path.join(os.path.dirname(path),'mesmer'),
 		'-dir',
@@ -101,10 +114,11 @@ def test_mesmer(path, args):
 	return
 
 def test_make_models(path, args):
-	print "Testing make_models 1/2..."
+	print "make_models 1/2".ljust(40),
+	sys.stdout.flush()
 	cmd = [
 		os.path.join(os.path.dirname(path),'utilities','make_models'),
-		'-state',
+		'-ensembles',
 		'data/cam_mesmer_1/ensembles_test_cam_1_00000.tbl',
 		'-pdb',
 		'data/cam_pdbs.tgz',
@@ -117,7 +131,8 @@ def test_make_models(path, args):
 	]
 	run_process( cmd, os.path.join(path,'out','cam_make_models_1.txt') )
 
-	print "Testing make_models 2/2..."
+	print "make_models 2/2".ljust(40),
+	sys.stdout.flush()
 	cmd = [
 		os.path.join(os.path.dirname(path),'utilities','make_models'),
 		'-stats',
@@ -132,6 +147,23 @@ def test_make_models(path, args):
 		'0'
 	]
 	run_process( cmd, os.path.join(path,'out','cam_make_models_2.txt') )
+	return
+
+def test_make_synthetic_target(path, args):
+	print "make_synthetic_target".ljust(40),
+	sys.stdout.flush()
+	cmd = [
+		os.path.join(os.path.dirname(path),'utilities','make_synthetic_target'),
+		'-target',
+		os.path.join(path,'data','test_cam_1.target'),
+		'-components',
+		os.path.join(path,'data','cam_components'),
+		'-spec',
+		os.path.join(path,'data','test_cam_1.spec'),
+		'-dir',
+		os.path.join(path,'out')
+	]
+	run_process( cmd, os.path.join(path,'out','cam_make_target.txt'), resultFile=os.path.join(path,'out','restraints_test_cam_1_SAXS_00000.out') )
 	return
 
 if(__name__ == "__main__"):
@@ -150,5 +182,8 @@ if(__name__ == "__main__"):
 	if(args.mesmer or args.all):
 		test_mesmer( path, args )
 
-	if(args.make_models or args.all):
+	if(args.make_models or args.utilities or args.all):
 		test_make_models(path, args)
+
+	if(args.make_target or args.utilities or args.all):
+		test_make_synthetic_target(path, args)

@@ -20,7 +20,7 @@ class plugin( mesPluginBasic ):
 		mesPluginBasic.__init__(self, args)
 
 		self.name = 'default_STCH'
-		self.version = '2013.06.04'
+		self.version = '2013.11.13'
 		self.type = ('STCH','STCH0','STCH1','STCH2','STCH3','STCH4','STCH5','STCH6','STCH7','STCH8','STCH9')
 
 	#
@@ -83,7 +83,7 @@ class plugin( mesPluginBasic ):
 			restraint.data['components'][component[0]] = float(component[1])
 			sum += float(component[1])
 
-		# normalize the components to ratios
+		# normalize the components to fractions
 		for component in args.component:
 			restraint.data['components'][component[0]] /= sum
 
