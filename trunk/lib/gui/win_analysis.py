@@ -10,6 +10,7 @@ from lib.gui.tools_analysis	import *
 from lib.gui.tools_plot		import *
 from lib.gui.tools_plugin	import getGUIPlotPlugins
 from lib.gui.win_log		import LogWindow
+from lib.gui.win_about		import programInfo
 
 class AnalysisWindow(tk.Frame):
 	def __init__(self, master, path=None, pHandle=None):
@@ -170,7 +171,7 @@ class AnalysisWindow(tk.Frame):
 		self.LogoImage = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'mesmer_logo.gif'))
 		self.LogoLabel = tk.Label(self.f_logo,image=self.LogoImage)
 		self.LogoLabel.pack(side=tk.LEFT)
-		self.versionLabel = tk.Label(self.f_logo,text='GUI version 2013.09.18')
+		self.versionLabel = tk.Label(self.f_logo,text='GUI version %s' % programInfo['version'])
 		self.versionLabel.pack(side=tk.LEFT,anchor=tk.NE)
 
 		self.activeDirLabel = tk.Label(self.container,text='Work Folder:')

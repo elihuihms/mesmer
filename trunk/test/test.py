@@ -12,7 +12,7 @@ parser.add_argument('-mesmer',			action='store_true',	default=False )
 parser.add_argument('-make_models',		action='store_true',	default=False )
 parser.add_argument('-all',				action='store_true',	default=False )
 
-def run_process( cmd, path, silent=False ):
+def run_process( cmd, path, silent=False, resultFile=None ):
 	out = open( path, 'w' )
 	handle = subprocess.Popen( cmd, stdout=out )
 	handle.wait()
@@ -21,12 +21,37 @@ def run_process( cmd, path, silent=False ):
 	if(silent):
 		return handle
 
+	fail = False
 	if(handle.returncode > 0):
 		print "\tError: %i - See %s" % (handle.returncode,path)
-	else:
+		fail = True
+
+	if resultFile and not os.path.exists(resultFile):
+		print "\tError: Expected output file \"%s\" not found. See %s" % (resultFile,path)
+		fail = True
+
+	if not fail:
 		print "\tSuccess"
 
 	return handle
+
+def test_utilities(path, args):
+	print "Testing make_attribute_spec..."
+	cmd = [
+		os.path.join(os.path.dirname(path),'utilities','make_attribute_spec'),
+		os.path.join(path,'data','cam_components_stats.tbl'),
+		'-dCol',
+		'0',
+		'-mean',
+		'32',
+		'-stdev',
+		'2',
+		'-out',
+		os.path.join(path,'out','cam_spec_1.tbl')
+	]
+	run_process( cmd, os.path.join(path,'out','cam_make_attribute_spec.txt'), resultFile=cmd[-1] )
+
+
 
 def test_make_components(path, args):
 	print "Testing make_components..."

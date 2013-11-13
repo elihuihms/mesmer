@@ -28,7 +28,7 @@ def make_named_vectors( tbl ):
 
 if( __name__ == "__main__" ):
 	group0 = parser.add_argument_group('Table specification')
-	group0.add_argument('table', 	default=None,								help='A file containing tab-delimited statistics of the available components')
+	group0.add_argument('tables', 	nargs='+',		metavar='<FILE>.tbl',		help='File(s) containing tab-delimited statistics of the available components')
 	group0.add_argument('-nCol',	default=0,		metavar='0',	type=int,	help='The column containing the component names')
 	group0.add_argument('-xCol',	default=1,		metavar='1',	type=int,	help='The column containing the desired component attribute')
 	group0.add_argument('-yCol',	default=2,		metavar='2',	type=int,	help='The column to use as y-axis data')
@@ -49,9 +49,10 @@ if( __name__ == "__main__" ):
 	group1.add_argument('-pointColor',	nargs=4,	default=[0,0,0,0.1], type=float,	metavar='N',	help='Set color (R G B A) of componenent plot points')
 
 	group2 = parser.add_argument_group('Component statistic overlay options')
-	group2.add_argument('-stats',	default=None,	metavar='<STATS>',		help='A MESMER ensemble statistics file')
+	group2.add_argument('-stats',	default=None,	metavar='component_statistics_*.tbl',		help='A MESMER ensemble statistics file')
 	group2.add_argument('-statPtWidth',				default=3,		type=int,	metavar='3.0',	help='Change the width of the selected component plot circles')
 	group2.add_argument('-statPtColor',	nargs=4,	default=[0.0,0.5,1.0,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the ensemble statistics overlay')
+	group2.add_argument('-statPtScale',				default=10,		type=int,	metavar='20',	help='Set scaling of the component statistics plot points')
 	group2.add_argument('-statNorm',	action='store_true', default=False,				help='Normalize variable color saturation for component prevalence')
 	group2.add_argument('-statSame',	action='store_true', default=False,				help='Do not use variable color saturation for component prevalence')
 	group2.add_argument('-statWeight',				default=-1.0,	type=float,			help='When plotting MESMER statistics, drop components weighted lower than this amount')
@@ -59,15 +60,15 @@ if( __name__ == "__main__" ):
 	group2.add_argument('-statSubsample',			default=1,		type=float,			help='Randomly subsample selected conformers by a percentage.')
 
 	group3 = parser.add_argument_group('Ensemble statistics overlay options')
-	group2.add_argument('-ensembles',			default=None,	metavar='<STATS>',		help='A MESMER ensemble state file')
+	group2.add_argument('-ensembles',			default=None,	metavar='ensembles_*.tbl',	help='A MESMER ensemble state file')
 	group3.add_argument('-ensembleSolutions',	default=4,		type=int,	metavar='N',	help='The number of unique ensemble solutions to show')
-	group3.add_argument('-ensemblePtSize',		default=20,		type=int,	metavar='20',	help='Set scaling of the highlight plot circles')
+	group3.add_argument('-ensemblePtScale',		default=10,		type=int,	metavar='20',	help='Set scaling of the highlight plot circles')
 	group3.add_argument('-ensemblePtWidth',		default=3,		type=int,	metavar='3.0',	help='Set the width of the highlight plot circles')
 	group3.add_argument('-ensemblePtColors',		nargs='*',	default=[],		metavar='C',	help='A series of matplotlib colors to use for highlighting different ensemble solutions')
 	group3.add_argument('-ensembleHighlight',	nargs='*',	default=[],	type=int,	metavar='N',	help='Highlight unique ensemble IDs provided by get_ensemble_stats')
 
 	group4 = parser.add_argument_group('Synthetic target specification overlay options')
-	group4.add_argument('-spec',	default=None,	metavar='<SPEC>',		help='A specification file')
+	group4.add_argument('-spec',	default=None,	metavar='<SPEC>.spec',		help='A specification file')
 	group4.add_argument('-specColor',	nargs=4,	default=[1.0,0.5,0.0,1.0],	type=float,	metavar='N',	help='Specifies the RGB color shading (0-1) to be used for the specification overlay')
 	group4.add_argument('-specWeight',				default=-1.0,	type=float,			help='When plotting target specifications, drop components weighted lower than this amount')
 	group4.add_argument('-specLog',		action='store_true', default=False,				help='Use log of spec weight for shading')
@@ -84,19 +85,19 @@ if( __name__ == "__main__" ):
 
 	args = parser.parse_args()
 
-	if(args.table==None):
-		print "ERROR: You must provide a component attribute table"
-		sys.exit(1)
-
 	if(len(args.ensembleHighlight)>0 and not args.ensembles):
 		print "ERROR: To highlight a specific ensemble ID please provide an ensemble state file."
 		sys.exit(1)
 
-	# generate master data lists
-	if( args.zCol ):
-		plot_data = make_named_vectors(scipy.genfromtxt( args.table, usecols=(args.nCol,args.xCol,args.yCol,args.zCol), dtype=str, unpack=True ))
-	else:
-		plot_data = make_named_vectors(scipy.genfromtxt( args.table, usecols=(args.nCol,args.xCol,args.yCol,args.yCol), dtype=str, unpack=True ))
+	plot_data = [ [],[],[],[] ] # generate master data lists
+	for t in args.tables:
+		if( args.zCol ):
+			tmp = make_named_vectors(scipy.genfromtxt( t, usecols=(args.nCol,args.xCol,args.yCol,args.zCol), dtype=str, unpack=True ))
+		else:
+			tmp = make_named_vectors(scipy.genfromtxt( t, usecols=(args.nCol,args.xCol,args.yCol,args.yCol), dtype=str, unpack=True ))
+
+		for i in range(len(plot_data)):
+			plot_data[i].extend( tmp[i] )
 
 	# read target specification, if provided
 	if( args.spec ):
@@ -168,7 +169,7 @@ if( __name__ == "__main__" ):
 
 				state_data[0].append( name )
 				state_data[1].append( args.ensemblePtColors[i % len(args.ensemblePtColors)] )
-				state_data[2].append( 30*args.ensemblePtSize*ensemble_stats[i]['weights'][j] )
+				state_data[2].append( 30*args.ensemblePtScale*ensemble_stats[i]['weights'][j] )
 				state_data[3].append( plot_data[1][k] )
 				state_data[4].append( plot_data[2][k] )
 				state_data[5].append( plot_data[3][k] )
@@ -178,7 +179,7 @@ if( __name__ == "__main__" ):
 
 		for name in args.highlight:
 			try:
-				k = tbl_names.index(name)
+				k = plot_data[0].index(name)
 			except ValueError:
 				print "ERROR: the component \"%s\" from highlight list doesn't exist in the attribute table." % (name)
 				sys.exit(1)
@@ -281,7 +282,7 @@ if( __name__ == "__main__" ):
 					stats_data[1][i]/100.0*args.statPtColor[2],
 					args.statPtColor[3])
 
-			stats_data[2][i] = stats_data[2][i]*30*args.pointScale
+			stats_data[2][i] = stats_data[2][i]*30*args.statPtScale
 
 		if( args.zCol ):
 			ax.scatter( stats_data[3],stats_data[4],stats_data[5], 	edgecolors=stats_data[1], s=stats_data[2], zorder=2, facecolors='none', linewidth=args.statPtWidth )
@@ -296,9 +297,9 @@ if( __name__ == "__main__" ):
 
 	if( len(args.highlight) > 0 ):
 		if( args.zCol ):
-			ax.scatter( highlight_data[1], highlight_data[2], highlight_data[3],	edgecolors=args.highlightColor, s=0*args.highlightSize, zorder=4, facecolor='none', linewidth=args.highlightWidth )
+			ax.scatter( highlight_data[1], highlight_data[2], highlight_data[3],	edgecolors=args.highlightColor, s=20*args.highlightSize, zorder=4, facecolor='none', linewidth=args.highlightWidth )
 		else:
-			ax.scatter( highlight_data[1], highlight_data[2], 						edgecolors=args.highlightColor, s=0*args.highlightSize, zorder=4, facecolor='none', linewidth=args.highlightWidth )
+			ax.scatter( highlight_data[1], highlight_data[2], 						edgecolors=args.highlightColor, s=20*args.highlightSize, zorder=4, facecolor='none', linewidth=args.highlightWidth )
 
 	for (arg,val) in args.plotArgs:
 		mpl.rcParams[ arg ] = val

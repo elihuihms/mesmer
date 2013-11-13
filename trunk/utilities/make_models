@@ -17,7 +17,7 @@ group1.add_argument('-pdbs',	nargs='+',				default=[],		metavar='DIR',							hel
 group1.add_argument('-names',	nargs='*',				default=[],		metavar='NAME',							help='Extract named PDBs')
 
 group1 = parser.add_argument_group('PDBs from ensemble file')
-group1.add_argument('-state',							default=None,	metavar='ensembles_*.tbl',				help='MESMER ensemble state file')
+group1.add_argument('-ensembles',						default=None,	metavar='ensembles_*.tbl',				help='MESMER ensemble state file')
 group1.add_argument('-id',		type=int,				default=0,		metavar='N',							help='Save components from the ensemble IDs provided by get_ensemble_stats')
 
 group2 = parser.add_argument_group('PDBs from statistics file')
@@ -66,9 +66,9 @@ if( len(args.names) > 0 ):
 		prevalences.append( 1.0 )
 		weights.append( 1.0 )
 
-elif( args.state ):
+elif( args.ensembles ):
 	try:
-		ensemble_stats = get_ensembles_from_state( args.state, unique=True )
+		ensemble_stats = get_ensembles_from_state( args.ensembles, unique=True )
 	except Exception as e:
 		print "ERROR: Could not load ensemble information from state file. Reason: %s" % (e)
 		exit()

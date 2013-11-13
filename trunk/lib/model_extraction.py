@@ -9,6 +9,12 @@ def write_named_pdbs( path, names, dirs, tarballs ):
 	except Exception as e:
 		raise ModelExtractionException( "Failure opening output file: %s" % (e) )
 
+	# cache the full paths of the tarball contents, as well as the filenames
+	tarball_pdb_names,tarball_pdb_paths = [],[]
+	for t in tarballs:
+		tarball_pdb_paths.append( t.getnames() )
+		tarball_pdb_names.append( map(os.path.basename, tarball_pdb_paths[-1]) )
+
 	for (i,n) in enumerate(names):
 		tmp, pdb = "%s.pdb" % n, None
 
@@ -24,16 +30,20 @@ def write_named_pdbs( path, names, dirs, tarballs ):
 					except Exception as e:
 						raise ModelExtractionException( "Could not read PDB at \"%s\"" % (path) )
 
-		for t in tarballs:
-			if(  tmp in t.getnames() ):
-				if( pdb != None ):
-					print "WARNING: duplicate named PDBs (\"%s\") detected!" % (n)
-				else:
-					try:
-						member = t.getmember(tmp)
-						pdb = t.extractfile(member).read().strip()
-					except Exception as e:
-						raise ModelExtractionException( "Could not extract PDB \"%s\" from tarball \"%s\"" % (n,t.name) )
+		for (j,t) in enumerate(tarballs):
+			try: # attempt to find the position of the pdb in the tarball
+				k = tarball_pdb_names[j].index(tmp)
+			except:
+				continue
+
+			if( pdb != None ):
+				print "WARNING: duplicate named PDBs (\"%s\") detected!" % (n)
+			else:
+				try:
+					member = t.getmember( tarball_pdb_paths[j][k] )
+					pdb = t.extractfile(member).read().strip()
+				except Exception as e:
+					raise ModelExtractionException( "Could not extract PDB \"%s\" from tarball \"%s\"" % (n,t.name) )
 
 		if(pdb == None):
 			raise ModelExtractionException( "Could not find pdb \"%s\" in any of the provided resources" % (n) )

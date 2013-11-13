@@ -11,6 +11,7 @@ from lib.setup_functions	import parse_arguments
 from lib.gui.tools_TkTooltip	import ToolTip
 from lib.gui.tools_setup		import *
 from lib.gui.tools_run			import startRun
+from lib.gui.win_about			import programInfo
 
 class SetupWindow(tk.Frame):
 	def __init__(self, master, parent):
@@ -198,7 +199,7 @@ class SetupWindow(tk.Frame):
 		self.LogoImage = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'mesmer_logo.gif'))
 		self.LogoLabel = tk.Label(self.f_logo,image=self.LogoImage)
 		self.LogoLabel.pack(side=tk.LEFT)
-		self.versionLabel = tk.Label(self.f_logo,text='GUI version 2013.09.18')
+		self.versionLabel = tk.Label(self.f_logo,text='GUI version %s' % programInfo['version'])
 		self.versionLabel.pack(side=tk.LEFT,anchor=tk.NE)
 
 		self.runTitleLabel = tk.Label(self.f_setup,text='Run Title:')

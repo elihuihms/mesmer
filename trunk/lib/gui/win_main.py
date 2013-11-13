@@ -13,6 +13,7 @@ from lib.gui.win_components		import ComponentsWindow
 from lib.gui.win_setup			import SetupWindow
 from lib.gui.win_config			import ConfigWindow
 from lib.gui.win_analysis		import AnalysisWindow
+from lib.gui.win_about			import AboutWindow,programInfo
 
 class MainWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -36,6 +37,7 @@ class MainWindow(tk.Frame):
 		self.windows	= []
 		self.setupMaster	= None
 		self.configMaster	= None
+		self.aboutMaster	= None
 
 	def loadPrefs(self):
 		self.Ready = True
@@ -83,6 +85,7 @@ class MainWindow(tk.Frame):
 		self.master.config(menu=self.topMenu)
 
 		self.fileMenu = tk.Menu(self.topMenu)
+		self.fileMenu.add_command(label='About MESMER...', command=self.setupAbout)
 		self.fileMenu.add_command(label='Quit', accelerator="Ctrl+Q", command=self.close)
 
 		self.actionMenu = tk.Menu(self.topMenu)
@@ -108,6 +111,10 @@ class MainWindow(tk.Frame):
 		self.masters.append( tk.Toplevel(self.master) )
 		self.windows.append( TargetWindow(self.masters[-1]) )
 
+	def makeTarget(self):
+		self.masters.append( tk.Toplevel(self.master) )
+		self.windows.append( TargetWindow(self.masters[-1]) )
+
 	def makeComponents(self):
 		self.masters.append( tk.Toplevel(self.master) )
 		self.windows.append( ComponentsWindow(self.masters[-1]) )
@@ -125,6 +132,11 @@ class MainWindow(tk.Frame):
 		if(self.configMaster == None or not self.configMaster.winfo_exists()):
 			self.configMaster = tk.Toplevel(self.master)
 			self.configWindow = ConfigWindow(self.configMaster,self)
+
+	def setupAbout(self):
+		if(self.aboutMaster == None or not self.aboutMaster.winfo_exists()):
+			self.aboutMaster = tk.Toplevel(self.master)
+			self.aboutMaster = AboutWindow(self.aboutMaster)
 
 	def createToolTips(self):
 		self.createTargetTT 	= ToolTip(self.createTargetButton,		follow_mouse=0,text='Create a target file from experimental data')
@@ -155,7 +167,7 @@ class MainWindow(tk.Frame):
 		self.LogoImage = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'mesmer_logo.gif'))
 		self.LogoLabel = tk.Label(self.f_logo,image=self.LogoImage)
 		self.LogoLabel.pack(side=tk.TOP)
-		self.versionLabel = tk.Label(self.f_logo,text='GUI version 2013.09.18')
+		self.versionLabel = tk.Label(self.f_logo,text='GUI version %s' % programInfo['version'])
 		self.versionLabel.pack(side=tk.TOP,anchor=tk.NE)
 
 		self.createTargetButton = tk.Button(self.f_buttons, text='Create Target', command=self.makeTarget,width=20,height=1)

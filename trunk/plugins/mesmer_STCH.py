@@ -9,6 +9,7 @@ Component file arguments:
 """
 
 import argparse
+import math
 
 from lib.plugin_objects import mesPluginError,mesPluginBasic
 import lib.plugin_tools as tools
@@ -68,6 +69,7 @@ class plugin( mesPluginBasic ):
 		# TEST	1		-value <N>
 
 		parser = argparse.ArgumentParser(prog=self.type[0])
+		parser.add_argument('-scale',		default=1.0, type=float, metavar='1.0', help='')
 		parser.add_argument('-component', nargs='+', metavar='NAME, #', action='append', help='')
 
 		try:
@@ -84,6 +86,8 @@ class plugin( mesPluginBasic ):
 		# normalize the components to ratios
 		for component in args.component:
 			restraint.data['components'][component[0]] /= sum
+
+		target_data['args'] = args
 
 		return []
 
@@ -165,7 +169,13 @@ class plugin( mesPluginBasic ):
 			else:
 				ensemble_data['components'][name] /= sum
 
-			fitness += tools.get_flat_harmonic( restraint.data['components'][name], restraint.data['components'][name], ensemble_data['components'][name] )
+			#fitness += tools.get_flat_harmonic( restraint.data['components'][name], restraint.data['components'][name], ensemble_data['components'][name] )
+
+			# Wolfgang Rieping, Michael Habeck, and Michael Nilges, JACS 11/01/2005
+			if( ensemble_data['components'][name] ) > 0:
+				fitness += math.fabs( target_data['args'].scale * math.log(restraint.data['components'][name] / ensemble_data['components'][name]) )
+			else:
+				fitness += 1.0
 
 		return fitness
 
