@@ -78,12 +78,12 @@ class AnalysisWindow(tk.Frame):
 		self.currentSelection[0] = int(self.generationsList.curselection()[0])
 
 		self.targetsList.delete(0, tk.END)
-		for name in self.resultsDB['ensemble_stats'][self.currentSelection[0] ]['target']:
+		for name in self.resultsDB['ensemble_stats'][self.currentSelection[0] ][2]:
 			string = "%s%s%s%s" % (
 				name[:14].ljust(14),
-				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'][name][0],
-				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'][name][1],
-				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'][name][2]
+				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ][2][name][0],
+				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ][2][name][1],
+				"%.3e".ljust(6) % self.resultsDB['ensemble_stats'][ self.currentSelection[0] ][2][name][2]
 				)
 			self.targetsList.insert(tk.END, string )
 
@@ -97,7 +97,7 @@ class AnalysisWindow(tk.Frame):
 		if(len(self.targetsList.curselection())<1):
 			return
 
-		for (i,name) in enumerate(self.resultsDB['ensemble_stats'][ self.currentSelection[0] ]['target'].keys()):
+		for (i,name) in enumerate(self.resultsDB['ensemble_stats'][ self.currentSelection[0] ][2].keys()):
 			if(i == int(self.targetsList.curselection()[0])):
 				self.currentSelection[1] = name
 
@@ -135,11 +135,6 @@ class AnalysisWindow(tk.Frame):
 		return
 
 	def setWidgetAvailibility( self ):
-		if( self.currentSelection[0] == None):
-			self.histogramPlotButton.config(state=tk.DISABLED)
-		else:
-			self.histogramPlotButton.config(state=tk.NORMAL)
-
 		if( self.currentSelection[0] == None or self.currentSelection[1] == None ):
 			self.correlationPlotButton.config(state=tk.DISABLED)
 			self.writePDBsButton.config(state=tk.DISABLED)
@@ -197,8 +192,8 @@ class AnalysisWindow(tk.Frame):
 		self.generationsList.config(yscrollcommand=self.generationsListScroll.set)
 		self.generationsListScroll.config(command=self.generationsList.yview)
 		self.generationsList.bind('<<ListboxSelect>>',self.setGenerationSel)
-		self.histogramPlotButton = tk.Button(self.f_generations,text='Ensemble Histogram...',state=tk.DISABLED,command=lambda: plotHistogram(self))
-		self.histogramPlotButton.grid(in_=self.f_generations,column=0,row=2,padx=(6,0),pady=(0,4),sticky=tk.W)
+		self.progressPlotButton = tk.Button(self.f_generations,text='Generation Scores...',state=tk.DISABLED,command=lambda: plotScoreProgress(self))
+		self.progressPlotButton.grid(in_=self.f_generations,column=0,row=2,padx=(6,0),pady=(0,4),sticky=tk.W)
 
 		self.f_targets = tk.LabelFrame(self.container,text='Targets')
 		self.f_targets.grid(in_=self.container,column=0,row=4,columnspan=3)

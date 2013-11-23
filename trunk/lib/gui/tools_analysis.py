@@ -10,8 +10,8 @@ def openRunDir( w, path ):
 	p1 = os.path.join(path,'mesmer_log.db')
 	p2 = os.path.join(path,'mesmer_log.db.db') # some DB schemes do this
 
-	if(not os.access(p1, os.R_OK) and not os.access(p2, os.R_OK)):
-		tkMessageBox.showerror("Error","Could not read MESMER results DB in \"%s\"" % path,parent=w)
+	if not os.access(p1, os.R_OK) and not os.access(p2, os.R_OK):
+		tkMessageBox.showerror("Error","Could not find a results DB in \"%s\"" % path,parent=w)
 		return
 
 	w.path = path
@@ -19,6 +19,7 @@ def openRunDir( w, path ):
 	w.activeDir.set(path)
 	w.currentSelection = [None,None,None]
 	w.openLogButton.config(state=tk.NORMAL)
+	w.progressPlotButton.config(state=tk.NORMAL)
 	w.statusText.set('Opened existing run')
 
 	updateGenerationList( w )
@@ -39,9 +40,9 @@ def updateGenerationList( w ):
 		for i in range(w.generationsList.size(),len(w.resultsDB['ensemble_stats'])):
 			string = "%s%s%s%s" % (
 			"%05i".ljust(14) % i,
-			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i]['total'][0],
-			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i]['total'][1],
-			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i]['total'][2]
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i][0][0],
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i][0][1],
+			"%.3e".ljust(6) % w.resultsDB['ensemble_stats'][i][0][2]
 			)
 			w.generationsList.insert(tk.END, string )
 

@@ -10,6 +10,7 @@ class OptionsWindow(tk.Frame):
 		self.master.resizable(width=False, height=False)
 
 		self.master.protocol('WM_DELETE_WINDOW', self.saveWindow)
+		self.master.bind("<Return>", self.saveWindow)
 
 		self.options = options
 
@@ -19,7 +20,7 @@ class OptionsWindow(tk.Frame):
 		self.createWidgets()
 		self.returncode = 0
 
-	def saveWindow(self):
+	def saveWindow(self, evt=None):
 		# retrieve the set values, save back to the options dict
 		for (i,k) in enumerate(sorted( self.options.keys() )):
 			try:

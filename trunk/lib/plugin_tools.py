@@ -1,7 +1,7 @@
 import scipy
 
 from random	import choice
-from math	import sqrt
+from math	import sqrt,fabs,fsum
 
 _use_weave = True
 
@@ -198,3 +198,27 @@ def make_interpolated_bootstrap_sample( x, y, x_fit, y_fit ):
 
 	return scipy.array([f + choice(residuals) for f in estimates])
 
+def get_volatility_ratio( y, y_fit ):
+	"""
+	Returns the volatility of ratio metric defined by Hura et al. in Nature Methods (2013)
+	Note: assumes y and y_fit have been pre-binned!
+
+	Arguments:
+	y		- list of floats
+	y_fit	- list of floats
+	"""
+
+	n = len(y)
+
+	ratios = [0.0]*n
+	for i in range(n): # get ratios
+		ratios[i] = y[i] / y_fit[i]
+
+	t = fsum(ratios)
+	for i in range(n): # normalize ratios
+		ratios[i] /= t
+
+	r = 0.0 # sum absolute value of ratio to ratio variance
+	for i in range(n -1):
+		r += fabs( (ratios[i] - ratios[i+1]) / ((ratios[i] + ratios[i+1]) / 2.0) )
+	return r

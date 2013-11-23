@@ -33,6 +33,8 @@ class plugin(guiCalcPlugin):
 		self.pdbs	= pdbs
 		self.dir	= dir
 		self.args	= self.parser.parse_args( makeStringFromOptions(options).split() )
+		# convert dipolar coupling to MHz/A**3
+		self.args.Dip = self.args.Dip*1000.0
 		self.counter	= 0
 		self.state	= 0 # not busy
 		self.currentPDB = ''
@@ -69,9 +71,9 @@ class plugin(guiCalcPlugin):
 
 		# write normalized values to file
 		f = open( out, 'w')
-		for i in range( int( self.args.T / self.args.Tstep ) ):
+		for i in range( int( self.args.T / self.args.Tstep ) +1 ):
 			v = DEERSim.DEER_Vt( self.args.Dip, distribution, self.args.Tstep * i )
-			f.write( "%.3f\t%.3f\n" % (i*self.args.Tstep,v) )
+			f.write( "%.3f\t%.5f\n" % (i*self.args.Tstep,v/norm) )
 		f.close()
 
 		self.state = 0

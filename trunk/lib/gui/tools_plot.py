@@ -100,16 +100,15 @@ def plotAttributes( w ):
 	w.newWindow.grab_set()
 	w.newWindow.transient(w)
 	w.newWindow.wait_window()
-	if w.optWindow.returncode == 0:
-		p.plot( path, w.pluginOptions[ p.name ] )
 
-	cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_attribute_plot'),p1,'-stats',p2]
-	cmd.extend( makeListFromOptions( w.pluginOptions['attributePlotter'] ) )
-	try:
-		Popen(cmd)
-	except OSError:
-		tkMessageBox.showerror("Error","Could not open the attribute plotter",parent=w)
-		return
+	if w.optWindow.returncode == 0:
+		cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_attribute_plot'),p1,'-stats',p2]
+		cmd.extend( makeListFromOptions( w.pluginOptions['attributePlotter'] ) )
+		try:
+			Popen(cmd)
+		except OSError:
+			tkMessageBox.showerror("Error","Could not open the attribute plotter",parent=w)
+			return
 
 def plotHistogram( w ):
 	if( not w.resultsDB.has_key('ensemble_stats') ):
@@ -124,9 +123,32 @@ def plotHistogram( w ):
 		tkMessageBox.showerror("Error","Could not import matplotlib's pylab",parent=w)
 		return
 
-	#n, bins, patches = P.hist(w.resultsDB['ensemble_stats'][w.currentSelection[0]]['scores'], 50, normed=1, histtype='stepfilled')
-	#P.setp(patches, 'facecolor', 'r', 'alpha', 0.75)
-	#P.show()
+	n, bins, patches = P.hist(w.resultsDB['ensemble_stats'][w.currentSelection[0]]['scores'], 50, normed=1, histtype='stepfilled')
+	P.setp(patches, 'facecolor', 'r', 'alpha', 0.75)
+	P.show()
+
+def plotScoreProgress( w ):
+	if not w.resultsDB.has_key('ensemble_stats'):
+		return
+
+	try:
+		import pylab as P
+	except:
+		tkMessageBox.showerror("Error","Could not import matplotlib's pylab",parent=w)
+		return
+
+	generations, best_scores, avg_scores, score_deviations = [],[],[],[]
+	for (i,(scores,ratio,targets)) in enumerate(w.resultsDB['ensemble_stats']):
+		generations.append( i )
+		best_scores.append( scores[0] )
+		avg_scores.append( scores[1] )
+		score_deviations.append( scores[2] )
+
+	P.plot( generations, avg_scores, lw=2, c='b' )
+	P.errorbar( generations, avg_scores, yerr=score_deviations, fmt='o', c='b', label='Average' )
+	P.plot( generations, best_scores, lw=2, c='r')
+	P.scatter( generations, best_scores, label='Best', marker='o', c='r' )
+	P.show()
 
 def makePDBs( w ):
 	if(w.currentSelection[0] == None or w.currentSelection[1] == None):

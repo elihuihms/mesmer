@@ -10,7 +10,7 @@ from multiprocessing		import Process,Queue
 from exceptions				import *
 from ensemble_objects		import mesEnsemble
 from utility_functions		import print_msg,mean_stdv
-from utility_objects		import shelveList
+#from utility_objects		import shelveList
 from optimization_functions	import blind_random_min,localized_random_min
 
 def make_ensembles( args, plugins, targets, components ):

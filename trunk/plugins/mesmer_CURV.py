@@ -4,7 +4,6 @@
 
 import argparse
 import math
-import numpy
 import scipy
 import scipy.interpolate as interpolate
 import scipy.optimize as optimize
@@ -22,7 +21,7 @@ class plugin( mesPluginDB ):
 		mesPluginDB.__init__(self, args)
 
 		self.name = 'default_CURV'
-		self.version = '2013.09.24'
+		self.version = '2013.11.22'
 		self.type = (
 			'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',
 			'SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9',
@@ -35,7 +34,7 @@ class plugin( mesPluginDB ):
 		self.target_parser.add_argument('-offset',		action='store_true',	help='Allow the application of an offset to improve fitting')
 		self.target_parser.add_argument('-saxs_offset', type=float,				help='Improve fits to SAXS curves at higher specified scattering angles by applying an additional offset.')
 		self.target_parser.add_argument('-plot',		action='store_true',	help='Create a plot window at each generation showing fit to data (requires matplotlib)')
-		self.target_parser.add_argument('-fitness',		default='',	choices=['','SSE','Pearson','Poisson'],
+		self.target_parser.add_argument('-fitness',		default='',	choices=['','SSE','Pearson','Poisson','Vr'],
 																				help='Method used to calculate goodness-of-fit. Leave blank to use chi squared with explict dY data')
 
 		self.component_parser = argparse.ArgumentParser(prog=self.name)
@@ -175,8 +174,8 @@ class plugin( mesPluginDB ):
 		if( len(values) < 2 ):
 			raise mesPluginError("Target data must contain at least two columns: x y")
 
-		restraint.data['x'] = numpy.array(values[0])
-		restraint.data['y'] = numpy.array(values[1])
+		restraint.data['x'] = scipy.array(values[0])
+		restraint.data['y'] = scipy.array(values[1])
 
 		# autodetect restraint types
 		if( restraint.type[0:4] == 'SAXS' ):
@@ -191,16 +190,13 @@ class plugin( mesPluginDB ):
 			raise mesPluginError("Scaling or offset options not available when fitting DEER data")
 
 		# set the per-point weighting to be used during fitting
-		if( args.fitness == 'SSE' ):
-			# X^2 = (Y - Y_fit)^2
+		if( args.fitness == 'SSE' ): # X^2 = (Y - Y_fit)^2
 			restraint.data['d'] = [1.0] * len(restraint.data['x'])
 
-		elif( args.fitness == 'Pearson' ):
-			# X^2 = ((Y - Y_fit) / Y)^2
+		elif( args.fitness == 'Pearson' ): # X^2 = ((Y - Y_fit) / Y)^2
 			restraint.data['d'] = restraint.data['y']
 
-		elif( args.fitness == 'Poisson' ):
-			# X^2 = ((Y - Y_fit) / sqrt(Y))^2
+		elif( args.fitness == 'Poisson' ): # X^2 = ((Y - Y_fit) / sqrt(Y))^2
 			restraint.data['d'] = [ math.sqrt(y) for y in restraint.data['y'] ]
 
 		elif(len(values) != 3):
@@ -208,7 +204,18 @@ class plugin( mesPluginDB ):
 
 		else:
 			# X^2 = ((Y - Y_fit) / dY)^2
-			restraint.data['d'] = numpy.array(values[2])
+			restraint.data['d'] = scipy.array(values[2])
+
+		if( args.fitness == 'Vr' ): # volatility ratio - Hura et al. Nmeth. 2013
+			# resample (bin) x values
+			interval = (restraint.data['x'][-1] - restraint.data['x'][0]) / 30.0
+			resample = scipy.arange( restraint.data['x'][0], restraint.data['x'][-1], interval )
+			try:
+				temp = interpolate.splrep( restraint.data['x'], restraint.data['y'] )
+				restraint.data['y'] = interpolate.splev( resample, temp )
+				restraint.data['x'] = resample
+			except TypeError:
+				raise mesPluginError("Could not interpolate target's curve data. Perhaps the x values are not ordered?")
 
 		target_data['args'] = args
 
@@ -252,7 +259,7 @@ class plugin( mesPluginDB ):
 			temp = interpolate.splrep( values[0], values[1] )
 			interpolate.splev( attribute.restraint.data['x'], temp )
 		except TypeError:
-			raise mesPluginError("Could not interpolate the component's curve data to the target's. Perhaps the x values are not sorted?")
+			raise mesPluginError("Could not interpolate the component's curve data to the target's. Perhaps the x values are not ordered?")
 
 		# save the spline to the database
 		attribute.data['key'] = self.put(data=temp)
@@ -292,7 +299,7 @@ class plugin( mesPluginDB ):
 		assert(len(attributes) == len(ratios))
 
 		# average the attribute data - this is slow due to the lookup penalty each time. Optimize?
-		ensemble_data['y'] = numpy.average([interpolate.splev(restraint.data['x'], self.get(a.data['key'])) for a in attributes],0,ratios)
+		ensemble_data['y'] = scipy.average([interpolate.splev(restraint.data['x'], self.get(a.data['key'])) for a in attributes],0,ratios)
 		ensemble_data['x'] = restraint.data['x']
 
 		# determine the scaling and/or offset coefficients
@@ -317,10 +324,10 @@ class plugin( mesPluginDB ):
 			def opt( l ):
 				for i in range(n):
 					tmp[i] = 1.0 -l +(l*ensemble_data['y'][i])
-				return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], numpy.array(tmp) )
+				return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], scipy.array(tmp) )
 			ensemble_data['lambda'] = optimize.brent( opt )
 
-			ensemble_data['y'] = numpy.array([ 1.0 -ensemble_data['lambda'] + (ensemble_data['lambda']*f) for f in ensemble_data['y'] ])
+			ensemble_data['y'] = scipy.array([ 1.0 -ensemble_data['lambda'] + (ensemble_data['lambda']*f) for f in ensemble_data['y'] ])
 		else:
 			# apply the scaling and offset coefficients to the dataset
 			ensemble_data['y'] *= ensemble_data['scale']
@@ -337,5 +344,8 @@ class plugin( mesPluginDB ):
 
 			ensemble_data['saxs_offset'] = tools.get_offset( restraint.data['y'], ensemble_data['y'], target_data['saxs_offset_n'] )
 			ensemble_data['y'] += ensemble_data['saxs_offset']
+
+		if( target_data['args'].fitness == 'Vr' ):
+			return tools.get_volatility_ratio( restraint.data['y'], ensemble_data['y'] )
 
 		return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )

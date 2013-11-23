@@ -79,6 +79,7 @@ def connectToRun( w, path, pHandle ):
 	w.activeDirButton.config(state=tk.DISABLED)
 	w.currentSelection = [None,None,None]
 	w.abortButton.config(state=tk.NORMAL)
+	w.progressPlotButton.config(state=tk.NORMAL)
 
 	def readQueue( out, queue ):
 		for line in iter(out.readline, b''):

@@ -83,7 +83,7 @@ class plugin( mesPluginBasic ):
 			restraint.data['components'][component[0]] = float(component[1])
 			sum += float(component[1])
 
-		# normalize the components to fractions
+		# normalize the components to ratios
 		for component in args.component:
 			restraint.data['components'][component[0]] /= sum
 
