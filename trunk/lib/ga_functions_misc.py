@@ -163,11 +163,12 @@ def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_sta
 
 	procs = []
 	for i in range( args.threads ):
-		p = Process(target=optimize_ratios, args=(args,components,plugins,targets,ensembles[ chunksize * i : chunksize * (i +1) ],q,print_status))
+		p = Process(target=optimize_ratios, args=(args,components,plugins,targets,ensembles[:chunksize],q,print_status))
 		procs.append( p )
 		p.start()
 
-	ensembles = []
+		del ensembles[:chunksize] # remove unoptimized ensembles
+	
 	for i in range( args.threads ):
 		ensembles.extend( q.get() )
 
