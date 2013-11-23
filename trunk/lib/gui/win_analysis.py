@@ -57,10 +57,11 @@ class AnalysisWindow(tk.Frame):
 		self.master.destroy()
 
 	def abortCurrentRun(self):
-		result = tkMessageBox.askyesno('Cancel Run',"Are you sure you want to cancel a run in progress?")
+		result = tkMessageBox.askyesno('Cancel Run',"Are you sure you want to cancel a run in progress?",parent=self)
 		if(result):
 			self.pHandle.kill()
 			self.abortButton.config(state=tk.DISABLED)
+			self.statusText.set('Aborted')
 
 	def setWorkFolder(self):
 		tmp = tkFileDialog.askdirectory(title='Select Results Directory',mustexist=True,parent=self)

@@ -31,7 +31,7 @@ def load_components( args, plugins, targets ):
 	divisor = int(max(len(files)/100,1))
 	for (i,f) in enumerate(files):
 		if( i % divisor == 0 ):
-			sys.stdout.write("\rComponent loading progress: %i%%" % (100.*i/len(files)+1) )
+			sys.stdout.write("Component loading progress: %i%%\r" % (100.*i/len(files)+1) )
 			sys.stdout.flush()
 
 		temp = mesComponent()

@@ -19,6 +19,7 @@ class SetupWindow(tk.Frame):
 		self.master.title('Configure MESMER Run')
 		self.master.resizable(width=False, height=False)
 		self.master.protocol('WM_DELETE_WINDOW', self.close)
+		self.master.bind("<Return>", self.setupAndStartRun)
 		self.parent = parent
 
 		tk.Frame.__init__(self,master)
@@ -51,7 +52,7 @@ class SetupWindow(tk.Frame):
 		self.prefs.close()
 		self.master.destroy()
 
-	def setupAndStartRun(self):
+	def setupAndStartRun(self, evt=None):
 		if( startRun( self, self.prefs['mesmer_exe_path'] ) ):
 			self.close()
 

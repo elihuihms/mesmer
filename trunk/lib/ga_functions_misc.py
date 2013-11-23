@@ -99,14 +99,12 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q, print_sta
 	def wrapper( ratios ):
 		return sum(e.get_fitness( components, plugins, t, ratios ).itervalues())
 
-	n2 = len(targets)
-	n1 = len(ensembles)
-	divisor = int(max(n1/100,1))
-	for t in targets:
-		for (i,e) in enumerate(ensembles):
-
-			if(i % divisor == 0) and (print_status):
-				sys.stdout.write("\r\tComponent ratio optimization progress: %i%%" % (100.*i/(n1*n2)+1) )
+	n1,n2 = len(targets),len(ensembles)
+	divisor = int(max(n1*n2/100,1))
+	for (i,t) in enumerate(targets):
+		for (j,e) in enumerate(ensembles):
+			if((i*j) % divisor == 0 and print_status):
+				sys.stdout.write("\tComponent ratio optimization progress: %i%%\r" % (100.*(i+1)*j/(n1*n2)+1) )
 				sys.stdout.flush()
 
 			if(e.optimized[t.name]):

@@ -212,6 +212,8 @@ if( __name__ == "__main__" ):
 		ax = fig.add_subplot(111, projection='3d')
 	else:
 		ax = fig.add_subplot(111)
+		#ax = plot.axes( [0.1,0.1,0.85,0.85] )
+		#ax = plot.axes( [0.1,0.1,0.55,0.85] )
 
 	if( len(plot_data[1]) > 0 ):
 		if(args.zCol):

@@ -10,7 +10,7 @@ from threading			import Thread
 from Queue				import Queue, Empty
 
 from lib.gui.tools_setup	import makeMESMERArgsFromWindow,makeStringFromArgs
-from lib.gui.tools_analysis	import openLogWindow
+from lib.gui.tools_analysis	import openLogWindow,updateGenerationList
 from lib.gui.win_analysis	import AnalysisWindow
 
 def startRun( w, mesmerPath ):
@@ -39,7 +39,7 @@ def startRun( w, mesmerPath ):
 
 	# fire up MESMER and get the process handle
 	try:
-		pHandle = Popen( [mesmerPath,"@%s" % argpath], cwd=args.dir, stdout=PIPE, stderr=STDOUT, bufsize=0 )
+		pHandle = Popen( [mesmerPath,"@%s" % argpath], cwd=args.dir, stdout=PIPE, stderr=STDOUT, bufsize=0, universal_newlines=True )
 	except OSError as e:
 		tkMessageBox.showerror("Error","Error starting a MESMER run.\nError:\n%s" % e,parent=w)
 		return False
@@ -126,9 +126,9 @@ def updateLogWindow( w ):
 		except Empty: # read until queue is empty
 			return
 
-		if( 'Reading target file' in line):
+		if( 'INFO: Reading target file' in line):
 			w.statusText.set('Reading targets...')
-		elif( 'Component loading progress' in line):
+		elif( 'INFO: Found ' in line and 'component files' in line):
 			w.statusText.set('Loading components...')
 		elif( 'Optimizing parent component ratios' in line):
 			w.statusText.set('Optimizing component ratios...')
@@ -138,8 +138,9 @@ def updateLogWindow( w ):
 			w.statusText.set('Finding best fit intervals...')
 
 		count = int(w.logWindow.logText.index('end').split('.')[0])
-		if( "\r" in line ): # carriage return
+		if( " progress:" in line ): # carriage return
 			w.logWindow.logText.delete("%i.0" % (count-2),"%i.0" % (count-1))
 
-		w.logWindow.logText.insert(tk.END,line.replace("\r",''))
+		w.logWindow.logText.insert(tk.END,line)
+		#w.logWindow.logText.insert(tk.END,line.replace("\r",''))
 	return

@@ -12,7 +12,7 @@ def loadControlVarArgs(w):
 	string.replace("\n",'')
 	string.replace("\r",'')
 	args = parse_arguments(string)
-	w.setControlVarsFromMESMERArgs(args)
+	setControlVarsFromMESMERArgs(w, args)
 
 def saveControlVarArgs(w):
 	text = makeStringFromArgs( makeMESMERArgsFromWindow(w) )
