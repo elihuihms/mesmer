@@ -26,10 +26,11 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-SkipChain', action='store_true', help='Skip acceptor fluorophores in the same chain as the donor.')
 		self.parser.add_argument('-SkipModel', action='store_true', help='Skip acceptor fluorophores in the same model as the donor.')
 
-	def setup(self, pdbs, dir, options):
+	def setup(self, pdbs, dir, options, threads):
 		self.pdbs	= pdbs
 		self.dir	= dir
 		self.options	= options
+		self.threads	= threads
 		self.counter	= 0
 		self.state	= 0 # not busy
 		self.currentPDB = ''
@@ -45,9 +46,9 @@ class plugin(guiCalcPlugin):
 			raise Exception( "Could not read specified IRF file")
 
 	def calculator(self):
-		if(self.state != 0):	#semaphore to check if we're still busy processing
+		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
 			return
-		self.state = 1
+		self.state +=1
 
 		pdb = os.path.abspath( self.pdbs[self.counter] )
 		base = os.path.basename(pdb)
@@ -68,6 +69,6 @@ class plugin(guiCalcPlugin):
 		if not os.access(out, os.R_OK):
 			raise Exception( "Lifetime calculation failed for \"%s\". %s" % (pdb,pipe.stdout.read()) )
 
-		self.state = 0
+		self.state -=1
 		self.counter +=1
 		return self.counter

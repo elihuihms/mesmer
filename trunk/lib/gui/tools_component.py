@@ -117,7 +117,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 		return
 
 	try:
-		plugin.setup( pdbs, dir, options )
+		plugin.setup( pdbs, dir, options, w.prefs['cpu_count'] )
 	except Exception as e:
 		tkMessageBox.showerror("Error","Plugin reported a problem: %s" % (e))
 		return

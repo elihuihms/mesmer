@@ -8,7 +8,7 @@ class guiCalcPlugin():
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.respawn = 1000 #ms b/t calculator calls
 
-	def setup(self, pdbs, dir, options, nThreads=1):
+	def setup(self, pdbs, dir, options, threads):
 		"""
 		Sets up the plugin to calculate predicted data from a list of pdbs. The dir is already created and ready to receive the list of files
 		"""

@@ -52,7 +52,7 @@ plot.yscale('log')
 
 b = plot.axes([0.55,0.55,0.38,0.38])
 for (i,d) in enumerate(data):
-	if len(data) == 5:
+	if len(data) == 1:
 		b.plot( d[0], [1]*len(d[0]), '%s-' % args.colors[i], linewidth=2 )
 		b.scatter( d[0], d[1]/d[2], edgecolor='k', facecolors='none' )
 	else:

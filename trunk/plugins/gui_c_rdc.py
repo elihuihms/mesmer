@@ -33,10 +33,11 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-B0',		type=float,	help='Field strength (Gauss)',	default=16.44)
 		self.parser.add_argument('-temp',	type=float,	help='Temperature (K)',			default=298.0)
 
-	def setup(self, pdbs, dir, options):
+	def setup(self, pdbs, dir, options, threads):
 		self.pdbs	= pdbs
 		self.dir	= dir
 		self.args	= self.parser.parse_args( makeStringFromOptions(options).split() )
+		self.threads	= threads
 		self.counter	= 0
 		self.state	= 0 # not busy
 		self.currentPDB = ''
@@ -48,9 +49,9 @@ class plugin(guiCalcPlugin):
 			raise Exception( "Could not read specified RDC table")
 
 	def calculator(self):
-		if(self.state != 0):	#semaphore to check if we're still busy processing
+		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
 			return
-		self.state = 1
+		self.state +=1
 
 		pdb = os.path.abspath( self.pdbs[self.counter] )
 		base = os.path.basename(pdb)
@@ -83,6 +84,6 @@ class plugin(guiCalcPlugin):
 		analysis = ExplorePara()
 		analysis.buildNumbatTBL(rdc, "%s%s%s.rdc" % (self.dir,os.sep,name))
 
-		self.state = 0
+		self.state -=1
 		self.counter +=1
 		return self.counter

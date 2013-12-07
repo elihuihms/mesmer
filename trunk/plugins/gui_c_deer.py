@@ -13,7 +13,7 @@ class plugin(guiCalcPlugin):
 
 	def __init__(self, mesmerDir):
 		self.name = 'DEER'
-		self.version = '2013.10.18'
+		self.version = '2013.12.06'
 		self.type = 'DEER'
 		self.respawn = 100
 
@@ -23,16 +23,16 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-Tstep', 	type=float, default=0.025,	required=True,	help='Time resolution (us)')
 		self.parser.add_argument('-chainAID',			default=None,	required=False,	help='Chain ID for first labeled residue')
 		self.parser.add_argument('-resANum',			default='',		required=True,	help='Residue number for first labeled residue')
-		self.parser.add_argument('-atomA',				default='CA',	required=True,	help='Atom name to use as center of first label distribution')
 		self.parser.add_argument('-chainBID',			default=None,	required=False,	help='Chain ID for second labeled residue')
 		self.parser.add_argument('-resBNum',			default='',		required=True,	help='Residue number for second labeled residue')
-		self.parser.add_argument('-atomB',				default='CA',	required=True,	help='Atom name to use as center of second label distribution')
-		self.parser.add_argument('-distW',	type=float,	default=5.0,	required=True,	help='Width of label distribution (angstrom)')
+		self.parser.add_argument('-distW',	type=float,	default=5.75,	required=True,	help='Probe isolinker distribution  width (angstrom)')
+		self.parser.add_argument('-linkR',	type=float, default=4.04,	required=True,	help='Probe isolinker length (angstrom)')
 
-	def setup(self, pdbs, dir, options):
+	def setup(self, pdbs, dir, options, threads):
 		self.pdbs	= pdbs
 		self.dir	= dir
 		self.args	= self.parser.parse_args( makeStringFromOptions(options).split() )
+		self.threads	= threads
 		# convert dipolar coupling to MHz/A**3
 		self.args.Dip = self.args.Dip*1000.0
 		self.counter	= 0
@@ -40,42 +40,54 @@ class plugin(guiCalcPlugin):
 		self.currentPDB = ''
 
 	def calculator(self):
-		if(self.state != 0):	#semaphore to check if we're still busy processing
+		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
 			return
-		self.state = 1
+		self.state +=1
 
-		pdb = os.path.abspath( self.pdbs[self.counter] )
-		if not os.access(pdb, os.R_OK):
-			raise Exception( "Could not read \"%s\"" % (pdb) )
-
-		base = os.path.basename(pdb)
-		name = os.path.splitext( os.path.basename(pdb) )[0]
-		out = "%s%s%s.dat" % (self.dir,os.sep,name)
+		f = open( self.pdbs[self.counter], 'r' ) # get a handle to the coordinate file
 
 		# obtain distance between the two labeled residues
 		distance = PDBTools.get_distance(
-			pdb,
+			f,
 			self.args.chainAID,
 			self.args.resANum,
-			self.args.atomA,
+			'CA',
 			self.args.chainBID,
 			self.args.resBNum,
-			self.args.atomB
-			)
+			'CA')
+
+		# obtain the colinearity of the two labeled residues' CA-CB bond
+		orientation = PDBTools.get_alignment(
+			f,
+			self.args.chainAID,
+			self.args.resANum,
+			'CA',
+			'CB',
+			self.args.chainBID,
+			self.args.resBNum,
+			'CA',
+			'CB')
+
+		f.close()
 
 		# generate a distance distribution
-		distribution = PDBTools.make_distribution( distance, self.args.distW )
+		tmp = PDBTools.make_distribution( distance, self.args.distW )
 
-		# obtain the maximum to normalize against
+		# modify distribution according to linker alignment
+		distribution = []
+		for (r,W) in tmp:
+			distribution.append( (r -(orientation * self.args.linkR), W) )
+
+		# obtain the maximum intensity for normalization
 		norm = DEERSim.DEER_Vt( self.args.Dip, distribution, 0.0 )
 
 		# write normalized values to file
-		f = open( out, 'w')
+		f = open( "%s%s%s.dat" % (self.dir, os.sep, os.path.basename(self.pdbs[self.counter])), 'w')
 		for i in range( int( self.args.T / self.args.Tstep ) +1 ):
 			v = DEERSim.DEER_Vt( self.args.Dip, distribution, self.args.Tstep * i )
 			f.write( "%.3f\t%.5f\n" % (i*self.args.Tstep,v/norm) )
 		f.close()
 
-		self.state = 0
+		self.state -=1
 		self.counter +=1
 		return self.counter

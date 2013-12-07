@@ -57,10 +57,11 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-Beta',	type=float,	help='Beta component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-Gamma',	type=float,	help='Gamma component of alignment tensor Euler angle',	required=True)
 
-	def setup(self, pdbs, dir, options):
+	def setup(self, pdbs, dir, options, threads):
 		self.pdbs	= pdbs
 		self.dir	= dir
 		self.args	= self.parser.parse_args( makeStringFromOptions(options).split() )
+		self.threads	= threads
 		self.counter	= 0
 		self.state	= 0 # not busy
 		self.currentPDB = ''
@@ -72,9 +73,9 @@ class plugin(guiCalcPlugin):
 			raise Exception( "Could not read specified PCS table")
 
 	def calculator(self):
-		if(self.state != 0):	#semaphore to check if we're still busy processing
+		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
 			return
-		self.state = 1
+		self.state +=1
 
 		pdb = os.path.abspath( self.pdbs[self.counter] )
 		base = os.path.basename(pdb)
@@ -114,6 +115,6 @@ class plugin(guiCalcPlugin):
 		analysis = ExplorePara()
 		analysis.buildNumbatTBL(pcs, "%s%s%s.pcs" % (self.dir,os.sep,name))
 
-		self.state = 0
+		self.state -=1
 		self.counter +=1
 		return self.counter
