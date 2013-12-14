@@ -30,8 +30,8 @@ def parse_arguments(str=None):
 	parser = mesParser(fromfile_prefix_chars='@')
 
 	group0 = parser.add_argument_group('Target and component files')
-	group0.add_argument('-target',		action='append',									metavar='FILE.target',			help='MESMER target file')
-	group0.add_argument('-components',	action='append',	nargs='*',						metavar='FILE.component/DIR',	help='MESMER component files or directory ')
+	group0.add_argument('-target',		action='append',	default=[],						metavar='FILE.target',			help='MESMER target file')
+	group0.add_argument('-components',	action='append',	default=[],		nargs='*',		metavar='FILE.component/DIR',	help='MESMER component files or directory ')
 	group0.add_argument('-resume',															metavar='STATE.tbl',			help='Resume from a provided ensemble state')
 
 	group1 = parser.add_argument_group('Simulation size and convergence parameters')
@@ -110,8 +110,8 @@ def make_results_dir( args ):
 
 	try:
 		print_msg('',os.path.join(args.dir,"mesmer_log.txt"))
-	except:
-		raise mesSetupError("ERROR: Couldn't open MESMER log file")
+	except Exception as e:
+		raise mesSetupError("ERROR: Couldn't open MESMER log file: %s" % e)
 
 	try:
 		db = shelve.open( os.path.join(args.dir,'mesmer_log.db') )

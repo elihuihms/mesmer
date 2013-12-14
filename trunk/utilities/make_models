@@ -28,6 +28,7 @@ group2.add_argument('-Wmin',	type=float,				default=0.05,	metavar='0.05',							
 group3 = parser.add_argument_group('Output options')
 group3.add_argument('-out',								required=True,	metavar='*.pdb',						help='Filename to save output PDB under')
 group3.add_argument('-wAttr',	action='store_true',	default=False,											help='Write UCSF Chimera attribute files for prevalence and weighting of each component')
+group3.add_argument('-wPyMol',	action='store_true',	default=False,											help='Write PyMol scripts for prevalence and weighting of each component')
 
 args = parser.parse_args()
 
@@ -128,3 +129,15 @@ if( args.wAttr ):
 		write_model_attributes( path, name, [100*w for w in weights] )
 	except Exception as e:
 		print "ERROR: Could not write attribute lists: %s" % (e)
+
+if( args.PyMol ):
+	try:
+		name = "%s_prev" % os.path.splitext(os.path.basename(args.out))[0]
+		path = "%s_prev.py" % os.path.splitext(args.out)[0]
+		write_model_script( path, name, [p/100.0 for p in prevalences] )
+
+		name = "%s_weights" % os.path.splitext(os.path.basename(args.out))[0]
+		path = "%s_weights.py" % os.path.splitext(args.out)[0]
+		write_model_script( path, name, weights )
+	except Exception as e:
+		print "ERROR: Could not write coloration script: %s" % (e)

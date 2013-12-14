@@ -12,8 +12,8 @@ from lib.component_functions	import load_components
 from lib.ga_functions_main		import run_ga
 
 def main():
-	_mes_version	= "0.7a"
-	_mes_build		= "2013.11.05.0"
+	_mes_version	= "0.8a"
+	_mes_build		= "2013.12.13.0"
 
 	# obtain the parameters for the run
 	args = parse_arguments()
@@ -24,10 +24,6 @@ def main():
 	except mesPluginError as e:
 		print e.msg
 		sys.exit(10)
-
-	if( len(plugins) < 1):
-		print "ERROR: No valid data plugins found, aborting."
-		sys.exit(11)
 
 	# did the user request information about a plugin?
 	for p in plugins:
@@ -43,7 +39,7 @@ def main():
 		sys.exit(20)
 
 	# save the parameters list to the log file
-	print_msg("MESMER v. %s build %s\n(C)2012-2013 Elihu Ihms" % (_mes_version,_mes_build))
+	print_msg("MESMER v. %s build %s\n(c)2012-2014 Elihu Ihms" % (_mes_version,_mes_build))
 	print_msg("Arguments:")
 	for k in vars(args):
 		print_msg("\t%s\t:\t%s" % (k,vars(args)[k]))
