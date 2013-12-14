@@ -130,7 +130,7 @@ if( args.wAttr ):
 	except Exception as e:
 		print "ERROR: Could not write attribute lists: %s" % (e)
 
-if( args.PyMol ):
+if( args.wPyMol ):
 	try:
 		name = "%s_prev" % os.path.splitext(os.path.basename(args.out))[0]
 		path = "%s_prev.py" % os.path.splitext(args.out)[0]
