@@ -19,6 +19,7 @@ group1.add_argument('-names',	nargs='*',				default=[],		metavar='NAME',							h
 group2 = parser.add_argument_group('PDBs from ensemble file')
 group2.add_argument('-ensembles',						default=None,	metavar='ensembles_*.tbl',				help='MESMER ensemble state file')
 group2.add_argument('-id',		type=int,				default=0,		metavar='N',							help='Save components from the ensemble IDs provided by get_ensemble_stats')
+group2.add_argument('-best',	action='store_true',	default=False,											help='Save only the best ensemble components')
 
 group3 = parser.add_argument_group('PDBs from statistics file')
 group3.add_argument('-stats',							default=None,	metavar='component_statistics_*.tbl',	help='MESMER component statistics file')
@@ -70,7 +71,12 @@ elif( args.ensembles ):
 		print "ERROR: Could not load ensemble information from state file. Reason: %s" % (e)
 		exit()
 
-	for (i,n) in enumerate( ensemble_stats[args.id]['components'] ):
+	if( args.best ):
+		tmp = ensemble_stats[0]['components']
+	else:
+		tmp = ensemble_stats[args.id]['components']
+
+	for (i,n) in enumerate( tmp ):
 		names.append( n )
 		prevalences.append( 1.0 )
 		weights.append( ensemble_stats[args.id]['weights'][i] )

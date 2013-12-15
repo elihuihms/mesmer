@@ -8,6 +8,7 @@ import tkMessageBox
 import lib.gui.tools_run # to avoid circular import of AnalysisWindow
 from lib.gui.tools_analysis	import *
 from lib.gui.tools_plot		import *
+from lib.gui.tools_pdb		import *
 from lib.gui.tools_plugin	import getGUIPlotPlugins
 from lib.gui.win_log		import LogWindow
 from lib.gui.win_about		import programInfo
