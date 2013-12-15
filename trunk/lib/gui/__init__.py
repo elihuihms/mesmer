@@ -3,7 +3,6 @@ __all__ = [
 	'tools_TkTooltip',
 	'tools_analysis',
 	'tools_component',
-	'tools_general',
 	'tools_plot',
 	'tools_plugin',
 	'tools_run',

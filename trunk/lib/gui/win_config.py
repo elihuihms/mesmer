@@ -6,7 +6,6 @@ import shelve
 import multiprocessing
 
 from lib.gui.tools_TkTooltip	import ToolTip
-from lib.gui.tools_general		import getWhichPath
 
 class ConfigWindow(tk.LabelFrame):
 	def __init__(self, master, mainWindow):

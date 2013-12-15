@@ -37,6 +37,7 @@ class mesEnsemble:
 			for p in plugins:
 				for type in p.type:
 					self.plugin_data[t.name][type] = {}
+					self.fitness[t.name][type] = 0.0
 
 		return
 
@@ -185,5 +186,5 @@ class mesEnsemble:
 			for p in plugins:
 				if( r.type in p.type ):
 					self.fitness[target.name][r.type] = r.scale * p.calc_fitness( r, target.plugin_data[r.type], self.plugin_data[target.name][r.type], attributes, self.ratios[target.name] )
-
+					
 		return self.fitness[target.name]

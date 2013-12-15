@@ -5,7 +5,6 @@ import shutil
 from subprocess				import Popen,PIPE
 
 from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_general	import getWhichPath
 from lib.gui.tools_plugin	import makeStringFromOptions
 
 class plugin(guiCalcPlugin):
@@ -34,10 +33,6 @@ class plugin(guiCalcPlugin):
 		self.state	= 0 # not busy
 		self.currentPDB = ''
 
-		self.prog = getWhichPath( 'crysol' )
-		if(self.prog == ''):
-			raise Exception("Could not find \"crysol\" program. Perhaps it isn't installed?")
-
 	def calculator(self):
 		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
 			return
@@ -50,11 +45,18 @@ class plugin(guiCalcPlugin):
 		if not os.path.exists(pdb):
 			raise Exception( "Could not find \"%s\"" % (pdb) )
 
-		cmd = [self.prog]
+		cmd = ['crysol']
 		cmd.extend( makeStringFromOptions(self.options).split() )
 		cmd.append( pdb )
-		pipe = Popen(cmd, cwd=self.dir, stdout=PIPE)
-		pipe.wait()
+		
+		try:
+			pipe = Popen(cmd, cwd=self.dir, stdout=PIPE)
+			pipe.wait()
+		except OSError as e:
+			if(e.errno == os.errno.ENOENT):
+				raise Exception("Could not find \"crysol\" program. Perhaps it isn't installed?")
+			else:
+				raise e
 
 		tmp = "%s%s%s00.int" % (self.dir,os.sep,name)
 		if not os.path.exists(tmp):

@@ -9,12 +9,9 @@ from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
 
 sys.path.append( os.path.join(os.path.dirname(__file__),'pyParaTools') )
-try:
-	from	ParaParser	import *
-	from	CalcPara	import *
-	from	ExplorePara	import *
-except:
-	raise Exception( "pyParaTools not installed" )
+from	ParaParser	import *
+from	CalcPara	import *
+from	ExplorePara	import *
 
 def get_atom_coords(file,chainID=None,resNum=None,atomName='CA'):
 

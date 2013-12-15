@@ -29,9 +29,6 @@ def load_plugins( dir, type, *args ):
 		# following is not exception-wrapped for easier debugging in MESMER
 		plugins.append( module.plugin( *args ) )
 
-	if len(plugins) == 0:
-		raise mesPluginError("ERROR: No valid %s plugins found in %s." % (type,dir) )
-
 	return plugins
 
 def unload_plugins( plugins ):

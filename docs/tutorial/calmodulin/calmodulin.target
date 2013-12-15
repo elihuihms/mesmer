@@ -1,11 +1,11 @@
 NAME	calmodulin
 
-SAXS	1	-file saxs.dat -scale -offset
+SAXS0	1	-file saxs.dat -scale -offset
 
-LIST1	5	-file Tm.pcs -col 2 -fitness Quality 
+LIST0	5	-file Tm.pcs -col 2 -fitness Quality 
 
-LIST2	5	-file Tb.pcs -col 2 -fitness Quality 
+LIST1	5	-file Tb.pcs -col 2 -fitness Quality 
 
-LIST3	5	-file Tm.rdc -col 2 -fitness Quality 
+LIST2	5	-file Tm.rdc -col 2 -fitness Quality 
 
-LIST4	5	-file Tb.rdc -col 2 -fitness QUality 
+LIST3	5	-file Tb.rdc -col 2 -fitness QUality 

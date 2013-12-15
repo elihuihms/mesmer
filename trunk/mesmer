@@ -30,6 +30,9 @@ def main():
 		if (args.plugin == p.name) or (args.plugin in p.type):
 			p.info()
 			sys.exit(0)
+			
+	if len(plugins) == 0:
+		raise mesPluginError("ERROR: No valid plugins found in %s." % (os.path.dirname(__file__)) )
 
 	# attempt to create the fitting results directory
 	try:
