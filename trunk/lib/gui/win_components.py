@@ -58,6 +58,7 @@ class ComponentsWindow(tk.Frame):
 		tmp = tkFileDialog.askopenfilename(title='Select target file:',parent=self)
 		if(tmp == ''):
 			return
+			
 		blocks = get_input_blocks(tmp)
 		if(len(blocks)<2):
 			return
