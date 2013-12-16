@@ -39,8 +39,8 @@ def parse_arguments(str=None):
 	group1.add_argument('-dir',			action='store',		default='./',					metavar='DIR',	help='Directory in which to create results folder')
 	group1.add_argument('-ensembles',	action='store',		default=1000,	type=int,		metavar='1000',	help='Number of ensembles to use in the algorithm')
 	group1.add_argument('-size',		action='store',		default=3,		type=int,		metavar='3',	help='Number of components per ensemble')
-	group1.add_argument('-Fmin',		action='store',		default=0.00,	type=float,		metavar='0.0',	help='Maximum ensemble fitness to stop algorithm')
-	group1.add_argument('-Smin',		action='store',		default=0.00,	type=float,		metavar='0.0',	help='Minimum ensemble fitness stdev to stop algorithm')
+	group1.add_argument('-Fmin',		action='store',		default=0.00,	type=float,		metavar='0.00',	help='Maximum ensemble fitness to stop algorithm')
+	group1.add_argument('-Smin',		action='store',		default=0.00,	type=float,		metavar='0.01',	help='Minimum ensemble fitness stdev to stop algorithm')
 
 	group2 = parser.add_argument_group('Genetic algorithm coefficients')
 	group2.add_argument('-Gmax',		action='store',		default=-1,		type=int,		metavar='Inf',	help='Maximum number of generations, set to -1 to run indefinitely')
@@ -58,9 +58,9 @@ def parse_arguments(str=None):
 	group4 = parser.add_argument_group('Output options')
 	group4.add_argument('-Pstats',		action='store_true',default=True,									help='Print ensemble information at each generation. NOTE: always enabled')
 	group4.add_argument('-Pbest',		action='store_true',default=True,									help='Print best ensemble information at each generation.')
+	group4.add_argument('-Pstate',		action='store_true',default=True,									help='Print ensemble ratio state at each generation')
 	group4.add_argument('-Popt',		action='store_true',default=False,									help='Print optimization convergence status for all ensembles.')
 	group4.add_argument('-Pextra',		action='store_true',default=False,									help='Print extra restraint-specific information.')
-	group4.add_argument('-Pstate',		action='store_true',default=False,									help='Print ensemble ratio state at each generation')
 	group4.add_argument('-Pmin',		action='store',		default=1.0,	type=float,		metavar='1.0',	help='Print conformer statistics only if they exist in this percentage of ensembles or greater.')
 	group4.add_argument('-Pcorr',		action='store',		default=1.0,	type=float,		metavar='1.0',	help='Print conformer correlations only if they exist in this percentage of ensembles or greater.')
 
