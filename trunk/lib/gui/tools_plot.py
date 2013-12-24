@@ -130,7 +130,7 @@ def plotHistogram( w ):
 def plotScoreProgress( w ):
 	if not w.resultsDB.has_key('ensemble_stats'):
 		return
-
+		
 	try:
 		import pylab as P
 	except:
@@ -148,5 +148,8 @@ def plotScoreProgress( w ):
 	P.errorbar( generations, avg_scores, yerr=score_deviations, fmt='o', c='b', label='Average' )
 	P.plot( generations, best_scores, lw=2, c='r')
 	P.scatter( generations, best_scores, label='Best', marker='o', c='r' )
+	P.ion()
 	P.show()
+	
+	return
 

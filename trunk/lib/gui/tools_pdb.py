@@ -72,14 +72,14 @@ def makePDBs( w ):
 			return
 		tmp.extend( ['-stats',path] )
 
-	cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_models'),'-out',output,'-pdbs',pdb_dirs]
+	cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_models'),pdb_dirs,'-out',output]
 	cmd.extend( tmp )
-
+	
 	try:
 		handle = Popen(cmd,stdout=PIPE,stderr=PIPE)
 		handle.wait()
 		if( handle.returncode != 0 ):
-			tkMessageBox.showerror("Error","make_generation_models reported an error: %s" % handle.communicate()[0])
+			tkMessageBox.showerror("Error","make_generation_models reported an error: %s" % (''.join(handle.communicate())) )
 	except OSError as e:
 		tkMessageBox.showerror("Error","Could not open make_generation_models: %s" % (e),parent=w)
 		return

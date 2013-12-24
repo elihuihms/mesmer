@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import Tkinter as tk
 
 from lib.gui.tools_TkTooltip import ToolTip

@@ -832,14 +832,17 @@ class RDCParser(ParaParser):
         for i in range(0, len(self._dataset)):
             res, at, exp, tol =  self._dataset[i].split()
 
-            if(len(at) < 2):
-            	print "Bond vector named at line %i should be in the form of \"IS\", e.g. \"HN\""
-            	sys.exit(0)
-
-            at1, at2 = at[0], at[1]
+            if(len(at) < 2 or len(at) > 4):
+                print "Bond vector named at line %i should be in the form of \"IS\", e.g. \"HN\""
+                sys.exit(0)
+            elif(len(at) == 2):
+                at1,at2 = at[0],at[1]
+            elif(len(at) == 3):
+                at1,at2 = at[0:2],at[2]
+            elif(len(at) == 4):
+                at1,at2 = at[0:2],at[2:4]
+        
             c1, c2 = None, None
-            #NOTE: This is a hack. Find something more elegant
-            at1 = at1+'N'
 
             res = res.strip()
             exp, tol = float(exp), float(tol)
@@ -853,7 +856,7 @@ class RDCParser(ParaParser):
                     c2 = atom.get_coord()
 
                 if (c1 != None) and (c2 != None):
-                    pDList.append(RDCData(at1, int(res), exp, tol, c1, at2[0] ,c2))
+                    pDList.append(RDCData(at1, int(res), exp, tol, c1, at2 ,c2))
                     c1, c2 = None, None
 
         self._parsed = pDList
