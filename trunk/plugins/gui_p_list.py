@@ -19,7 +19,7 @@ class plugin(guiPlotPlugin):
 		self.parser.add_argument('-xCol',	default=1,		type=int,	help='The column containing the desired component attribute')
 		self.parser.add_argument('-yCol',	default=2,		type=int,	help='The column to use as y-axis data')
 
-		self.prog = os.path.join( path, 'utilities', 'make_list_plot' )
+		self.prog = os.path.join( path, 'utilities', 'make_list_plot.py' )
 
 	def plot(self, path, options):
 		cmd = [self.prog]

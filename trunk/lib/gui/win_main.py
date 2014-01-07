@@ -52,7 +52,7 @@ class MainWindow(tk.Frame):
 			path2 = self.prefs['mesmer_util_path']
 		else:
 			path0 = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-			path1 = os.path.join(path0,'mesmer')
+			path1 = os.path.join(path0,'mesmer.py')
 			path2 = os.path.join(path0,'utilities')
 
 		if(not os.path.isdir(path0)):
@@ -61,7 +61,7 @@ class MainWindow(tk.Frame):
 			self.Ready = False
 		elif(not os.access(path1, os.X_OK)):
 			self.Ready = False
-		if(not os.access(os.path.join(path2,'make_components'), os.X_OK)):
+		if(not os.access(os.path.join(path2,'make_components.py'), os.X_OK)):
 			self.Ready = False
 
 		self.prefs['mesmer_dir'] = path0

@@ -34,7 +34,7 @@ class ConfigWindow(tk.LabelFrame):
 
 	def savePrefs(self):
 		self.prefs['mesmer_dir']		= self.mesmerPath.get()
-		self.prefs['mesmer_exe_path']	= os.path.join( self.prefs['mesmer_dir'], 'mesmer' )
+		self.prefs['mesmer_exe_path']	= os.path.join( self.prefs['mesmer_dir'], 'mesmer.py' )
 		self.prefs['mesmer_util_path']	= os.path.join( self.prefs['mesmer_dir'], 'utilities' )
 		self.prefs['mesmer_scratch']	= self.scratchPath.get()
 		self.prefs['cpu_count']			= self.numCores.get()
@@ -75,7 +75,7 @@ class ConfigWindow(tk.LabelFrame):
 		elif(not os.access(self.prefs['mesmer_exe_path'], os.X_OK)):
 			tkMessageBox.showwarning("Warning","The MESMER install is damaged.",parent=self)
 			ok = False
-		if(not os.access(os.path.join(self.prefs['mesmer_util_path'],'make_components'), os.X_OK)):
+		if(not os.access(os.path.join(self.prefs['mesmer_util_path'],'make_components.py'), os.X_OK)):
 			tkMessageBox.showwarning("Warning","The MESMER utilities are missing.",parent=self)
 			ok = False
 

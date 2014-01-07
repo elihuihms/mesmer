@@ -72,9 +72,9 @@ def makePDBs( w ):
 			return
 		tmp.extend( ['-stats',path] )
 
-	cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_models'),pdb_dirs,'-out',output]
+	cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_models.py'),pdb_dirs,'-out',output]
 	cmd.extend( tmp )
-	
+
 	try:
 		handle = Popen(cmd,stdout=PIPE,stderr=PIPE)
 		handle.wait()

@@ -9,6 +9,8 @@ import subprocess
 
 parser = argparse.ArgumentParser()
 
+parser.add_argument('-clean',			action='store_true',	default=False )
+
 group0 = parser.add_argument_group('Core')
 group0.add_argument('-mesmer',			action='store_true',	default=False )
 group0.add_argument('-all',				action='store_true',	default=False )
@@ -30,12 +32,12 @@ def run_process( cmd, path, silent=False, resultFile=None ):
 
 	fail = False
 	if(handle.returncode > 0):
-		print "ERROR: %i\n                    See %s" % (handle.returncode,path)
+		print "FAIL: %i\n                    See %s" % (handle.returncode,path)
 		sys.stdout.flush()
 		fail = True
 
 	if resultFile and not os.path.exists(resultFile):
-		print "ERROR: %i\n                    Expected output file \"%s\" not found. See %s" % (handle.returncode,resultFile,path)
+		print "FAIL: %i\n                    Expected output file \"%s\" not found. See %s" % (handle.returncode,resultFile,path)
 		sys.stdout.flush()
 		fail = True
 
@@ -49,7 +51,7 @@ def test_utilities(path, args):
 	print "make_attribute_spec".ljust(40),
 	sys.stdout.flush()
 	cmd = [
-		os.path.join(os.path.dirname(path),'utilities','make_attribute_spec'),
+		os.path.join(os.path.dirname(path),'utilities','make_attribute_spec.py'),
 		os.path.join(path,'data','cam_components_stats.tbl'),
 		'-dCol',
 		'0',
@@ -68,7 +70,7 @@ def test_make_components(path, args):
 	print "make_components".ljust(40),
 	sys.stdout.flush()
 	cmd = [
-		os.path.join(os.path.dirname(path),'utilities','make_components'),
+		os.path.join(os.path.dirname(path),'utilities','make_components.py'),
 		'-template',
 		os.path.join(path,'data','test_cam_1.template'),
 		'-values',
@@ -89,7 +91,7 @@ def test_mesmer(path, args):
 	print "mesmer".ljust(40),
 	sys.stdout.flush()
 	cmd = [
-		os.path.join(os.path.dirname(path),'mesmer'),
+		os.path.join(os.path.dirname(path),'mesmer.py'),
 		'-dir',
 		os.path.join(path,'out'),
 		'-name',
@@ -117,11 +119,10 @@ def test_make_models(path, args):
 	print "make_models 1/2".ljust(40),
 	sys.stdout.flush()
 	cmd = [
-		os.path.join(os.path.dirname(path),'utilities','make_models'),
+		os.path.join(os.path.dirname(path),'utilities','make_models.py'),
+		'data/cam_pdbs.tgz',
 		'-ensembles',
 		'data/cam_mesmer_1/ensembles_test_cam_1_00000.tbl',
-		'-pdb',
-		'data/cam_pdbs.tgz',
 		'-out',
 		'out/cam_make_models_1.pdb',
 		'-Pmin',
@@ -134,11 +135,10 @@ def test_make_models(path, args):
 	print "make_models 2/2".ljust(40),
 	sys.stdout.flush()
 	cmd = [
-		os.path.join(os.path.dirname(path),'utilities','make_models'),
+		os.path.join(os.path.dirname(path),'utilities','make_models.py'),
+		'data/cam_pdbs',
 		'-stats',
 		'data/cam_mesmer_1/component_statistics_test_cam_1_00000.tbl',
-		'-pdb',
-		'data/cam_pdbs',
 		'-out',
 		'out/cam_make_models_2.pdb',
 		'-Pmin',
@@ -153,7 +153,7 @@ def test_make_synthetic_target(path, args):
 	print "make_synthetic_target".ljust(40),
 	sys.stdout.flush()
 	cmd = [
-		os.path.join(os.path.dirname(path),'utilities','make_synthetic_target'),
+		os.path.join(os.path.dirname(path),'utilities','make_synthetic_target.py'),
 		'-target',
 		os.path.join(path,'data','test_cam_1.target'),
 		'-components',
@@ -170,10 +170,13 @@ if(__name__ == "__main__"):
 	path	= os.path.dirname(os.path.abspath(__file__))
 	args	= parser.parse_args()
 
-	try:
-		shutil.rmtree( os.path.join(path,'out') )
-	except:
-		pass
+	def rm_out():
+		try:
+			shutil.rmtree( os.path.join(path,'out') )
+		except:
+			pass
+
+	rm_out()
 	os.mkdir( os.path.join(path,'out') )
 
 	if(args.make_components or args.all):
@@ -187,3 +190,6 @@ if(__name__ == "__main__"):
 
 	if(args.make_target or args.utilities or args.all):
 		test_make_synthetic_target(path, args)
+
+	if(args.clean):
+		rm_out()

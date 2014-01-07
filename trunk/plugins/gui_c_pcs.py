@@ -8,6 +8,16 @@ from tkFileDialog			import askopenfilename
 from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
 
+# preflight Bio.PDB and numpy before importing pyParaTools
+try:
+	import Bio.PDB
+except:
+	raise Exception("Failed to import BioPython")
+try:
+	import numpy
+except:
+	raise Exception("Failed to import Numpy")
+
 sys.path.append( os.path.join(os.path.dirname(__file__),'pyParaTools') )
 from	ParaParser	import *
 from	CalcPara	import *

@@ -13,7 +13,7 @@ def makeCorrelationPlot( w ):
 	p1 = os.path.join(w.activeDir.get(), 'component_correlations_%05i.tbl' % w.currentSelection[0] )
 	p2 = os.path.join(w.activeDir.get(), 'component_statistics_%s_%05i.tbl' % (w.currentSelection[1],w.currentSelection[0]) )
 	if( os.access( p1, os.R_OK ) and os.access( p2, os.R_OK ) ):
-		cmd = os.path.join(w.prefs['mesmer_util_path'],'make_correlation_plot')
+		cmd = os.path.join(w.prefs['mesmer_util_path'],'make_correlation_plot.py')
 		try:
 			Popen([cmd,p1,p2,'-size','20'])
 		except Exception as e:
@@ -21,7 +21,7 @@ def makeCorrelationPlot( w ):
 			return
 	elif( os.access( p1, os.R_OK ) ):
 		tkMessageBox.showwarning("Warning","Component statistics not available, plotting only unweighted correlations",parent=w)
-		cmd = os.path.join(w.prefs['mesmer_util_path'],'make_correlation_plot')
+		cmd = os.path.join(w.prefs['mesmer_util_path'],'make_correlation_plot.py')
 		try:
 			Popen([cmd,p1,'-size','20'])
 		except Exception as e:
@@ -102,7 +102,7 @@ def plotAttributes( w ):
 	w.newWindow.wait_window()
 
 	if w.optWindow.returncode == 0:
-		cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_attribute_plot'),p1,'-stats',p2]
+		cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_attribute_plot.py'),p1,'-stats',p2]
 		cmd.extend( makeListFromOptions( w.pluginOptions['attributePlotter'] ) )
 		try:
 			Popen(cmd)
@@ -130,7 +130,7 @@ def plotHistogram( w ):
 def plotScoreProgress( w ):
 	if not w.resultsDB.has_key('ensemble_stats'):
 		return
-		
+
 	try:
 		import pylab as P
 	except:
@@ -150,6 +150,6 @@ def plotScoreProgress( w ):
 	P.scatter( generations, best_scores, label='Best', marker='o', c='r' )
 	P.ion()
 	P.show()
-	
+
 	return
 
