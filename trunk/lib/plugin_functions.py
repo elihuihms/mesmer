@@ -10,12 +10,18 @@ def load_plugins( dir, type, *args ):
 	Finds all MESMER plugin (plugin_*.py) files in the provided directory, and returns them
 	"""
 
+	path = os.path.abspath( os.path.join(dir, 'plugins') )
+
+	# attempt to add directory to the system path, for plugin libraries
+	if not path in sys.path:
+		sys.path.append( path )
+
 	plugins = []
-	for f in glob.glob( '%s%splugins%s%s_*.py' % (dir,os.sep,os.sep,type) ):
+	for f in glob.glob( '%s%s%s_*.py' % (path,os.sep,type) ):
 
 		name, ext = os.path.splitext(os.path.basename(f))
 		try:
-			file, filename, data = imp.find_module(name, [os.path.join(dir,'plugins')])
+			file, filename, data = imp.find_module(name, [path])
 		except ImportError:
 			raise mesPluginError("ERROR: Could not discover plugin at path \"%s\"." % f)
 
