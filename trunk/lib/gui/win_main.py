@@ -12,6 +12,7 @@ from lib.gui.win_setup			import SetupWindow
 from lib.gui.win_config			import ConfigWindow
 from lib.gui.win_analysis		import AnalysisWindow
 from lib.gui.win_about			import AboutWindow,programInfo
+from lib.gui.tools_general		import openUserPrefs
 
 class MainWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -41,9 +42,9 @@ class MainWindow(tk.Frame):
 		self.Ready = True
 
 		try:
-			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
+			self.prefs = openUserPrefs( mode='c' )
 		except Exception as e:
-			tkMessageBox.showerror("Error",'Cannot read or create preferences file: %s' % (e),parent=self)
+			tkMessageBox.showerror("Error",'Cannot read or create MESMER preferences file: %s' % (e),parent=self)
 			self.close(1)
 
 		if( self.prefs.has_key('mesmer_dir') ):

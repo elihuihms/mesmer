@@ -10,6 +10,7 @@ from lib.utility_functions 	import get_input_blocks
 from lib.gui.tools_TkTooltip	import ToolTip
 from lib.gui.tools_component	import makeComponentsFromWindow,calcDataFromWindow
 from lib.gui.tools_plugin		import getTargetPluginOptions,getGUICalcPlugins
+from lib.gui.tools_general		import openUserPrefs
 
 class ComponentsWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -34,9 +35,9 @@ class ComponentsWindow(tk.Frame):
 		self.Ready = False
 
 		try:
-			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
+			self.prefs = openUserPrefs()
 		except Exception as e:
-			tkMessageBox.showerror("Error",'Cannot read or create preferences file: %s' % (e),parent=self)
+			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 
 		try:
@@ -58,7 +59,7 @@ class ComponentsWindow(tk.Frame):
 		tmp = tkFileDialog.askopenfilename(title='Select target file:',parent=self)
 		if(tmp == ''):
 			return
-			
+
 		blocks = get_input_blocks(tmp)
 		if(len(blocks)<2):
 			return

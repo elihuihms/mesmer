@@ -12,6 +12,7 @@ from lib.gui.tools_pdb		import *
 from lib.gui.tools_plugin	import getGUIPlotPlugins
 from lib.gui.win_log		import LogWindow
 from lib.gui.win_about		import programInfo
+from lib.gui.tools_general	import openUserPrefs
 
 class AnalysisWindow(tk.Frame):
 	def __init__(self, master, path=None, pHandle=None):
@@ -41,9 +42,9 @@ class AnalysisWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
+			self.prefs = openUserPrefs()
 		except Exception as e:
-			tkMessageBox.showerror("Error",'Cannot read or create preferences file: %s' % (e),parent=self)
+			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 
 		try:

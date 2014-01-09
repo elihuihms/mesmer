@@ -6,6 +6,7 @@ import shelve
 import multiprocessing
 
 from lib.gui.tools_TkTooltip	import ToolTip
+from lib.gui.tools_general		import openUserPrefs
 
 class ConfigWindow(tk.LabelFrame):
 	def __init__(self, master, mainWindow):
@@ -27,9 +28,9 @@ class ConfigWindow(tk.LabelFrame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = shelve.open( os.path.join(os.path.dirname(__file__),'preferences'), 'c' )
+			self.prefs = openUserPrefs( mode='c' )
 		except Exception as e:
-			tkMessageBox.showerror("Error",'Cannot read or create preferences file: %s' % (e),parent=self)
+			tkMessageBox.showerror("Error",'Cannot read or create MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 
 	def savePrefs(self):
