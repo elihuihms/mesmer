@@ -1,4 +1,5 @@
 __all__ = [
+	'gui',
 	'component_functions',
 	'component_generation',
 	'component_objects',
@@ -18,5 +19,6 @@ __all__ = [
 	'setup_functions',
 	'target_functions',
 	'target_objects',
-	'utility_functions'
+	'utility_functions',
+	'utility_objects'
 	]

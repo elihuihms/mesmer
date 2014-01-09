@@ -11,7 +11,7 @@ from lib.target_functions		import load_targets
 from lib.component_functions	import load_components
 from lib.ga_functions_main		import run_ga
 
-def main():
+def run():
 	_mes_version	= "0.8a"
 	_mes_build		= "2013.12.13.0"
 
@@ -30,7 +30,7 @@ def main():
 		if (args.plugin == p.name) or (args.plugin in p.type):
 			p.info()
 			sys.exit(0)
-			
+
 	if len(plugins) == 0:
 		raise mesPluginError("ERROR: No valid plugins found in %s." % (os.path.dirname(__file__)) )
 
@@ -74,7 +74,7 @@ def main():
 
 if( __name__ == "__main__" ):
 	try:
-		main()
+		run()
 	except KeyboardInterrupt:
 		print_msg( "\nINFO: User forced quit, exiting.\n" )
 		sys.exit(0)
