@@ -6,7 +6,6 @@ import os
 import scipy
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-
 from lib.utility_functions	import mean_stdv
 from lib.output_parsers		import get_ensembles_from_state
 

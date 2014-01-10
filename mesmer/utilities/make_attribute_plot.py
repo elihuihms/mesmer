@@ -245,7 +245,7 @@ def run():
 			if( args.zCol):
 				ax.scatter( spec_data[2],spec_data[3],spec_data[4],	facecolors=spec_data[1], edgecolors='none', s=args.pointScale, zorder=1 )
 			else:
-				ax.scatter( spec_data[2],spec_data[3],				facecolors=c, edgecolors='none', s=args.pointScale, zorder=1 )
+				ax.scatter( spec_data[2],spec_data[3],				facecolors=spec_data[1], edgecolors='none', s=args.pointScale, zorder=1 )
 
 		if( args.stats ):
 			keys = [] # discard components with prevalence or weight lower than specified

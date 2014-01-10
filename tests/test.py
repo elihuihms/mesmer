@@ -10,12 +10,16 @@ from test.functions	import run_test
 from test.mesmer	import tests as mesmer_tests
 from test.utilities	import tests as utility_tests
 
-if(__name__ == "__main__"):
-	parser = argparse.ArgumentParser()
+"""
+An automated testing script for the MESMER package.
+"""
 
-	parser.add_argument('test',		nargs='*',					default=[] )	
-	parser.add_argument('-all',		action='store_true',	default=False )
-	parser.add_argument('-clean',	action='store_true',	default=False )
+if(__name__ == "__main__"):
+	parser = argparse.ArgumentParser(description='Provides automated testing of the MESMER CLI programs')
+
+	parser.add_argument('test',		nargs='*',				default=[],		help='Specifies the test(s) to run')	
+	parser.add_argument('-all',		action='store_true',	default=False,	help='List all available tests')
+	parser.add_argument('-clean',	action='store_true',	default=False,	help='Removes all output files')
 
 	path	= os.path.dirname(os.path.abspath(__file__))
 	args	= parser.parse_args()

@@ -5,7 +5,7 @@ def tests():
 	def mesmer(path, args):
 		return(
 			[
-				os.path.join(os.path.dirname(path),'mesmer.py'),
+				os.path.join(os.path.dirname(path),'mesmer','mesmer.py'),
 				'-dir',
 				os.path.join(path,'out'),
 				'-name',
@@ -24,8 +24,7 @@ def tests():
 				'-Popt',
 				'-Pextra',
 				'-Pstate'
-			],
-			None
+			],[]
 		)
 
 	return [
