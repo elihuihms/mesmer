@@ -5,14 +5,14 @@ import tkFont
 import tkFileDialog
 import tkMessageBox
 
-import lib.gui.tools_run # to avoid circular import of AnalysisWindow
-from lib.gui.tools_analysis	import *
-from lib.gui.tools_plot		import *
-from lib.gui.tools_pdb		import *
-from lib.gui.tools_plugin	import getGUIPlotPlugins
-from lib.gui.win_log		import LogWindow
-from lib.gui.win_about		import programInfo
-from lib.gui.tools_general	import openUserPrefs
+import tools_run # to avoid circular import of AnalysisWindow
+from tools_analysis	import *
+from tools_plot		import *
+from tools_pdb		import *
+from tools_plugin	import getGUIPlotPlugins
+from win_log		import LogWindow
+from win_about		import programInfo
+from tools_general	import openUserPrefs
 
 class AnalysisWindow(tk.Frame):
 	def __init__(self, master, path=None, pHandle=None):

@@ -10,9 +10,13 @@ def load_plugins( dir, type, *args ):
 	Finds all MESMER plugin (plugin_*.py) files in the provided directory, and returns them
 	"""
 
-	path = os.path.abspath( os.path.join(dir, 'plugins') )
+	# add lib directory to the system path
+	path = os.path.abspath( dir )
+	if not path in sys.path:
+		sys.path.append( path )
 
-	# attempt to add directory to the system path, for plugin libraries
+	# add plugin directory to the system path, for plugin-specific libraries
+	path = os.path.abspath( os.path.join(dir, 'plugins') )
 	if not path in sys.path:
 		sys.path.append( path )
 

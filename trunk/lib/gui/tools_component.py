@@ -7,12 +7,12 @@ import tkFileDialog
 
 from datetime import datetime
 
-from lib.exceptions				import *
-from lib.component_generation	import *
-from lib.plugin_functions		import *
-from lib.gui.win_options			import *
-from lib.gui.win_status				import *
-from lib.gui.tools_plugin			import *
+from .. exceptions				import *
+from .. component_generation	import *
+from .. plugin_functions		import *
+from win_options				import *
+from win_status					import *
+from tools_plugin				import *
 
 def makeComponentsFromWindow( w ):
 	paths = w.componentPDBsList.get(0,tk.END)

@@ -1,6 +1,6 @@
 import Tkinter as tk
 
-from lib.gui.tools_TkTooltip import ToolTip
+from tools_TkTooltip import ToolTip
 
 def setOptsFromBlock( spec, block ):
 	type = block['type'][0:4]

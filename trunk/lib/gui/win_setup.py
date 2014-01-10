@@ -5,12 +5,12 @@ import Tkinter as tk
 import tkFileDialog
 import tkMessageBox
 
-from lib.setup_functions	import parse_arguments
-from lib.gui.tools_TkTooltip	import ToolTip
-from lib.gui.tools_setup		import *
-from lib.gui.tools_run			import startRun
-from lib.gui.win_about			import programInfo
-from lib.gui.tools_general		import openUserPrefs
+from .. setup_functions	import parse_arguments
+from tools_TkTooltip	import ToolTip
+from tools_setup		import *
+from tools_run			import startRun
+from win_about			import programInfo
+from tools_general		import openUserPrefs
 
 class SetupWindow(tk.Frame):
 	def __init__(self, master, parent):

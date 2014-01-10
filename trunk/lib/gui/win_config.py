@@ -5,8 +5,8 @@ import tkMessageBox
 import shelve
 import multiprocessing
 
-from lib.gui.tools_TkTooltip	import ToolTip
-from lib.gui.tools_general		import openUserPrefs
+from tools_TkTooltip	import ToolTip
+from tools_general		import openUserPrefs
 
 class ConfigWindow(tk.LabelFrame):
 	def __init__(self, master, mainWindow):

@@ -4,10 +4,10 @@ import argparse
 import Tkinter as tk
 import tkFileDialog
 
-from subprocess			import Popen,PIPE
+from subprocess		import Popen,PIPE
 
-from lib.gui.tools_plugin	import convertParserToOptions,makeListFromOptions
-from lib.gui.win_options	import OptionsWindow
+from tools_plugin	import convertParserToOptions,makeListFromOptions
+from win_options	import OptionsWindow
 
 def makeCorrelationPlot( w ):
 	p1 = os.path.join(w.activeDir.get(), 'component_correlations_%05i.tbl' % w.currentSelection[0] )

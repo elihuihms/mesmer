@@ -5,13 +5,13 @@ import time
 import Tkinter as tk
 import tkMessageBox
 
-from subprocess			import Popen,PIPE,STDOUT
-from threading			import Thread
-from Queue				import Queue, Empty
+from subprocess		import Popen,PIPE,STDOUT
+from threading		import Thread
+from Queue			import Queue, Empty
 
-from lib.gui.tools_setup	import makeMESMERArgsFromWindow,makeStringFromArgs
-from lib.gui.tools_analysis	import openLogWindow,updateGenerationList
-from lib.gui.win_analysis	import AnalysisWindow
+from tools_setup	import makeMESMERArgsFromWindow,makeStringFromArgs
+from tools_analysis	import openLogWindow,updateGenerationList
+from win_analysis	import AnalysisWindow
 
 def startRun( w, mesmerPath ):
 

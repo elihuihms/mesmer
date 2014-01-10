@@ -4,15 +4,16 @@ import shelve
 import Tkinter as tk
 import tkMessageBox
 
-from lib.gui.tools_TkTooltip	import ToolTip
-from lib.gui.tools_plugin		import getTargetPluginOptions
-from lib.gui.win_target			import TargetWindow
-from lib.gui.win_components		import ComponentsWindow
-from lib.gui.win_setup			import SetupWindow
-from lib.gui.win_config			import ConfigWindow
-from lib.gui.win_analysis		import AnalysisWindow
-from lib.gui.win_about			import AboutWindow,programInfo
-from lib.gui.tools_general		import openUserPrefs
+from .. exceptions		import *
+from tools_TkTooltip	import ToolTip
+from tools_plugin		import getTargetPluginOptions
+from win_target			import TargetWindow
+from win_components		import ComponentsWindow
+from win_setup			import SetupWindow
+from win_config			import ConfigWindow
+from win_analysis		import AnalysisWindow
+from win_about			import AboutWindow,programInfo
+from tools_general		import openUserPrefs
 
 class MainWindow(tk.Frame):
 	def __init__(self, master=None):

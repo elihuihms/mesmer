@@ -2,7 +2,7 @@ import os
 import Tkinter as tk
 import tkFileDialog
 
-from lib.setup_functions	import parse_arguments
+from .. setup_functions	import parse_arguments
 
 def loadControlVarArgs(w):
 	tmp = tkFileDialog.askopenfilename(title='Select MESMER run config file:',parent=w)

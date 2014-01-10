@@ -6,11 +6,11 @@ import tkMessageBox
 import tkFileDialog
 import copy
 
-from lib.utility_functions 	import get_input_blocks
-from lib.gui.tools_TkTooltip	import ToolTip
-from lib.gui.tools_component	import makeComponentsFromWindow,calcDataFromWindow
-from lib.gui.tools_plugin		import getTargetPluginOptions,getGUICalcPlugins
-from lib.gui.tools_general		import openUserPrefs
+from .. utility_functions 	import get_input_blocks
+from tools_TkTooltip		import ToolTip
+from tools_component		import makeComponentsFromWindow,calcDataFromWindow
+from tools_plugin			import getTargetPluginOptions,getGUICalcPlugins
+from tools_general			import openUserPrefs
 
 class ComponentsWindow(tk.Frame):
 	def __init__(self, master=None):

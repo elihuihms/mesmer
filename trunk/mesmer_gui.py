@@ -16,11 +16,13 @@ def run():
 		tkMessageBox.showerror("Error","Argparse module not installed")
 		sys.exit()
 
-	try:
-		from lib.gui.win_main		import MainWindow
-	except ImportError as e:
-		tkMessageBox.showerror("Error","Error loading MESMER: %s" % (e))
-		sys.exit()
+	#try:
+	from lib.gui.tools_TkTooltip	import ToolTip
+	from lib.gui.win_main		import MainWindow
+	
+	#except ImportError as e:
+	#	tkMessageBox.showerror("Error","Error loading MESMER: %s" % (e))
+	#	sys.exit()
 
 	if( sys.version_info < (2,5) ):
 		tkMessageBox.showerror("Error","Python version must be 2.5 or greater")

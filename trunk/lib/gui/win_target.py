@@ -5,12 +5,12 @@ import tkMessageBox
 import tkFileDialog
 import copy
 
-from lib.utility_functions 	import get_input_blocks
-from lib.gui.tools_TkTooltip	import ToolTip
-from lib.gui.tools_plugin		import getTargetPluginOptions,setOptionsFromBlock
-from lib.gui.tools_target		import makeTargetFromWindow
-from lib.gui.win_options		import OptionsWindow
-from lib.gui.tools_general		import openUserPrefs
+from .. utility_functions 	import get_input_blocks
+from tools_TkTooltip		import ToolTip
+from tools_plugin			import getTargetPluginOptions,setOptionsFromBlock
+from tools_target			import makeTargetFromWindow
+from win_options			import OptionsWindow
+from tools_general			import openUserPrefs
 
 class TargetWindow(tk.Frame):
 	def __init__(self, master=None):

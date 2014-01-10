@@ -1,9 +1,9 @@
 import inspect
 import tkMessageBox
 
-from lib.exceptions			import *
-from lib.plugin_functions	import load_plugins
-from lib.setup_functions	import parse_arguments
+from .. exceptions			import *
+from .. plugin_functions	import load_plugins
+from .. setup_functions		import parse_arguments
 
 def getTargetPluginOptions( path ):
 	try:
