@@ -13,7 +13,7 @@ __author_email__	= u'elihuihms@elihuihms.com'
 __url__				= u'https://code.google.com/p/mesmer/'
 __download_url__	= u'https://code.google.com/p/mesmer/downloads/list'
 
-__description__		= u'MESMER: Identify minimal ensembles from multiple structural biology datasets'
+__description__		= u'MESMER: Identification of minimal ensembles from multiple structural biology datasets'
 __long_description__ = u"""
 MESMER (Minimal Ensemble Solutions to Multiple Experimental Restraints) is set of tools that enable structural biologists to identify and analyze characteristic structures or components from bulk-average data obtained from heterogenous solutions.
 
