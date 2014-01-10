@@ -22,3 +22,5 @@ __all__ = [
 	'win_target',
 	'win_target_options'
 	]
+	
+__version__ = '0.1.0'

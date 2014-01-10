@@ -7,25 +7,17 @@ def run():
 		import Tkinter as tk
 		import tkMessageBox
 	except ImportError:
-		print "Failed on Tk import. Exiting"
+		print "The MESMER GUI requires the Tk/Tcl toolbox."
 		sys.exit()
-
-	try:
-		import argparse
-	except ImportError:
-		tkMessageBox.showerror("Error","Argparse module not installed")
-		sys.exit()
-
-	#try:
-	from lib.gui.tools_TkTooltip	import ToolTip
-	from lib.gui.win_main		import MainWindow
-	
-	#except ImportError as e:
-	#	tkMessageBox.showerror("Error","Error loading MESMER: %s" % (e))
-	#	sys.exit()
 
 	if( sys.version_info < (2,5) ):
 		tkMessageBox.showerror("Error","Python version must be 2.5 or greater")
+		sys.exit()
+		
+	try:
+		from lib.gui.win_main		import MainWindow
+	except ImportError as e:
+		tkMessageBox.showerror("Error","Error loading MESMER: %s" % (e))
 		sys.exit()
 
 	root = tk.Tk()

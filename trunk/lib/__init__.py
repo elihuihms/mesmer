@@ -22,3 +22,5 @@ __all__ = [
 	'utility_functions',
 	'utility_objects'
 	]
+	
+__version__ = '0.9.0'

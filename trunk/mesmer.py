@@ -3,6 +3,7 @@
 import sys
 import os
 
+from lib import __version__
 from lib.exceptions				import *
 from lib.setup_functions		import parse_arguments,make_results_dir
 from lib.utility_functions		import print_msg
@@ -12,8 +13,9 @@ from lib.component_functions	import load_components
 from lib.ga_functions_main		import run_ga
 
 def run():
-	_mes_version	= "0.8a"
-	_mes_build		= "2013.12.13.0"
+	if( sys.version_info < (2,5) ):
+		print "Python version must be 2.5 or greater"
+		sys.exit()
 
 	# obtain the parameters for the run
 	args = parse_arguments()
@@ -42,7 +44,7 @@ def run():
 		sys.exit(20)
 
 	# save the parameters list to the log file
-	print_msg("MESMER v. %s build %s\n(c)2012-2014 Elihu Ihms" % (_mes_version,_mes_build))
+	print_msg("MESMER v. %s \n(c)2012-2014 Elihu Ihms" % (__version__))
 	print_msg("Arguments:")
 	for k in vars(args):
 		print_msg("\t%s\t:\t%s" % (k,vars(args)[k]))
