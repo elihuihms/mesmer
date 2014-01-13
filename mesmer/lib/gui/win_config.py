@@ -71,12 +71,9 @@ class ConfigWindow(tk.LabelFrame):
 			tkMessageBox.showwarning("Warning","The specified MESMER directory does not exist.",parent=self)
 			ok = False
 		if(not os.access(self.prefs['mesmer_exe_path'], os.R_OK)):
-			tkMessageBox.showwarning("Warning","The MESMER executable was not found.",parent=self)
+			tkMessageBox.showwarning("Warning","The MESMER executable is missing.",parent=self)
 			ok = False
-		elif(not os.access(self.prefs['mesmer_exe_path'], os.X_OK)):
-			tkMessageBox.showwarning("Warning","The MESMER install is damaged.",parent=self)
-			ok = False
-		if(not os.access(os.path.join(self.prefs['mesmer_util_path'],'make_components.py'), os.X_OK)):
+		if(not os.access(os.path.join(self.prefs['mesmer_util_path'],'make_components.py'), os.R_OK)):
 			tkMessageBox.showwarning("Warning","The MESMER utilities are missing.",parent=self)
 			ok = False
 

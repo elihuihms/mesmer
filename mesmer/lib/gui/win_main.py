@@ -50,20 +50,28 @@ class MainWindow(tk.Frame):
 
 		if( self.prefs.has_key('mesmer_dir') ):
 			path0 = self.prefs['mesmer_dir']
-			path1 = self.prefs['mesmer_exe_path']
-			path2 = self.prefs['mesmer_util_path']
 		else:
-			path0 = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-			path1 = os.path.join(path0,'mesmer.py')
-			path2 = os.path.join(path0,'utilities')
+			path0 = ''
 
 		if(not os.path.isdir(path0)):
+			path0 = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+		if(not os.path.isdir(path0)):
+			tkMessageBox.showerror("Error",'Cannot determine MESMER installation path!',parent=self)
+			self.close(1)
+			
+		if( self.prefs.has_key('mesmer_exe_path') ):
+			path1 = self.prefs['mesmer_exe_path']
+		else:
+			path1 = os.path.join(path0,'mesmer.py')
+		
+		if( self.prefs.has_key('mesmer_util_path') ):
+			path2 = self.prefs['mesmer_util_path']
+		else:
+			path2 = os.path.join(path0,'utilities')	
+			
+		if(not os.access(path1, os.R_OK)):
 			self.Ready = False
-		if(not os.path.isfile(path1)):
-			self.Ready = False
-		elif(not os.access(path1, os.X_OK)):
-			self.Ready = False
-		if(not os.access(os.path.join(path2,'make_components.py'), os.X_OK)):
+		if(not os.access(os.path.join(path2,'make_components.py'), os.R_OK)):
 			self.Ready = False
 
 		self.prefs['mesmer_dir'] = path0
