@@ -11,7 +11,7 @@ from gui_c_deer_lib			import *
 
 class plugin(guiCalcPlugin):
 
-	def __init__(self, mesmerDir):
+	def __init__(self):
 		self.name = 'DEER'
 		self.version = '2013.12.06'
 		self.type = 'DEER'

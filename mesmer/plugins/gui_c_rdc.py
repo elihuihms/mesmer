@@ -25,7 +25,7 @@ from	ExplorePara	import *
 
 class plugin(guiCalcPlugin):
 
-	def __init__(self, mesmerDir):
+	def __init__(self):
 		self.name = 'RDC - pyParaTools'
 		self.version = '2013.10.18'
 		self.type = 'TABL'

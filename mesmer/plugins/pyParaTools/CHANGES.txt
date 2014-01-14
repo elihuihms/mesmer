@@ -1,5 +1,11 @@
 Changes to github commit version 36df55fe9406041beb6c08491046e3e7a5b6e4ab from https://github.com/mscook/pyParaTools/
 
+1.	Removed “doc” directory
+
+2.	Removed “sample_protocols” directory
+
+3.	Removed “tests” directory
+
 ParaParser.py:
 
 	1. Removed conversion of RDC Axial and Rhombodial tensor terms to VVU on lines 652-653 of RDCParser object, such that they are stored as SI units in the object instead. See changes to FitPara.py!

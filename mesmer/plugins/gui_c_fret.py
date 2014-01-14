@@ -10,7 +10,7 @@ from lib.gui.tools_plugin	import makeStringFromOptions
 
 class plugin(guiCalcPlugin):
 
-	def __init__(self, mesmerDir):
+	def __init__(self):
 		self.name = 'FRET'
 		self.version = '2013.10.18'
 		self.type = 'CURV'
@@ -37,7 +37,7 @@ class plugin(guiCalcPlugin):
 
 		self.prog = os.path.join(os.path.dirname(__file__),'gui_c_fret_lib','pdb_fret_sim.py')
 		if not os.access(self.prog, os.X_OK):
-			raise Exception( "Could not find PDB_FRET_sim components" )
+			raise Exception( "Could not execute pdb_fret_sim.py" )
 
 		self.irf = askopenfilename(title='Select instrument response function (IRF) file:')
 		if(self.irf == ''):

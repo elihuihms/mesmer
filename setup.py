@@ -1,5 +1,22 @@
 #!/usr/bin/env python
 
+# MESMER - Minimal Ensemble Solutions to Multiple Experimental Restraints
+# Copyright (C) 2014 Elihu Ihms
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 import os
 import sys
 
@@ -27,8 +44,6 @@ except ImportError:
 # Do actual packaging now
 #
 
-from setuptools import setup
-
 requires = [
 	'argparse',
 	'numpy',
@@ -47,14 +62,26 @@ packages = [
 	'mesmer',
 	'mesmer.lib',
 	'mesmer.lib.gui',
-	'mesmer.utilities'
+	'mesmer.utilities',
+	'mesmer.plugins',
 ]
 
 package_data = {
+	'':
+		['LICENSE.txt'],
 	'mesmer.lib.gui':
-		['mesmer_logo.gif'],
-	'mesmer':
-		['plugins/*.py']
+		['mesmer_logo.gif']
+}
+
+plugin_packages = [
+	'mesmer.plugins.gui_c_deer_lib',
+	'mesmer.plugins.gui_c_fret_lib',
+	'mesmer.plugins.pyParaTools'
+]
+
+plugin_data = {
+	'mesmer.plugins.pyParaTools':
+		['CHANGES.txt','LICENSE.txt']
 }
 
 entry_points = {
@@ -75,8 +102,14 @@ entry_points = {
 	]
 }
 
+from setuptools import setup
+
 import mesmer
 import mesmer.lib
+
+packages.extend( plugin_packages )
+for d in plugin_data:
+	package_data[d] = plugin_data[d]
 
 setup(
 	name	= 'MESMER',
@@ -85,7 +118,7 @@ setup(
 	author	= mesmer.__author__,
 	author_email = mesmer.__author_email__,
 	description	= mesmer.__description__,
-	long_description	= mesmer.__long_description__,
+	long_description	= open('README.txt').read(),
 	url	= mesmer.__url__,
 	download_url = mesmer.__download_url__,
 	platforms	= 'any',
@@ -93,5 +126,6 @@ setup(
 	classifiers	= classifiers,
 	packages	= packages,
 	package_data	= package_data,
-	entry_points	= entry_points
+	entry_points	= entry_points,
+	zip_safe	= False
 )

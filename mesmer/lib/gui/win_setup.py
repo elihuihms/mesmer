@@ -52,7 +52,7 @@ class SetupWindow(tk.Frame):
 		self.master.destroy()
 
 	def setupAndStartRun(self, evt=None):
-		if( startRun( self, self.prefs['mesmer_exe_path'] ) ):
+		if( startRun(self) ):
 			self.close()
 
 	def setResultsPath(self):
