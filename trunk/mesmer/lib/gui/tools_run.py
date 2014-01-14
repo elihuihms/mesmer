@@ -13,7 +13,7 @@ from tools_setup	import makeMESMERArgsFromWindow,makeStringFromArgs
 from tools_analysis	import openLogWindow,updateGenerationList
 from win_analysis	import AnalysisWindow
 
-def startRun( w, mesmerPath ):
+def startRun( w ):
 
 	args = makeMESMERArgsFromWindow(w) # w in this context is a SetupWindow
 
@@ -38,8 +38,12 @@ def startRun( w, mesmerPath ):
 		tkMessageBox.showerror("Error","Could not write MESMER run configuration file: %s" % (e),parent=w)
 
 	# fire up MESMER and get the process handle
+	exe = 'mesmer'
+	if( w.prefs['mesmer_base_dir'] != '' ):
+		exe = os.path.join(w.prefs['mesmer_base_dir'],'mesmer.py')
+	
 	try:
-		pHandle = Popen( [mesmerPath,"@%s" % argpath], cwd=args.dir, stdout=PIPE, stderr=STDOUT, bufsize=0, universal_newlines=True )
+		pHandle = Popen( [exe,"@%s" % argpath], cwd=args.dir, stdout=PIPE, stderr=STDOUT, bufsize=0, universal_newlines=True )
 	except OSError as e:
 		tkMessageBox.showerror("Error","Error starting a MESMER run.\nError:\n%s" % e,parent=w)
 		return False

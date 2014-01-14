@@ -13,7 +13,7 @@ from win_setup			import SetupWindow
 from win_config			import ConfigWindow
 from win_analysis		import AnalysisWindow
 from win_about			import AboutWindow,programInfo
-from tools_general		import openUserPrefs
+from tools_general		import openUserPrefs,tryProgramCall,setDefaultPrefs
 
 class MainWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -47,33 +47,21 @@ class MainWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read or create MESMER preferences file: %s' % (e),parent=self)
 			self.close(1)
-
-		if( self.prefs.has_key('mesmer_dir') ):
-			path0 = self.prefs['mesmer_dir']
-			path1 = self.prefs['mesmer_exe_path']
-			path2 = self.prefs['mesmer_util_path']
-		else:
-			path0 = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-			path1 = os.path.join(path0,'mesmer.py')
-			path2 = os.path.join(path0,'utilities')
-
-		if(not os.path.isdir(path0)):
+		
+		if( not self.prefs.has_key('mesmer_base_dir') ):
+			setDefaultPrefs(self.prefs)
+		
+		if( self.prefs['mesmer_base_dir'] == '' and not tryProgramCall('mesmer') ):
+			self.prefs['mesmer_base_dir'] = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+		
+		if( self.prefs['mesmer_base_dir'] != '' and not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os.X_OK) ):
 			self.Ready = False
-		if(not os.path.isfile(path1)):
-			self.Ready = False
-		elif(not os.access(path1, os.X_OK)):
-			self.Ready = False
-		if(not os.access(os.path.join(path2,'make_components.py'), os.X_OK)):
-			self.Ready = False
-
-		self.prefs['mesmer_dir'] = path0
-		self.prefs['mesmer_exe_path'] = path1
-		self.prefs['mesmer_util_path'] = os.path.join(path0,'utilities')
+				
 		self.prefs.sync()
 
 		# preload plugins
 		try:
-			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs['mesmer_dir'])
+			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs['mesmer_base_dir'])
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
 			self.close(1)

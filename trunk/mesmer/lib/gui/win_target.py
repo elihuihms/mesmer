@@ -37,9 +37,10 @@ class TargetWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
-
+		
+		mesmer_base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 		try:
-			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs['mesmer_dir'])
+			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(mesmer_base_dir)
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()

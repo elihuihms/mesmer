@@ -12,23 +12,25 @@ from win_options	import OptionsWindow
 def makeCorrelationPlot( w ):
 	p1 = os.path.join(w.activeDir.get(), 'component_correlations_%05i.tbl' % w.currentSelection[0] )
 	p2 = os.path.join(w.activeDir.get(), 'component_statistics_%s_%05i.tbl' % (w.currentSelection[1],w.currentSelection[0]) )
+	
+	cmd = ['make_correlation_plot']
+	if( w.prefs['mesmer_base_dir'] != '' ):
+		cmd = [os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_correlation_plot.py')]
+	
 	if( os.access( p1, os.R_OK ) and os.access( p2, os.R_OK ) ):
-		cmd = os.path.join(w.prefs['mesmer_util_path'],'make_correlation_plot.py')
-		try:
-			Popen([cmd,p1,p2,'-size','20'])
-		except Exception as e:
-			tkMessageBox.showerror("Error","Could not open the correlation plot: %s" % (e),parent=w)
-			return
+		cmd.extend( [p1,p2,'-size','20'] )
 	elif( os.access( p1, os.R_OK ) ):
 		tkMessageBox.showwarning("Warning","Component statistics not available, plotting only unweighted correlations",parent=w)
-		cmd = os.path.join(w.prefs['mesmer_util_path'],'make_correlation_plot.py')
-		try:
-			Popen([cmd,p1,'-size','20'])
-		except Exception as e:
-			tkMessageBox.showerror("Error","Could not open correlation plot: %s" % (e),parent=w)
-			return
+		cmd.extend( [p1,'-size','20'] )
 	else:
 		tkMessageBox.showerror("Error","Could not open generation correlation file \"%s\"" % p1,parent=w)
+		return
+				
+	try:
+		Popen(cmd)
+	except Exception as e:
+		tkMessageBox.showerror("Error","Could not open the correlation plot: %s" % (e),parent=w)
+		return
 
 def plotRestraint( w ):
 	for p in w.plot_plugins:
@@ -102,8 +104,12 @@ def plotAttributes( w ):
 	w.newWindow.wait_window()
 
 	if w.optWindow.returncode == 0:
-		cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_attribute_plot.py'),p1,'-stats',p2]
+		cmd = ['make_attribute_plot']
+		if( w.prefs['mesmer_base_dir'] != '' ):
+			cmd = [os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_attribute_plot.py')]
+		cmd.extend( [p1,'-stats',p2] )
 		cmd.extend( makeListFromOptions( w.pluginOptions['attributePlotter'] ) )
+		
 		try:
 			Popen(cmd)
 		except OSError:

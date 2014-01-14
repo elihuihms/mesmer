@@ -48,7 +48,7 @@ def get_atom_coords(file,chainID=None,resNum=None,atomName='CA'):
 
 class plugin(guiCalcPlugin):
 
-	def __init__(self, mesmerDir):
+	def __init__(self):
 		self.name = 'PCS - pyParaTools'
 		self.version = '2013.10.18'
 		self.type = 'TABL'

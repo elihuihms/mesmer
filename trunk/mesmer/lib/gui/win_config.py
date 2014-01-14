@@ -6,7 +6,7 @@ import shelve
 import multiprocessing
 
 from tools_TkTooltip	import ToolTip
-from tools_general		import openUserPrefs
+from tools_general		import openUserPrefs,tryProgramCall
 
 class ConfigWindow(tk.LabelFrame):
 	def __init__(self, master, mainWindow):
@@ -34,17 +34,12 @@ class ConfigWindow(tk.LabelFrame):
 			self.master.destroy()
 
 	def savePrefs(self):
-		self.prefs['mesmer_dir']		= self.mesmerPath.get()
-		self.prefs['mesmer_exe_path']	= os.path.join( self.prefs['mesmer_dir'], 'mesmer.py' )
-		self.prefs['mesmer_util_path']	= os.path.join( self.prefs['mesmer_dir'], 'utilities' )
+		self.prefs['mesmer_base_dir']	= self.mesmerPath.get()
 		self.prefs['mesmer_scratch']	= self.scratchPath.get()
 		self.prefs['cpu_count']			= self.numCores.get()
 
 		# append mesmer run arguments
-		if self.prefs.has_key('run_arguments'):
-			tmp = self.prefs['run_arguments']
-		else:
-			tmp = {}
+		tmp = self.prefs['run_arguments']
 
 		if(self.prefs['mesmer_scratch'] != ''):
 			tmp['scratch'] = self.prefs['mesmer_scratch']
@@ -55,7 +50,7 @@ class ConfigWindow(tk.LabelFrame):
 		self.loadPrefs() #reload, due to to broken db implementation in some OSes
 
 	def setMESMERPath(self):
-		tmp = tkFileDialog.askdirectory(title='Select directory containing mesmer executable:',mustexist=True,parent=self)
+		tmp = tkFileDialog.askdirectory(title='Select directory containing MESMER executables, or cancel to leave as default:',mustexist=True,parent=self)
 		if(tmp != ''):
 			self.mesmerPath.set(tmp)
 
@@ -64,27 +59,24 @@ class ConfigWindow(tk.LabelFrame):
 		self.scratchPath.set(tmp)
 
 	def checkPaths(self):
-		self.savePrefs()
-
 		ok = True
-		if(not os.access(self.prefs['mesmer_dir'], os.F_OK)):
-			tkMessageBox.showwarning("Warning","The specified MESMER directory does not exist.",parent=self)
+		if(self.mesmerPath.get() == ''):
+			if(not tryProgramCall('mesmer')):
+				tkMessageBox.showwarning("Warning","The MESMER executables are not available.",parent=self)
+				ok = False
+		elif(not os.access(os.path.join(self.mesmerPath.get(),'mesmer.py'), os.X_OK)):
+			tkMessageBox.showwarning("Warning","MESMER executables are not installed in this directory.",parent=self)
 			ok = False
-		if(not os.access(self.prefs['mesmer_exe_path'], os.R_OK)):
-			tkMessageBox.showwarning("Warning","The MESMER executable was not found.",parent=self)
-			ok = False
-		elif(not os.access(self.prefs['mesmer_exe_path'], os.X_OK)):
-			tkMessageBox.showwarning("Warning","The MESMER install is damaged.",parent=self)
-			ok = False
-		if(not os.access(os.path.join(self.prefs['mesmer_util_path'],'make_components.py'), os.X_OK)):
-			tkMessageBox.showwarning("Warning","The MESMER utilities are missing.",parent=self)
-			ok = False
-
+		
+		if(self.scratchPath.get() != '' and not os.access(self.scratchPath.get(), os.W_OK)):
+			tkMessageBox.showwarning("Warning","The MESMER scratch path is not writable.",parent=self)
+			ok = False			
+		
 		if(ok):
-			tkMessageBox.showinfo("Setup Check","Configuration is OK.",parent=self)
+			self.savePrefs()
 			self.mainWindow.Ready = True
 			self.mainWindow.updateWidgets()
-			self.master.destroy()
+			self.master.destroy()			
 
 	def close(self):
 		self.prefs.close()
@@ -95,8 +87,8 @@ class ConfigWindow(tk.LabelFrame):
 		self.scratchPath 		= tk.StringVar()
 		self.numCores			= tk.IntVar()
 
-		if(self.prefs.has_key('mesmer_dir')):
-			self.mesmerPath.set( self.prefs['mesmer_dir'] )
+		if(self.prefs.has_key('mesmer_base_dir')):
+			self.mesmerPath.set( self.prefs['mesmer_base_dir'] )
 		else:
 			self.mesmerPath.set( os.getcwd() )
 
@@ -118,7 +110,7 @@ class ConfigWindow(tk.LabelFrame):
 		self.container = tk.Frame(self,borderwidth=0)
 		self.container.place(relx=0.5,rely=0.5,anchor=tk.CENTER)
 
-		self.mesmerPathLabel = tk.Label(self.container, text='Path to MESMER directory:')
+		self.mesmerPathLabel = tk.Label(self.container, text='Explicit path to MESMER installation:')
 		self.mesmerPathLabel.grid(in_=self.container,column=0,row=0,columnspan=2,sticky=tk.W)
 		self.mesmerPathEntry = tk.Entry(self.container,width=40,textvariable=self.mesmerPath)
 		self.mesmerPathEntry.grid(in_=self.container,column=0,row=1,sticky=tk.E)
@@ -138,6 +130,6 @@ class ConfigWindow(tk.LabelFrame):
 		self.numCoresEntry.grid(in_=self.container,column=0,row=5,sticky=tk.W)
 
 		self.mesmerCheckButton = tk.Button(self.container, text='Cancel',command=self.close)
-		self.mesmerCheckButton.grid(in_=self.container,column=0,row=6,sticky=tk.E,pady=10)
-		self.mesmerDoneButton = tk.Button(self.container, text='Check...',default=tk.ACTIVE,command=self.checkPaths)
-		self.mesmerDoneButton.grid(in_=self.container,column=1,row=6,sticky=tk.W,pady=10)
+		self.mesmerCheckButton.grid(in_=self.container,column=0,row=6,sticky=tk.E)
+		self.mesmerDoneButton = tk.Button(self.container, text='Save',default=tk.ACTIVE,command=self.checkPaths)
+		self.mesmerDoneButton.grid(in_=self.container,column=1,row=6,sticky=tk.W)

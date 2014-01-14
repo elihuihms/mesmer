@@ -9,7 +9,7 @@
 import sys
 import argparse
 
-from FRETSimLib import *
+from FRETSim import *
 
 # parser block
 parser = argparse.ArgumentParser()
