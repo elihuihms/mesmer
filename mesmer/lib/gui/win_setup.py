@@ -62,26 +62,25 @@ class SetupWindow(tk.Frame):
 			self.basedir = tmp
 
 	def addTargetFile(self):
-		tmp = tkFileDialog.askopenfilename(title='Select MESMER Target File(s):',multiple=True,parent=self)
+		tmp = tkFileDialog.askopenfilename(title='Select MESMER Target File:',multiple=False,parent=self)
 		if(tmp != ''):
-			for f in tmp:
-				self.targetFilesList.insert(tk.END, os.path.relpath(f,self.basedir))
+			self.targetFilesList.insert(tk.END, os.path.relpath(tmp,self.basedir))
 		self.setButtonStates()
 
 	def delTargetFile(self):
 		tmp = map(int, self.targetFilesList.curselection())[0]
-		self.targetFilesList.delete(tmp,0)
+		self.targetFilesList.delete(tk.ANCHOR)
 		self.setButtonStates()
 
 	def addComponentDir(self):
-		tmp = tkFileDialog.askdirectory(title='Select Directory containing MESMER components:',mustexist=True,parent=self)
+		tmp = tkFileDialog.askdirectory(title='Select directory containing MESMER components:',mustexist=True,parent=self)
 		if(tmp != ''):
-			self.componentFilesList.insert(tk.END,  os.path.relpath(tmp,self.basedir))
+			self.componentFilesList.insert(tk.END, os.path.relpath(tmp,self.basedir))
 		self.setButtonStates()
 
 	def delComponentDir(self):
 		tmp = map(int, self.componentFilesList.curselection())[0]
-		self.componentFilesList.delete(tmp,0)
+		self.componentFilesList.delete(tk.ANCHOR)
 		self.setButtonStates()
 
 	def setButtonStates(self):

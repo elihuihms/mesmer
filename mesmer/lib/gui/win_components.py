@@ -92,10 +92,6 @@ class ComponentsWindow(tk.Frame):
 
 		calcDataFromWindow(self, pdbs, pluginName)
 
-	def makeComponents(self):
-		if( makeComponentsFromWindow(self) ):
-			self.close()
-
 	def loadComponentPDBs(self):
 		tmp = tkFileDialog.askdirectory(title='Select folder containing PDBs:',mustexist=True,parent=self)
 		if(tmp != ''):
@@ -221,7 +217,7 @@ class ComponentsWindow(tk.Frame):
 
 		self.openButton = tk.Button(self.f_footer,text='Load Target...',command=self.loadTarget)
 		self.openButton.grid(in_=self.f_footer,column=0,row=0,sticky=tk.N+tk.S+tk.E,pady=8)
-		self.saveButton = tk.Button(self.f_footer,text='Save Components...',default=tk.ACTIVE,command=self.makeComponents)
+		self.saveButton = tk.Button(self.f_footer,text='Save Components...',default=tk.ACTIVE,command=lambda: makeComponentsFromWindow(self))
 		self.saveButton.grid(in_=self.f_footer,column=1,row=0,sticky=tk.N+tk.S+tk.W,pady=8)
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
 		self.cancelButton.grid(in_=self.f_footer,column=2,row=0,sticky=tk.N+tk.S+tk.E,pady=8,padx=20)

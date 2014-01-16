@@ -28,14 +28,16 @@ class OptionsWindow(tk.Frame):
 			except:
 				self.options[k]['value'] = None
 
+		self.close()
+
+	def close(self):
 		self.master.destroy()
 
 	def cancelWindow(self):
 		self.returncode = 1
-		self.master.destroy()
-
+		self.close()
+		
 	def createWidgets(self):
-
 		self.container = tk.Frame(self)
 		self.container.grid(in_=self,padx=6,pady=6)
 

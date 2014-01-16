@@ -4,6 +4,7 @@ from operator			import itemgetter
 
 from exceptions			import *
 from utility_functions	import mean_stdv
+from ga_functions_mp	import *
 from ga_functions_misc	import *
 from target_objects		import mesRestraint
 

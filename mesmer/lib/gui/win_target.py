@@ -64,16 +64,6 @@ class TargetWindow(tk.Frame):
 		self.newWindow.transient(self)
 		self.newWindow.wait_window(self.newWindow)
 
-	def saveTarget(self):
-		name = self.targetName.get().replace(' ','_')
-		text = makeTargetFromWindow(self)
-		if(text == None):
-			return
-		tmp = tkFileDialog.asksaveasfile(defaultextension='.target',initialfile="%s.target"%(name),parent=self)
-		if(tmp != None):
-			tmp.write(text)
-			tmp.close()
-
 	def loadTarget(self):
 		tmp = tkMessageBox.askquestion("Load Target","Are you sure you would like to load an existing target as a template?\nThis will clear your current entries.", icon='warning',parent=self)
 		if(tmp != 'yes'):
@@ -192,7 +182,7 @@ class TargetWindow(tk.Frame):
 
 		self.openButton = tk.Button(self.f_footer,text='Load Target...',command=self.loadTarget)
 		self.openButton.grid(in_=self.f_footer,column=0,row=0,sticky=tk.N+tk.S+tk.E,pady=8)
-		self.saveButton = tk.Button(self.f_footer,text='Save Target...',command=self.saveTarget,default=tk.ACTIVE)
+		self.saveButton = tk.Button(self.f_footer,text='Save Target...',default=tk.ACTIVE,command=lambda: makeTargetFromWindow(self))
 		self.saveButton.grid(in_=self.f_footer,column=1,row=0,sticky=tk.N+tk.S+tk.W,pady=8)
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
 		self.cancelButton.grid(in_=self.f_footer,column=2,row=0,sticky=tk.N+tk.S+tk.E,pady=8,padx=20)
