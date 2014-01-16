@@ -3,6 +3,7 @@ import sys
 from datetime				import datetime
 
 from exceptions				import *
+from ga_functions_mp		import *
 from ga_functions_misc		import *
 from ga_functions_stats		import *
 from ga_functions_output	import *

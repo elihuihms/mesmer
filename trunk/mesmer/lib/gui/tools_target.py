@@ -1,4 +1,5 @@
 import tkMessageBox
+import tkFileDialog
 
 from .. exceptions			import *
 from .. setup_functions		import parse_arguments
@@ -49,4 +50,12 @@ def makeTargetFromWindow( w ):
 
 		text+="%s%i\t%f\t%s\n%s\n\n" % (type,type_counters[type],weight,opts,data)
 
-	return text
+	name = w.targetName.get().replace(' ','_')
+	handle = tkFileDialog.asksaveasfile(defaultextension='.target',initialfile="%s.target"%(name),parent=w)
+	if(handle != None):
+		handle.write(text)
+		handle.close()
+	else:
+		return False
+
+	return True

@@ -49,6 +49,10 @@ class guiPlotPlugin():
 
 	def plot(self, path, options=None):
 		pass
+		
+class Bunch(object):
+	def __init__(self, dict):
+		self.__dict__.update(dict)
 
 
 

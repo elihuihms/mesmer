@@ -35,7 +35,6 @@ def makeCorrelationPlot( w ):
 def plotRestraint( w ):
 	for p in w.plot_plugins:
 		if (w.currentSelection[2] in p.types):
-
 			path = (os.path.join(w.activeDir.get(), 'restraints_%s_%s_%05i.out' % (w.currentSelection[1],w.currentSelection[2],w.currentSelection[0])))
 
 			if( not os.access( path, os.R_OK ) ):
@@ -64,7 +63,8 @@ def plotRestraint( w ):
 				return
 			except Exception as e:
 				tkMessageBox.showerror("Error","Plotting plugin experienced an error: %s" % (e))
-
+	return
+	
 def plotAttributes( w ):
 	p1 = w.attributeTable.get()
 	if( not os.access( p1, os.R_OK ) ):

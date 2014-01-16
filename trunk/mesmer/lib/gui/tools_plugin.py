@@ -26,7 +26,6 @@ def getGUICalcPlugins( path ):
 		plugins = load_plugins( path, 'gui_c' )
 	except mesPluginError as e:
 		tkMessageBox.showerror("Error",'Failed to load one or more GUI data plugins: %s' % (e.msg))
-		raise e
 
 	if(len(plugins) == 0):
 		raise Exception('No GUI calculation plugins found')
@@ -108,7 +107,7 @@ def setOptionsFromBlock( options, block ):
 def makeListFromOptions( options ):
 	ret = []
 	for k in options:
-		if( not 'value' in options[k] ):
+		if(not 'value' in options[k]):
 			if options[k]['required']:
 				raise Exception("Encountered a required option without a value: %s" % options[k]['dest'])
 			continue
@@ -125,6 +124,6 @@ def makeListFromOptions( options ):
 		else:
 			raise Exception("Encountered an option that could not be converted to a string properly: %s" % options[k]['dest'])
 	return ret
-
+	
 def makeStringFromOptions( options ):
 	return ' '.join( makeListFromOptions(options) )

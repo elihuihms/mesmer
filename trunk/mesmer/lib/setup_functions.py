@@ -3,6 +3,7 @@ import sys
 import shutil
 import argparse
 import shelve
+import platform
 
 from exceptions				import *
 from utility_functions		import *
@@ -81,6 +82,11 @@ def parse_arguments(str=None):
 	# argument error checking and defaults
 	if (args.Rn < 0):
 		args.Rn = args.size * 10
+
+	# Windows runs afoul of multiprocessing atm
+	if (platform.system() == 'Windows' and args.threads > 1):
+		print_msg("WARNING: Multiprocessing not currently available on Windows, setting -threads to 1")
+		args.threads = 1
 
 	return args
 
