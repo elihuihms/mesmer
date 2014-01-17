@@ -1,4 +1,5 @@
 import os
+import sys
 import tkMessageBox
 import argparse
 import Tkinter as tk
@@ -15,7 +16,7 @@ def makeCorrelationPlot( w ):
 	
 	cmd = ['make_correlation_plot']
 	if( w.prefs['mesmer_base_dir'] != '' ):
-		cmd = [os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_correlation_plot.py')]
+		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_correlation_plot.py')]
 	
 	if( os.access( p1, os.R_OK ) and os.access( p2, os.R_OK ) ):
 		cmd.extend( [p1,p2,'-size','20'] )
@@ -106,7 +107,7 @@ def plotAttributes( w ):
 	if w.optWindow.returncode == 0:
 		cmd = ['make_attribute_plot']
 		if( w.prefs['mesmer_base_dir'] != '' ):
-			cmd = [os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_attribute_plot.py')]
+			cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_attribute_plot.py')]
 		cmd.extend( [p1,'-stats',p2] )
 		cmd.extend( makeListFromOptions( w.pluginOptions['attributePlotter'] ) )
 		

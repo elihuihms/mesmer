@@ -6,7 +6,6 @@ import sys
 from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
 
-sys.path.append( os.path.dirname(__file__) )
 from gui_c_deer_lib			import *
 
 class plugin(guiCalcPlugin):

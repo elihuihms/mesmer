@@ -18,10 +18,9 @@ try:
 except:
 	raise Exception("Failed to import Numpy")
 
-sys.path.append( os.path.join(os.path.dirname(__file__),'pyParaTools') )
-from	ParaParser	import *
-from	CalcPara	import *
-from	ExplorePara	import *
+from	pyParaTools.ParaParser	import *
+from	pyParaTools.CalcPara	import *
+from	pyParaTools.ExplorePara	import *
 
 class plugin(guiCalcPlugin):
 

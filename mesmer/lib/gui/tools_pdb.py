@@ -1,4 +1,5 @@
 import os
+import sys
 import tkMessageBox
 import argparse
 import Tkinter as tk
@@ -57,7 +58,7 @@ def makePDBs( w ):
 	if( w.prefs['mesmer_base_dir'] == '' ):
 		cmd = ['make_models']
 	else:
-		cmd = [os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_models.py')]
+		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_models.py')]
 	
 	cmd.extend(pdb_dirs) # append collected PDB sources
 	cmd.extend( makeListFromOptions(w.pluginOptions['pdbOutput']) ) # build the make_models argument string

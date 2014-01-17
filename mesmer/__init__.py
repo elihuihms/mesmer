@@ -1,9 +1,8 @@
 __all__ = [
 	'lib',
-	'mesmer-gui',
 	'mesmer',
+	'mesmer_gui',
 	'plugins',
-	'test',
 	'utilities'
 ]
 

@@ -6,9 +6,8 @@ from exceptions import *
 def get_component_values( path ):
 	try:
 		f = open( path, 'r' )
-	except IOError:
-		print "ERROR: Could not open values file %s " % (path)
-		return None
+	except IOError as e:
+		raise ComponentGenException(e.msg)
 
 	ret = {}
 	for l in f.readlines():
