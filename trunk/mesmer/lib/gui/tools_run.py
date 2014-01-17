@@ -1,4 +1,5 @@
 import os
+import sys
 import shelve
 import shutil
 import time
@@ -38,12 +39,13 @@ def startRun( w ):
 		tkMessageBox.showerror("Error","Could not write MESMER run configuration file: %s" % (e),parent=w)
 
 	# fire up MESMER and get the process handle
-	exe = 'mesmer'
+	cmd = ['mesmer']
 	if( w.prefs['mesmer_base_dir'] != '' ):
-		exe = os.path.join(w.prefs['mesmer_base_dir'],'mesmer.py')
+		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'mesmer.py')]
+	cmd.append("@%s" % argpath)
 	
 	try:
-		pHandle = Popen( [exe,"@%s" % argpath], cwd=args.dir, stdout=PIPE, stderr=STDOUT, bufsize=0, universal_newlines=True )
+		pHandle = Popen( cmd, cwd=args.dir, stdout=PIPE, stderr=STDOUT, bufsize=0, universal_newlines=True )
 	except OSError as e:
 		tkMessageBox.showerror("Error","Error starting a MESMER run.\nError:\n%s" % e,parent=w)
 		return False

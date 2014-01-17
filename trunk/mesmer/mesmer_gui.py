@@ -27,8 +27,8 @@ def run():
 		print "The MESMER GUI requires the Tk/Tcl toolbox."
 		sys.exit()
 
-	if( sys.version_info < (2,5) ):
-		tkMessageBox.showerror("Error","Python version must be 2.5 or greater")
+	if( sys.version_info < (2,6) ):
+		tkMessageBox.showerror("Error","Python version must be 2.6 or greater")
 		sys.exit()
 		
 	try:

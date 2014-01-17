@@ -6,6 +6,8 @@ Changes to github commit version 36df55fe9406041beb6c08491046e3e7a5b6e4ab from h
 
 3.	Removed “tests” directory
 
+4.	Added __init__.py
+
 ParaParser.py:
 
 	1. Removed conversion of RDC Axial and Rhombodial tensor terms to VVU on lines 652-653 of RDCParser object, such that they are stored as SI units in the object instead. See changes to FitPara.py!

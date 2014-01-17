@@ -30,8 +30,8 @@ from lib.component_functions	import load_components
 from lib.ga_functions_main		import run_ga
 
 def run():
-	if( sys.version_info < (2,5) ):
-		print "Python version must be 2.5 or greater"
+	if( sys.version_info < (2,6) ):
+		print "Python version must be 2.6 or greater"
 		sys.exit()
 
 	# obtain the parameters for the run
