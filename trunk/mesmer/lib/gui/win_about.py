@@ -55,9 +55,9 @@ MESMER GUI version %s
 Special Thanks:
 
 The Mark Foster Lab
-The Biophysics Atomic Resolution Small Group
 The Ohio State Biophysics Program
 The Ohio State University
+www.shedreamsindigital.net
 """ % (programInfo['version'],programInfo['copyright']))
 
 		self.aboutText.grid(in_=self.container,column=0,row=1)

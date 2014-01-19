@@ -28,7 +28,7 @@ You should now be able to launch either the command-line version of mesmer, or t
 
 Prerequisites
 -------------
-MESMER requires at least Python 2.5
+MESMER requires at least Python 2.6
 
 The following libraries are also required by MESMER:
     Tkinter/tK           http://www.tcl.tk/
