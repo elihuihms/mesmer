@@ -56,7 +56,7 @@ class MainWindow(tk.Frame):
 		elif( not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os.R_OK) ):
 			self.prefs['mesmer_base_dir'] = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 		
-		if( self.prefs['mesmer_base_dir'] != '' and not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os._OK) ):
+		if( self.prefs['mesmer_base_dir'] != '' and not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os.R_OK) ):
 			self.Ready = False
 				
 		self.prefs.sync()
