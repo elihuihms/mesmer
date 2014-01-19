@@ -53,7 +53,7 @@ class MainWindow(tk.Frame):
 		
 		if( self.prefs['mesmer_base_dir'] == '' and not tryProgramCall('mesmer') ):
 			self.prefs['mesmer_base_dir'] = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-		elif( not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os._OK) ):
+		elif( not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os.R_OK) ):
 			self.prefs['mesmer_base_dir'] = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 		
 		if( self.prefs['mesmer_base_dir'] != '' and not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os._OK) ):
