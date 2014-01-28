@@ -3,7 +3,7 @@ import scipy
 from random	import choice
 from math	import sqrt,fabs,fsum
 
-_use_weave = True
+_use_weave = False
 
 if(_use_weave):
 	try:

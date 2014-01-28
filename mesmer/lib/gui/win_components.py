@@ -29,6 +29,10 @@ class ComponentsWindow(tk.Frame):
 		self.createControlVars()
 		self.createWidgets()
 		self.createToolTips()
+		
+		# create an initial component attribute type
+		self.createWidgetRow()
+		
 		self.updateWidgets()
 
 	def loadPrefs(self):
@@ -149,10 +153,6 @@ class ComponentsWindow(tk.Frame):
 	def close(self):
 		self.master.destroy()
 
-	def createToolTips(self):
-		#self.createTargetTT 	= ToolTip(self.createTargetButton,		follow_mouse=0,text='Create a target file from experimental data')
-		pass
-
 	def createControlVars(self):
 		self.widgetRowChecks = []
 		self.widgetRowTypes = []
@@ -210,7 +210,6 @@ class ComponentsWindow(tk.Frame):
 		self.widgetRowTypeMenus = []
 		self.widgetRowFolderEntries = []
 		self.widgetRowFolderButtons = []
-		self.createWidgetRow()
 
 		self.f_footer = tk.Frame(self,borderwidth=0)
 		self.f_footer.grid(in_=self,row=2)
@@ -247,6 +246,12 @@ class ComponentsWindow(tk.Frame):
 		self.widgetRowFolderButtons[-1].bind('<ButtonRelease-1>',self.attachDataFolder)
 		self.widgetRowFolderButtons[-1].grid(in_=self.f_container,column=3,row=self.rowCounter+1)
 
+		# append tool tips
+		self.widgetRowCheckboxesTT.append( ToolTip(self.widgetRowCheckboxes[-1], 	follow_mouse=0, text='Mark attribute for deletion') )
+		self.widgetRowTypeMenusTT.append( ToolTip(self.widgetRowTypeMenus[-1], 	follow_mouse=0, text='Set the attribute type') )
+		self.widgetRowFolderEntriesTT.append( ToolTip(self.widgetRowFolderEntries[-1], 	follow_mouse=0, text='The path to the folder containing attribute data.') )
+		self.widgetRowFolderButtonsTT.append( ToolTip(self.widgetRowFolderButtons[-1], 	follow_mouse=0, text='Sets the path to a folder containing attribute data.') )
+
 		self.master.geometry('540x%i' % (338+self.rowCounter*30))
 		self.config(width=540,height=(338+self.rowCounter*30))
 
@@ -267,6 +272,10 @@ class ComponentsWindow(tk.Frame):
 				del self.widgetRowChecks[index]
 				del self.widgetRowTypes[index]
 				del self.widgetRowFolders[index]
+				del self.widgetRowCheckboxesTT[index]
+				del self.widgetRowTypeMenusTT[index]
+				del self.widgetRowFolderEntriesTT[index]
+				del self.widgetRowFolderButtonsTT[index]
 				self.rowCounter-=1
 			else:
 				index+=1
@@ -276,3 +285,20 @@ class ComponentsWindow(tk.Frame):
 
 		self.master.geometry('540x%i' % (338+self.rowCounter*30))
 		self.config(width=540,height=(338+self.rowCounter*30))
+		
+	def createToolTips(self):
+		self.componentPDBsListTT	 	= ToolTip(self.componentPDBsList,		follow_mouse=0, text='PDBs to generate component files from')
+		self.loadComponentsButtonTT	 	= ToolTip(self.loadComponentsButton,	follow_mouse=0, text='Select a folder containing component PDBs')
+		self.removeComponentsButtonTT	= ToolTip(self.removeComponentsButton,	follow_mouse=0, text='Remove highlighted PDBs')
+		self.clearComponentsButtonTT	= ToolTip(self.clearComponentsButton,	follow_mouse=0, text='Remove all pdbs')
+		self.addRowButtonTT			 	= ToolTip(self.addRowButton,			follow_mouse=0, text='Add an attribute type for the components')
+		self.delRowButtonTT			 	= ToolTip(self.delRowButton,			follow_mouse=0, text='Remove the selected attribute type')
+		self.calcDataMenuTT			 	= ToolTip(self.calcDataMenu,			follow_mouse=0, text='Calculate a type of attribute from the component PDBs')
+		self.openButtonTT			 	= ToolTip(self.openButton,				follow_mouse=0, text='Select a target to use as a template for the component attribute types')
+		self.saveButtonTT			 	= ToolTip(self.saveButton,				follow_mouse=0, text='Compile the components and save to a new component directory')
+		self.cancelButtonTT			 	= ToolTip(self.cancelButton,			follow_mouse=0, text='Close this window without saving')
+		self.widgetRowCheckboxesTT = []
+		self.widgetRowTypeMenusTT = []
+		self.widgetRowFolderEntriesTT = []
+		self.widgetRowFolderButtonsTT = []
+		pass

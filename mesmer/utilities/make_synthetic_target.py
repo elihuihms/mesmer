@@ -9,9 +9,9 @@ import glob
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from lib.plugin_functions		import load_plugins, unload_plugins
 from lib.target_functions		import load_targets
-from lib.component_functions		import load_components
+from lib.component_functions	import load_components
 from lib.ensemble_objects		import mesEnsemble
-from lib.ga_functions_output		import print_plugin_state
+from lib.ga_functions_output	import print_plugin_state
 
 def run():
 	parser = argparse.ArgumentParser()

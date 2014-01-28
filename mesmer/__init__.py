@@ -6,6 +6,9 @@ __all__ = [
 	'utilities'
 ]
 
+import lib as mesmer_base
+
+__version__ = mesmer_base.__version__
 __license__			= u'GPL v2'
 __author__			= u'Elihu Ihms'
 __author_email__	= u'elihuihms@elihuihms.com'

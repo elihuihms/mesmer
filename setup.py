@@ -31,7 +31,7 @@ except ImportError:
 	s = raw_input("WARNING: Tkinter is not installed, the GUI will not be available, continue? (Y/N): ")
 	if s[0]!='Y' and s[0]!='y':
 		exit()
-		
+
 # put default plugin-specific imports here
 try:
 	import Bio
@@ -39,7 +39,7 @@ except ImportError:
 	s = raw_input("WARNING: Biopython is not installed, some plugins may not work properly, continue? (Y/N): ")
 	if s[0]!='Y' and s[0]!='y':
 		exit()
-		
+
 #
 # Do actual packaging now
 #
@@ -101,6 +101,9 @@ entry_points = {
 		'make_synthetic_target = mesmer.utilities.make_synthetic_target:run'
 	]
 }
+
+import ez_setup
+ez_setup.use_setuptools()
 
 from setuptools import setup
 
