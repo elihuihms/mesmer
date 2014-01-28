@@ -43,7 +43,7 @@ def startRun( w ):
 	if( w.prefs['mesmer_base_dir'] != '' ):
 		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'mesmer.py')]
 	cmd.append("@%s" % argpath)
-	
+
 	try:
 		pHandle = Popen( cmd, cwd=args.dir, stdout=PIPE, stderr=STDOUT, bufsize=0, universal_newlines=True )
 	except OSError as e:
@@ -68,7 +68,7 @@ def connectToRun( w, path, pHandle ):
 	except:
 		w.connectCounter = 0
 
-	if(w.connectCounter > 10): # give up after ten tries to connect to results DB
+	if(w.connectCounter > 60): # give up after a minute while trying to reach results DB
 		tkMessageBox.showerror("Error","Could not find MESMER results DB in \"%s\". Perhaps MESMER crashed?" % path,parent=w)
 		return
 

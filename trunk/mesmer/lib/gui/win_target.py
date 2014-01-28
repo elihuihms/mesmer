@@ -29,6 +29,10 @@ class TargetWindow(tk.Frame):
 		self.createControlVars()
 		self.createWidgets()
 		self.createToolTips()
+		
+		# create an initial restraint type
+		self.createWidgetRow()
+
 		self.updateWidgets()
 
 	def loadPrefs(self):
@@ -123,7 +127,19 @@ class TargetWindow(tk.Frame):
 		self.master.destroy()
 
 	def createToolTips(self):
-		#self.createTargetTT 	= ToolTip(self.createTargetButton,		follow_mouse=0,text='Create a target file from experimental data')
+		self.targetNameTT		= ToolTip(self.targetNameEntry, 	follow_mouse=0, text='A simple name for this target. Will be used to identify fitting results.')
+		self.targetCommentsTT 	= ToolTip(self.targetCommentsEntry,	follow_mouse=0, text='A comment used to store additional information about this target. Not directly used by MESMER.')
+		self.addRowButtonTT 	= ToolTip(self.addRowButton,		follow_mouse=0, text='Append a new experimental data restraint to the target.')
+		self.delRowButtonTT 	= ToolTip(self.delRowButton,		follow_mouse=0, text='Remove the selected experimental data restraint(s) from the target.')
+		self.openButtonTT	 	= ToolTip(self.openButton,			follow_mouse=0, text='Load an existing MESMER target.')
+		self.saveButtonTT	 	= ToolTip(self.saveButton,			follow_mouse=0, text='Save the current target.')
+		self.cancelButtonTT	 	= ToolTip(self.cancelButton,		follow_mouse=0, text='Close the window without saving.')
+		self.widgetRowCheckboxesTT = []
+		self.widgetRowTypeMenusTT = []
+		self.widgetRowWeightEntriesTT = []
+		self.widgetRowFileEntriesTT = []
+		self.widgetRowFileButtonsTT = []
+		self.widgetRowOptButtonsTT = []
 		pass
 
 	def createControlVars(self):
@@ -175,7 +191,6 @@ class TargetWindow(tk.Frame):
 		self.widgetRowFileEntries = []
 		self.widgetRowFileButtons = []
 		self.widgetRowOptButtons = []
-		self.createWidgetRow()
 
 		self.f_footer = tk.Frame(self,borderwidth=0)
 		self.f_footer.grid(in_=self,row=2)
@@ -222,6 +237,14 @@ class TargetWindow(tk.Frame):
 		self.widgetRowOptButtons.append( tk.Button(self.f_container,text='Set Options...') )
 		self.widgetRowOptButtons[-1].bind('<ButtonRelease-1>',self.openOptionsWindow)
 		self.widgetRowOptButtons[-1].grid(in_=self.f_container,column=5,row=self.rowCounter+1)
+		
+		# append tool tips
+		self.widgetRowCheckboxesTT.append( ToolTip(self.widgetRowCheckboxes[-1], 	follow_mouse=0, text='Mark restraint for deletion') )
+		self.widgetRowTypeMenusTT.append( ToolTip(self.widgetRowTypeMenus[-1], 	follow_mouse=0, text='Set the restraint type') )
+		self.widgetRowWeightEntriesTT.append( ToolTip(self.widgetRowWeightEntries[-1], 	follow_mouse=0, text='Sets the relative weighting for this restraint.') )
+		self.widgetRowFileEntriesTT.append( ToolTip(self.widgetRowFileEntries[-1], 	follow_mouse=0, text='The path to the experimental data.') )
+		self.widgetRowFileButtonsTT.append( ToolTip(self.widgetRowFileButtons[-1], 	follow_mouse=0, text='Sets the path to the experimental data.') )
+		self.widgetRowOptButtonsTT.append( ToolTip(self.widgetRowOptButtons[-1], 	follow_mouse=0, text='Sets various fitting and data type options for the restraint.') )
 
 		self.delRowButton.config(state=tk.NORMAL)
 
@@ -250,6 +273,12 @@ class TargetWindow(tk.Frame):
 				del self.widgetRowTypes[index]
 				del self.widgetRowFiles[index]
 				del self.widgetRowOptions[index]
+				del self.widgetRowCheckboxesTT[index]
+				del self.widgetRowTypeMenusTT[index]
+				del self.widgetRowWeightEntriesTT[index]
+				del self.widgetRowFileEntriesTT[index]
+				del self.widgetRowFileButtonsTT[index]
+				del self.widgetRowOptButtonsTT[index]
 				self.rowCounter-=1
 			else:
 				index+=1

@@ -6,13 +6,14 @@ import tkFileDialog
 import tkMessageBox
 
 import tools_run # to avoid circular import of AnalysisWindow
-from tools_analysis	import *
-from tools_plot		import *
-from tools_pdb		import *
-from tools_plugin	import getGUIPlotPlugins
-from win_log		import LogWindow
-from win_about		import programInfo
-from tools_general	import openUserPrefs
+from tools_analysis		import *
+from tools_plot			import *
+from tools_pdb			import *
+from tools_plugin		import getGUIPlotPlugins
+from tools_TkTooltip	import ToolTip
+from win_log			import LogWindow
+from win_about			import programInfo
+from tools_general		import openUserPrefs
 
 class AnalysisWindow(tk.Frame):
 	def __init__(self, master, path=None, pHandle=None):
@@ -242,4 +243,19 @@ class AnalysisWindow(tk.Frame):
 		self.cancelButton.grid(in_=self.f_footer,column=1,row=0,pady=(4,0))
 
 	def createToolTips(self):
-		pass
+		self.activeDirEntryTT	= ToolTip(self.activeDirEntry,		follow_mouse=0,text='The current MESMER result directory')
+		self.activeDirButtonTT	= ToolTip(self.activeDirButton,		follow_mouse=0,text='Open a MESMER results output directory')
+		self.statusTextEntryTT	= ToolTip(self.statusTextEntry,		follow_mouse=0,text='The current status of the MESMER run')
+		self.abortButtonTT		= ToolTip(self.abortButton,		follow_mouse=0,text='Abort a MESMER run in progress')
+		self.generationsListTT	= ToolTip(self.generationsList,		follow_mouse=0,text='The list of generations and minimum, average, and standard deviations of the ensemble fitnesses')
+		self.progressPlotButtonTT	= ToolTip(self.progressPlotButton,		follow_mouse=0,text='Generate a plot of the per-generation ensemble fitnesses')
+		self.targetsListTT		= ToolTip(self.targetsList,		follow_mouse=0,text='List of minimum, average, and standard deviation of fits to the targets present in the current generation')
+		self.attributePlotButtonTT	= ToolTip(self.attributePlotButton,		follow_mouse=0,text='Make an attribute plot of the selected ensembles')
+		self.correlationPlotButtonTT	= ToolTip(self.correlationPlotButton,		follow_mouse=0,text='Make a correlation plot of the selected ensembles')
+		self.writePDBsButtonTT	= ToolTip(self.writePDBsButton,		follow_mouse=0,text='Write structures corresponding to components present in the selected ensembles')
+		self.attributeTableEntryTT	= ToolTip(self.attributeTableEntry,		follow_mouse=0,text='The currently selected attribute table')
+		self.attributeTableButtonTT	= ToolTip(self.attributeTableButton,		follow_mouse=0,text='Set an attribute table to generate attribute plots')
+		self.restraintsListTT	= ToolTip(self.restraintsList,		follow_mouse=0,text='List of restraints corresponding to the selected target and generation')
+		self.fitPlotButtonTT	= ToolTip(self.fitPlotButton,		follow_mouse=0,text='Generate a restraint fit plot for the best-fitting ensemble to the selected target from the selected generation')
+		self.openLogButtonTT	= ToolTip(self.openLogButton,		follow_mouse=0,text='Open the log file for the current run')
+		self.cancelButtonTT		= ToolTip(self.cancelButton,		follow_mouse=0,text='Close this window')
