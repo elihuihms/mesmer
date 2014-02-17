@@ -1,6 +1,7 @@
 import sys
 import math
 import random
+import copy
 
 from scipy					import optimize
 from multiprocessing		import Process,Queue
@@ -90,9 +91,9 @@ def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_sta
 
 	# Under Windows, all arguments to Process must be picklable. (http://docs.python.org/2/library/multiprocessing.html#windows)
 	# Since we can't pickle the plugin functions, we won't be able multithread w/o some significant changes. Until then, args.threads is set to 1 for Windows environments
-
 	if( args.threads == 1 ): # multithreading disabled
-		return optimize_ratios( args, components, plugins, targets, ensembles, q=None, print_status=print_status )
+		tmp = copy.deepcopy( ensembles )
+		return optimize_ratios( args, components, plugins, targets, tmp, q=None, print_status=print_status )
 
 	q = Queue()
 	chunksize = int(math.ceil(len(ensembles) / float(args.threads)))
