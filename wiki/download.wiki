@@ -4,34 +4,34 @@
 
 ==Installers & Executables==
 
-+Binary executables for Macintosh and Windows are UNSUPPORTED and provided only for convenience, installing from source is highly recommended.
+:Binary executables for Macintosh and Windows are UNSUPPORTED and provided only for convenience, installing from source is highly recommended.
 
 ===Source Distributions===
 
-+[http://steelsnowflake.com/downloads/?f=MESMER-0.9.0.tar.gz MESMER-0.9.0.tar.gz]
+:[http://steelsnowflake.com/downloads/?f=MESMER-0.9.0.tar.gz MESMER-0.9.0.tar.gz]
 
-+[http://steelsnowflake.com/downloads/?f=MESMER-0.9.0.zip MESMER-0.9.0.zip]
+:[http://steelsnowflake.com/downloads/?f=MESMER-0.9.0.zip MESMER-0.9.0.zip]
 
 ===Binaries===
 
-+[http://steelsnowflake.com/downloads/?f=MESMER-0.9.0_mac.dmg MESMER-0.9.0_mac.dmg] (Mac OS 10.6+)
+:[http://steelsnowflake.com/downloads/?f=MESMER-0.9.0_mac.dmg MESMER-0.9.0_mac.dmg] (Mac OS 10.6+)
 
-+[http://steelsnowflake.com/downloads/?f=MESMER-0.9.0_win.zip MESMER-0.9.0_win.zip] (Windows 7+)
+:[http://steelsnowflake.com/downloads/?f=MESMER-0.9.0_win.zip MESMER-0.9.0_win.zip] (Windows 7+)
 
 ==Documentation==
 
-+[User Manual]
+:[User Manual]
 
-+[http://steelsnowflake.com/downloads/?f=manual_installation.zip Installation Manual]
+:[http://steelsnowflake.com/downloads/?f=manual_installation.zip Installation Manual]
 
-+[Plugin Manual]
+:[Plugin Manual]
 
-+GUI tutorial ([http://steelsnowflake.com/downloads/?f=tutorial_gui.tar.gz .tar],[http://steelsnowflake.com/downloads/?f=tutorial_gui.zip .zip])
+:GUI tutorial ([http://steelsnowflake.com/downloads/?f=tutorial_gui.tar.gz .tar],[http://steelsnowflake.com/downloads/?f=tutorial_gui.zip .zip])
 
-+CLI tutorial ([http://steelsnowflake.com/downloads/?f=tutorial_cli.tar.gz .tar],[http://steelsnowflake.com/downloads/?f=tutorial_cli.zip .zip])
+:CLI tutorial ([http://steelsnowflake.com/downloads/?f=tutorial_cli.tar.gz .tar],[http://steelsnowflake.com/downloads/?f=tutorial_cli.zip .zip])
 
 ==Archive==
 
-+[http://steelsnowflake.com/downloads/?f=MESMER-0.3.0dev.tar.gz MESMER-0.3.0dev.tar.gz]
+:[http://steelsnowflake.com/downloads/?f=MESMER-0.3.0dev.tar.gz MESMER-0.3.0dev.tar.gz]
 
-+[http://steelsnowflake.com/downloads/?f=MESMER-0.1.0dev.tar.gz MESMER-0.1.0dev.tar.gz]
+:[http://steelsnowflake.com/downloads/?f=MESMER-0.1.0dev.tar.gz MESMER-0.1.0dev.tar.gz]
