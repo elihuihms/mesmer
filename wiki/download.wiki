@@ -1,0 +1,16 @@
+#summary Download links for MESMER resources
+
+=Notes=
+Because of changes to Google's code hosting policy, downloads directly from code.google.com are no longer possible.
+
+----
+
+=Installers & Executables=
+==Notes==
+Executable binaries for Macintosh and Windows are UNSUPPORTED, and provided only for convenience. Installing from source is highly recommended.
+
+----
+
+=Documentation=
+
+----
