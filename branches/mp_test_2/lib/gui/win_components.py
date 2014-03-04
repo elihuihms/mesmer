@@ -40,14 +40,16 @@ class ComponentsWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 
+		mesmer_base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
 		try:
-			(self.target_plugin_types,self.target_plugin_options) = getTargetPluginOptions(self.prefs['mesmer_dir'])
+			(self.target_plugin_types,self.target_plugin_options) = getTargetPluginOptions(mesmer_base_dir)
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()
 
 		try:
-			self.calc_plugins = getGUICalcPlugins(self.prefs['mesmer_dir'])
+			self.calc_plugins = getGUICalcPlugins(mesmer_base_dir)
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading GUI calculator plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()

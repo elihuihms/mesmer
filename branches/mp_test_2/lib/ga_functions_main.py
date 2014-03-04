@@ -30,7 +30,7 @@ def run_ga( args, plugins, targets, components ):
 	print "\tOptimizing parent component ratios..."
 	sys.stdout.flush()
 
-	parents = mp_optimize_ratios( args, components, plugins, targets, parents )
+	parents = mp_optimize_ratios( args, components, targets, parents )
 
 	generation_counter = 0
 	loop = True
@@ -50,7 +50,7 @@ def run_ga( args, plugins, targets, components ):
 		sys.stdout.flush()
 
 		# optimize component ratios for newly-mutated/crossed offspring
-		offspring = mp_optimize_ratios( args, components, plugins, targets, offspring )
+		offspring = mp_optimize_ratios( args, components, targets, offspring )
 
 		# retrieve the 1/2 best-scoring ensembles and some collected statistics
 		(best_scored,ensemble_stats) = get_best_ensembles( args, targets, parents, offspring )

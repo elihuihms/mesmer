@@ -1,7 +1,7 @@
 import argparse
 
 class guiCalcPlugin():
-	def __init__(self, path):
+	def __init__(self):
 		self.name = ''
 		self.version = ''
 		self.type = 'None'
@@ -41,7 +41,7 @@ class guiCalcPlugin():
 		pass
 
 class guiPlotPlugin():
-	def __init__(self, path):
+	def __init__(self):
 		self.name = ''
 		self.version = ''
 		self.types = ()

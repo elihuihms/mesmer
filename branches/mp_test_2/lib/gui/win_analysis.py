@@ -38,7 +38,7 @@ class AnalysisWindow(tk.Frame):
 		self.pHandle = pHandle
 		if( path != None and pHandle != None ):
 			self.abortButton.config(state=tk.NORMAL)
-			lib.gui.tools_run.connectToRun(self,path,pHandle)
+			tools_run.connectToRun(self,path,pHandle)
 
 	def loadPrefs(self):
 		try:
@@ -46,9 +46,9 @@ class AnalysisWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
-
+				
 		try:
-			self.plot_plugins = getGUIPlotPlugins(self.prefs['mesmer_dir'])
+			self.plot_plugins = getGUIPlotPlugins( os.path.dirname(os.path.dirname(os.path.dirname(__file__))) )
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading GUI plot plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()

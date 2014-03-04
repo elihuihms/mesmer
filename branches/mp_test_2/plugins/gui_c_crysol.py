@@ -9,7 +9,7 @@ from lib.gui.tools_plugin	import makeStringFromOptions
 
 class plugin(guiCalcPlugin):
 
-	def __init__(self, mesmerDir):
+	def __init__(self):
 		self.name = 'SAXS - Crysol'
 		self.version = '2013.09.13'
 		self.type = 'SAXS'

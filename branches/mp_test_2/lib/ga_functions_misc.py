@@ -10,7 +10,6 @@ from multiprocessing		import Process,Queue
 from exceptions				import *
 from ensemble_objects		import mesEnsemble
 from utility_functions		import print_msg,mean_stdv
-#from utility_objects		import shelveList
 from optimization_functions	import blind_random_min,localized_random_min
 
 def make_ensembles( args, plugins, targets, components ):
@@ -77,7 +76,7 @@ def evolve_ensembles( args, components, ensembles ):
 
 	return
 
-def optimize_ratios( args, components, plugins, targets, ensembles, q, print_status=True ):
+def optimize_ratios( args, components, targets, ensembles, q, print_status=True ):
 	"""
 	Optimizes the component ratios of the provided ensembles.
 	The actual algorithm used to achieve optimization is dependent upon the Ralgorithm element of the provided MESMER parameters dict
@@ -86,7 +85,6 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q, print_sta
 	Arguments:
 	args		- The MESMER argument parameters
 	components	- The component database
-	plugins		- A list of the data processing and evaluation plugin modules
 	targets		- A list of mesTargets used to score the ensembles
 	ensembles	- The ensembles to be worked upon
 	q			- A multiprocessing.Queue object that the modified ensembles will be placed into
@@ -97,7 +95,7 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q, print_sta
 
 	# delta function for fitness algorithm to pass to minimization function
 	def wrapper( ratios ):
-		return sum(e.get_fitness( components, plugins, t, ratios ).itervalues())
+		return sum(e.get_fitness( components, t, ratios ).itervalues())
 
 	n1,n2 = len(targets),len(ensembles)
 	divisor = int(max(n1*n2/100,1))
@@ -110,7 +108,7 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q, print_sta
 			if(e.optimized[t.name]):
 				continue
 			elif( args.Ralgorithm == 0 ):
-				e.get_fitness( components, plugins, t, [1.0/args.size] * args.size )
+				e.get_fitness( components, t, [1.0/args.size] * args.size )
 				e.opt_status[t.name] = 'N/A'
 
 			elif( args.Ralgorithm == 1 ):
@@ -147,7 +145,7 @@ def optimize_ratios( args, components, plugins, targets, ensembles, q, print_sta
 	q.put(ensembles)
 	return
 
-def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_status=True ):
+def mp_optimize_ratios( args, components, targets, ensembles, print_status=True ):
 	"""
 	A multiprocessing wrapper for the function optimize_ratios.
 	See that function's docstrings for more information.
@@ -161,14 +159,20 @@ def mp_optimize_ratios( args, components, plugins, targets, ensembles, print_sta
 	# randomize ensemble order so threads should finish processing their chunks in about the same time
 	random.shuffle( ensembles )
 
+	import cPickle
+	print len( cPickle.dumps(args) )
+	print len( cPickle.dumps(components) )
+	print len( cPickle.dumps(targets) )
+	print len( cPickle.dumps(ensembles) )
+
 	procs = []
 	for i in range( args.threads ):
-		p = Process(target=optimize_ratios, args=(args,components,plugins,targets,ensembles[:chunksize],q,print_status))
+		p = Process(target=optimize_ratios, args=(args,components,targets,ensembles[:chunksize],q,print_status))
 		procs.append( p )
 		p.start()
 
 		del ensembles[:chunksize] # remove unoptimized ensembles
-	
+
 	for i in range( args.threads ):
 		ensembles.extend( q.get() )
 

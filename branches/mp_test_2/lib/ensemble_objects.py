@@ -3,6 +3,16 @@ import random
 from exceptions			import *
 from utility_functions	import print_msg,get_input_blocks
 
+class picklable_boundmethod(object):
+	def __init__(self, mt):
+		self.mt = mt
+	def __getstate__(self):
+		return (self.mt.im_self, self.mt.im_func.__name__)
+	def __setstate__(self, (s,fn) ):
+		self.mt = getattr(s, fn)
+	def __call__(self, *a, **kw):
+		return self.mt(*a, **kw)
+
 class mesEnsemble:
 	"""
 	A collection of components, their relative ratios, and once calculated, their fitness when compared to a target
@@ -39,7 +49,19 @@ class mesEnsemble:
 					self.plugin_data[t.name][type] = {}
 					self.fitness[t.name][type] = 0.0
 
+		# link the target data types with the fitness functions from the plugins
+		self._link_fitness_functions(plugins,targets)
+
 		return
+
+	def _link_fitness_functions(self, plugins, targets):
+		self._fitness_functions = {}
+		for t in targets:
+			self._fitness_functions[t.name] = {}
+			for (i,r) in enumerate(t.restraints):
+				for p in plugins:
+					if r.type in p.type:
+						self._fitness_functions[t.name][r.type] = picklable_boundmethod( p.calc_fitness )
 
 	def fill(self, component_names):
 
@@ -150,7 +172,7 @@ class mesEnsemble:
 
 		return
 
-	def get_fitness(self, components, plugins, target, ratios):
+	def get_fitness(self, components, target, ratios):
 		"""
 		Calculate the fitness of the ensemble for a given target and component ratios
 		Saves the calculated fitness back to the object as well
@@ -171,20 +193,16 @@ class mesEnsemble:
 		# set our optimization status to dirty (calling function will have to set this back)
 		self.optimized[target.name] = False
 
-		for r in target.restraints:
+		for (i,r) in enumerate(target.restraints):
 
 			# build a list of our attributes to average together for a fit to the target data
 			attributes = []
-
-			# find the plugin to handle this type of data
 			for name in self.component_names:
 				for a in components[name].attributes:
 					if( a.restraint.type == r.type ):
 						attributes.append( a )
 
 			# hand off the collected attributes to the correct plugin to score
-			for p in plugins:
-				if( r.type in p.type ):
-					self.fitness[target.name][r.type] = r.scale * p.calc_fitness( r, target.plugin_data[r.type], self.plugin_data[target.name][r.type], attributes, self.ratios[target.name] )
-					
+			self.fitness[target.name][r.type] = r.scale * self._fitness_functions[target.name][r.type]( r, target.plugin_data[r.type], self.plugin_data[target.name][r.type], attributes, self.ratios[target.name] )
+
 		return self.fitness[target.name]

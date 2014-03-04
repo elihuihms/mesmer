@@ -13,18 +13,16 @@ def makePDBs( w ):
 	if(w.currentSelection[0] == None or w.currentSelection[1] == None):
 		return
 
-	tmp = []
+	pdb_dirs = []
 	title = 'Choose folder containing component PDBs'
 	while True:
 		dir = tkFileDialog.askdirectory(title=title) #note - don't set parent, obscures the title
 		if(not dir):
 			break
-		tmp.append(dir)
+		pdb_dirs.append(dir)
 		title = 'Added %s. Select another?' % os.path.basename(dir)
-	if(len(tmp)<1):
+	if(len(pdb_dirs)<1):
 		return
-
-	pdb_dirs = ' '.join(tmp)
 
 	if( 'pdbOutput' not in w.pluginOptions ):
 		parser = argparse.ArgumentParser()
@@ -56,7 +54,13 @@ def makePDBs( w ):
 			tkMessageBox.showerror("Error","Could not remove existing PDB",parent=w)
 			return
 
-	tmp = makeListFromOptions( w.pluginOptions['pdbOutput'] ) # build the make_models argument string
+	if( w.prefs['mesmer_base_dir'] == '' ):
+		cmd = ['make_models']
+	else:
+		cmd = [os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_models.py')]
+	
+	cmd.extend(pdb_dirs) # append collected PDB sources
+	cmd.extend( makeListFromOptions(w.pluginOptions['pdbOutput']) ) # build the make_models argument string
 
 	# does the user want to get just the best ensemble, or components from all ensembles?
 	if w.pluginOptions['pdbOutput']['best']['value'] == 1:
@@ -64,16 +68,15 @@ def makePDBs( w ):
 		if( not os.access( path, os.R_OK ) ):
 			tkMessageBox.showerror("Error","Could not read ensemble table \"%s\"" % path,parent=w)
 			return
-		tmp.extend( ['-ensembles',path] )
+		cmd.extend( ['-ensembles',path] )
 	else:
 		path = os.path.join(w.activeDir.get(), 'component_statistics_%s_%05i.tbl' % (w.currentSelection[1],w.currentSelection[0]) )
 		if( not os.access( path, os.R_OK ) ):
 			tkMessageBox.showerror("Error","Could not read component statistics table \"%s\"" % path,parent=w)
 			return
-		tmp.extend( ['-stats',path] )
+		cmd.extend( ['-stats',path] )
 
-	cmd = [os.path.join(w.prefs['mesmer_util_path'],'make_models.py'),pdb_dirs,'-out',output]
-	cmd.extend( tmp )
+	cmd.extend(['-out',output])
 
 	try:
 		handle = Popen(cmd,stdout=PIPE,stderr=PIPE)

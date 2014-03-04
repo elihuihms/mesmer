@@ -159,7 +159,7 @@ def get_ratio_errors( args, components, plugins, targets, ensembles ):
 					e.optimized[t.name] = False
 
 				# optimize the component ratios
-				optimized = mp_optimize_ratios( args, components, plugins, estimates, [e], print_status=False )
+				optimized = mp_optimize_ratios( args, components, estimates, [e], print_status=False )
 
 				for t in targets:
 					ratios[t.name].append( optimized[0].ratios[t.name] )
