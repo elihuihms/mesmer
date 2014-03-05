@@ -49,9 +49,7 @@ class OptionsWindow(tk.Frame):
 		rowCounter = 0
 		for k in sorted( self.options.keys() ):
 			option = self.options[k]
-			if(not 'value' in option.keys()):
-				option['value'] = option['default']
-
+			
 			self.optionLabels.append( tk.Label(self.container,text=option['dest']) )
 			self.optionLabels[-1].grid(in_=self.container,column=0,row=rowCounter,sticky=tk.W)
 			self.optionToolTips.append( ToolTip(self.optionLabels[-1],follow_mouse=0,text=option['help']) )

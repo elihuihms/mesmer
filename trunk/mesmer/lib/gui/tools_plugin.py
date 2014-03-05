@@ -45,32 +45,44 @@ def getGUIPlotPlugins( path ):
 
 def convertParserToOptions( parser ):
 	"""
-	This is a very horrible function.
-	It returns descriptive dictionary of arguments from an argparse parser by inspecting the parser._actions dictionary of functions and extracting their arguments.
+	Returns a descriptive dictionary of arguments from an argparse parser by inspecting the parser._actions dictionary of functions and extracts its arguments.
+	This could cause problems in the future, as it relies upon reading the private methods of the external argparse ArgumentParser object.
 	"""
 
+	# do some basic sanity checks to make sure we can access the parser actions
+	try:
+		tmp = parser._actions
+		if(len(tmp)>0):
+			inspect.getmembers( tmp[0] )
+	except:
+		raise Exception("Could not inspect parser actions. Please report this bug!")
+
+	# what information from the inspection object will we save? 
 	savetypes = ('help','option_strings','choices','type','dest','default','choices','required','nargs')
-
+				
 	args = {}
-	for a in parser._actions:
+	for action in parser._actions:
+		members = inspect.getmembers(action)
 
-		m = inspect.getmembers(a)
-		for e in m:
-			if(e[0] == 'dest'):
-				keys = zip(*m)[0]
-				vals = zip(*m)[1]
+		for (k,v) in members:
+			if(k == 'dest'): # check that the action sets a destination variable. If it's not, ignore it.
+				keys = zip(*members)[0]
+				vals = zip(*members)[1]
 
-				try:
-					k = vals[keys.index('dest')]
-				except:
-					break
-
-				args[ k ] = {}
+				args[v] = {}
 				for i in range(len(keys)):
 					if( keys[i] in savetypes ):
-						args[k][ keys[i] ] = vals[i]
+						args[v][ keys[i] ] = vals[i]
+						
+				break # go to the next action
 
 	del args['help']
+
+	# set the default value for each argument	
+	for k in args:
+		args[k]['value'] = args[k]['default']
+		if(args[k]['value'] == None): args[k]['value'] = ''
+
 	return args
 
 def setOptionsFromBlock( options, block ):
