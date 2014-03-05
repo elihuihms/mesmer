@@ -57,6 +57,12 @@ class AnalysisWindow(tk.Frame):
 	def close(self):
 		if( self.pHandle and self.pHandle.poll() == None):
 			self.abortCurrentRun()
+		
+		try:
+			self.resultsDB.close()
+		except:
+			pass
+			
 		self.master.destroy()
 
 	def abortCurrentRun(self):
