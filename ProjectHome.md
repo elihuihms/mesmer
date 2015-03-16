@@ -1,0 +1,3 @@
+MESMER is a scientific tool designed to identify characteristic structures or components in heterogenous solutions from bulk-average data. It does this by evolving a population of ensembles containing candidate components, selecting only ensembles that fit the available experimental data better than their peers. This robust genetic algorithm allows for the selection of just a few candidates even when there are thousands of possible components.
+
+Currently, MESMER is in the testing and evaluation development stage, but if you are interested in using MESMER for your own work don't hesitate to contact the maintainer!
