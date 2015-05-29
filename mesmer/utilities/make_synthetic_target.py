@@ -26,7 +26,7 @@ def run():
 	args.plugin = ''
 
 	# god help you if there's errors here - no checking!
-	plugins = load_plugins(	os.path.dirname(os.path.dirname(__file__)), 'mesmer', args )
+	plugins = load_plugins(os.path.dirname(__file__), 'mesmer', args=[args] )
 	targets = load_targets( args, plugins )
 	components = load_components( args, plugins, targets )
 

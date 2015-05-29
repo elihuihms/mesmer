@@ -1,3 +1,5 @@
+from multiprocessing import cpu_count
+
 def openUserPrefs( mode='r' ):
 	import os.path
 	import shelve
@@ -6,12 +8,14 @@ def openUserPrefs( mode='r' ):
 	path = os.path.join( home, ".mesmer_prefs" )
 	return shelve.open( path, mode )
 
-def setDefaultPrefs( prefs ):
+def setDefaultPrefs( shelf ):
 	import multiprocessing
-	prefs['mesmer_base_dir'] = ''
-	prefs['mesmer_scratch'] = ''
-	prefs['cpu_count'] = multiprocessing.cpu_count()
-	prefs['run_arguments'] = {'threads':prefs['cpu_count']}
+	shelf['mesmer_base_dir'] = ''
+	shelf['mesmer_scratch'] = ''
+	shelf['cpu_count'] = cpu_count()
+	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
+	shelf['disabled_plugins'] = []
+	shelf['plugin_prefs'] = {}
 
 def tryProgramCall( program ):
 	from subprocess		import Popen,PIPE
@@ -23,3 +27,15 @@ def tryProgramCall( program ):
 
 	return True
 
+def revealDirectory( dir ):
+	from subprocess import call
+	from sys import platform
+	
+	if platform == 'darwin':
+		call( ['open',dir] )
+	elif platform == 'linux2':
+		call( ['xdg-open',dir] )
+	elif platform == 'win32':
+		call( ['explorer',dir] )
+	else:
+		print "Unrecognized platform %s"%(platform)

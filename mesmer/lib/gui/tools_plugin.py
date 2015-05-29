@@ -4,137 +4,121 @@ import tkMessageBox
 from .. exceptions			import *
 from .. plugin_functions	import load_plugins
 from .. setup_functions		import parse_arguments
+from tools_general			import setDefaultPrefs
 
-def getTargetPluginOptions( path ):
+def tryLoadPlugins( shelf, type, args=None ):
+	if args:
+		for (id,state,error,module) in load_plugins( shelf['mesmer_base_dir'], type, True, shelf['disabled_plugins'], args ):
+			if not state:
+				shelf['disabled_plugins'] = shelf['disabled_plugins'].append( id )
+	else:
+		for (id,state,error,module) in load_plugins( shelf['mesmer_base_dir'], type, True, shelf['disabled_plugins'] ):
+			if not state:
+				shelf['disabled_plugins'] = shelf['disabled_plugins'].append( id )
+	shelf.sync()
 	try:
-		plugins = load_plugins( path, 'mesmer', parse_arguments('') )
+		if args:
+			plugins = load_plugins( shelf['mesmer_base_dir'], type, False, shelf['disabled_plugins'], args )
+		else:
+			plugins = load_plugins( shelf['mesmer_base_dir'], type, False, shelf['disabled_plugins'] )
 	except mesPluginError as e:
-		tkMessageBox.showerror("Error",'Failed to load one or more MESMER plugins: %s' % (e.msg))
+		tkMessageBox.showerror("Error",'Failed to load one or more plugins: %s' % (e.msg))
+		raise
+		
+	return plugins	
 
+def getTargetPluginOptions( prefs ):
 	types, options = [], []
-	for p in plugins:
+	for p in tryLoadPlugins(prefs, 'mesmer', parse_arguments('')):
 		types.append( [] )
 		for t in p.type:
 			if( not t[0:4] in types[-1] ):
 				types[-1].append(t[0:4])
 		options.append( convertParserToOptions(p.target_parser) )
-
 	return (types,options)
 
-def getGUICalcPlugins( path ):
+def getPluginPrefs( shelf, name ):
 	try:
-		plugins = load_plugins( path, 'gui_c' )
-	except mesPluginError as e:
-		tkMessageBox.showerror("Error",'Failed to load one or more GUI data plugins: %s' % (e.msg))
+		plugin_prefs = shelf['plugin_prefs']
+	except KeyError:
+		setDefaultPrefs( shelf )
+		return getPluginPrefs( shelf, name )
+	if name not in plugin_prefs:
+		plugin_prefs[name] = {'options':{},'path':None}
+	return plugin_prefs[name]
+	
+def setPluginPrefs( shelf, name, **kwargs ):
+	plugin_prefs = shelf['plugin_prefs']
+	if name not in plugin_prefs:
+		plugin_prefs[name] = getPluginPrefs( shelf, name )
 
-	if(len(plugins) == 0):
-		raise Exception('No GUI calculation plugins found')
-
-	return plugins
-
-def getGUIPlotPlugins( path ):
+	for key,value in kwargs.iteritems():
+		plugin_prefs[name][key] = value
+		
 	try:
-		plugins = load_plugins( path, 'gui_p' )
-	except mesPluginError as e:
-		tkMessageBox.showerror("Error",'Failed to load one or more GUI plot plugins: %s' % (e.msg))
-
-	if(len(plugins) == 0):
-		raise Exception('No GUI plotting plugins found')
-
-	return plugins
-
-def convertParserToOptions( parser ):
-	"""
-	Returns a descriptive dictionary of arguments from an argparse parser by inspecting the parser._actions dictionary of functions and extracts its arguments.
-	This could cause problems in the future, as it relies upon reading the private methods of the external argparse ArgumentParser object.
-	"""
-
-	# do some basic sanity checks to make sure we can access the parser actions
-	try:
-		tmp = parser._actions
-		if(len(tmp)>0):
-			inspect.getmembers( tmp[0] )
+		shelf['plugin_prefs'] = plugin_prefs
+		shelf.sync()
 	except:
-		raise Exception("Could not inspect parser actions. Please report this bug!")
-
-	# what information from the inspection object will we save? 
-	savetypes = ('help','option_strings','choices','type','dest','default','choices','required','nargs')
-				
-	args = {}
-	for action in parser._actions:
-		members = inspect.getmembers(action)
-
-		for (k,v) in members:
-			if(k == 'dest'): # check that the action sets a destination variable. If it's not, ignore it.
-				keys = zip(*members)[0]
-				vals = zip(*members)[1]
-
-				args[v] = {}
-				for i in range(len(keys)):
-					if( keys[i] in savetypes ):
-						args[v][ keys[i] ] = vals[i]
-						
-				break # go to the next action
-
-	del args['help']
-
-	# set the default value for each argument	
-	for k in args:
-		args[k]['value'] = args[k]['default']
-		if(args[k]['value'] == None): args[k]['value'] = ''
-
-	return args
-
+		tkMessageBox.showerror("Error",'Failed to save preferences. Perhaps user folder is read only?')
+		raise
+		
+def convertParserToOptions( parser ):
+	options,savetypes = [],('help','option_strings','choices','type','dest','default','choices','required','nargs')
+	for action in [a.__dict__ for a in parser.__dict__['_actions']]:
+		if action['dest'] == 'help':
+			continue
+		options.append( {} )
+		for key in savetypes:
+			options[ -1 ][ key ] = action[ key ]
+		options[ -1 ]['value'] = ''
+		options[ -1 ]['group'] = action['container'].title
+	return options
+	
 def setOptionsFromBlock( options, block ):
 	header = block['header'].split()
 
-	for k in options:
+	for o in options:
 
-		if(options[k]['nargs'] == 0):
-			options[k]['value'] = (options[k]['option_strings'][0] in header[2:])
+		if(o['nargs'] == 0):
+			o['value'] = (o['option_strings'][0] in header[2:])
 			continue
 
-		if( not options[k]['option_strings'][0] in header[2:]):
+		if( not o['option_strings'][0] in header[2:]):
 			continue
 		else:
-			i = header.index(options[k]['option_strings'][0])+1
+			i = header.index(o['option_strings'][0])+1
 
 		if(i > len(header)):
-			raise Exception("Header to short to contain a value for key: %s" % options[k]['dest'])
-		elif(header[i][0] == options[k]['option_strings'][0][0]):
-			raise Exception("Header missing a value for key: %s" % options[k]['dest'])
+			raise Exception("Header to short to contain a value for key: %s" % o['dest'])
+		elif(header[i][0] == o['option_strings'][0][0]):
+			raise Exception("Header missing a value for key: %s" % o['dest'])
 
-		if(options[k]['nargs'] == None):
-			if(options[k]['type'] == type(0)):
-				options[k]['value'] = int( header[i] )
-			elif(options[k]['type'] == type(0.0)):
-				options[k]['value'] = float( header[i] )
+		if(o['nargs'] == None):
+			if(o['type'] == type(0)):
+				o['value'] = int( header[i] )
+			elif(o['type'] == type(0.0)):
+				o['value'] = float( header[i] )
 			else:
-				options[k]['value'] = header[i]
+				o['value'] = header[i]
 
 		else:
-			raise Exception("Encountered an option that could not be parsed properly: %s" % options[k]['dest'])
+			raise Exception("Encountered an option that could not be parsed properly: %s" % o['dest'])
 	return options
 
 def makeListFromOptions( options ):
 	ret = []
-	for k in options:
-		if(not 'value' in options[k]):
-			if options[k]['required']:
-				raise Exception("Encountered a required option without a value: %s" % options[k]['dest'])
-			continue
-
-		if(options[k]['nargs'] == 0):
-			if options[k]['value']:
-				ret.append( options[k]['option_strings'][0] )
-		elif( options[k]['value'] == None or options[k]['value'] == 'None' or options[k]['value'] == '' ):
-			if options[k]['required']:
-				raise Exception("Encountered a required option without a value: %s" % options[k]['dest'])
-		elif(options[k]['nargs'] == None):
-			ret.append( options[k]['option_strings'][0] )
-			ret.append( str(options[k]['value']) )
+	for o in options:
+		if(o['nargs'] == 0):
+			if o['value']:
+				ret.append( o['option_strings'][0] )
+		elif( o['value'] == None or o['value'] == 'None' or o['value'] == '' ):
+			if o['required']:
+				raise Exception("Encountered a required option without a value: %s" % o['dest'])
+		elif(o['nargs'] == None):
+			ret.append( o['option_strings'][0] )
+			ret.append( str(o['value']) )
 		else:
-			raise Exception("Encountered an option that could not be converted to a string properly: %s" % options[k]['dest'])
+			raise Exception("Encountered an option that could not be converted to a string properly: %s" % o['dest'])
 	return ret
 	
 def makeStringFromOptions( options ):

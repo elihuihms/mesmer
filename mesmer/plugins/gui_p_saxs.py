@@ -10,9 +10,11 @@ from lib.gui.tools_plugin	import makeStringFromOptions
 class plugin(guiPlotPlugin):
 
 	def __init__(self):
+		guiPlotPlugin.__init__(self)
 		self.name = 'SAXS Plotter'
 		self.version = '2014.01.15'
-		self.types = ('SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9')
+		self.info = "This plugin generates an overlay log-scaled plot of two SAXS datasets."
+		self.type = ('SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9')
 		self.parser = None
 		
 		# check the script local to the installation first, otherwise use what's in the system's path

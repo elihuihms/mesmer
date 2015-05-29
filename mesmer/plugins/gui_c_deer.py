@@ -11,8 +11,10 @@ from gui_c_deer_lib			import *
 class plugin(guiCalcPlugin):
 
 	def __init__(self):
+		guiCalcPlugin.__init__(self)
 		self.name = 'DEER'
 		self.version = '2013.12.06'
+		self.info = 'This plugin predicts a DEER time trace from a PDB containing two spin-labeled residues.'
 		self.type = 'DEER'
 		self.respawn = 100
 

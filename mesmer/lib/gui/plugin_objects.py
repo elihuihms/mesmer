@@ -5,6 +5,8 @@ class guiCalcPlugin():
 		self.name = ''
 		self.version = ''
 		self.type = 'None'
+		self.info = ''
+		self.path = None #path to executable, if applicable
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.respawn = 1000 #ms b/t calculator calls
 
@@ -44,7 +46,9 @@ class guiPlotPlugin():
 	def __init__(self):
 		self.name = ''
 		self.version = ''
-		self.types = ()
+		self.type = ()
+		self.info = ''
+		self.path = None #path to executable, if applicable
 		self.parser = argparse.ArgumentParser(prog=self.name)
 
 	def plot(self, path, options=None):

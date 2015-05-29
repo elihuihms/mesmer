@@ -4,7 +4,6 @@ from operator			import itemgetter
 
 from exceptions			import *
 from utility_functions	import mean_stdv
-from ga_functions_mp	import *
 from ga_functions_misc	import *
 from target_objects		import mesRestraint
 
@@ -114,7 +113,7 @@ def get_restraint_stats( args, targets, ensembles ):
 
 	return stats
 
-def get_ratio_errors( args, components, plugins, targets, ensembles ):
+def get_ratio_errors( args, plugins, targets, ensembles, optimizer ):
 	"""
 	Determine the component ratio statistics for ensembles against each target
 
@@ -160,7 +159,7 @@ def get_ratio_errors( args, components, plugins, targets, ensembles ):
 					e.optimized[t.name] = False
 
 				# optimize the component ratios
-				optimized = mp_optimize_ratios( args, components, plugins, estimates, [e], print_status=False )
+				optimized = optimizer.optimize( [e], print_status=False )
 
 				for t in targets:
 					ratios[t.name].append( optimized[0].ratios[t.name] )

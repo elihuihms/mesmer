@@ -1,0 +1,1 @@
+Plotting figure "/Users/elihuihms/mesmer/tests/out/cam_attr_plot_1.png"

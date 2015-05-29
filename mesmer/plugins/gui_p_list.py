@@ -10,9 +10,11 @@ from lib.gui.tools_plugin	import makeListFromOptions
 class plugin(guiPlotPlugin):
 
 	def __init__(self):
+		guiPlotPlugin.__init__(self)
 		self.name = 'LIST/TABL Plotter'
 		self.version = '2014.01.15'
-		self.types = (
+		self.info = "This plugin generates a correlation plot between two discretely sampled datasets."
+		self.type = (
 			'LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9',
 			'TABL','TABL0','TABL1','TABL2','TABL3','TABL4','TABL5','TABL6','TABL7','TABL8','TABL9')
 

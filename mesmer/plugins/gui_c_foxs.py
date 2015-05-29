@@ -12,8 +12,10 @@ from lib.gui.tools_plugin	import makeStringFromOptions
 class plugin(guiCalcPlugin):
 
 	def __init__(self):
+		guiCalcPlugin.__init__(self)
 		self.name = 'SAXS - FoXS'
 		self.version = '2014.03.03'
+		self.info = 'This plugin uses the Integrative Modeling Platform (see http://salilab.org/imp) to predict a SAXS profile from a PDB.'
 		self.type = 'SAXS'
 		self.respawn = 20
 

@@ -5,7 +5,7 @@ import glob
 
 from exceptions import *
 
-def load_plugins( dir, type, *args ):
+def load_plugins( dir, type, dry_run=False, disabled=[], args=[] ):
 	"""
 	Finds all MESMER plugin (plugin_*.py) files in the provided directory, and returns them
 	"""
@@ -19,25 +19,43 @@ def load_plugins( dir, type, *args ):
 	path = os.path.abspath( os.path.join(dir, 'plugins') )
 	if not path in sys.path:
 		sys.path.append( path )
-
+		
 	plugins = []
 	for f in glob.glob( '%s%s%s_*.py' % (path,os.sep,type) ):
 
-		name, ext = os.path.splitext(os.path.basename(f))
+		id, ext = os.path.splitext(os.path.basename(f))
+		if id in disabled:
+			continue
+		
 		try:
-			file, filename, data = imp.find_module(name, [path])
+			file, filename, data = imp.find_module(id, [path])
 		except ImportError:
-			raise mesPluginError("ERROR: Could not discover plugin at path \"%s\"." % f)
+			if dry_run:
+				plugins.append( (id, False, "Could not discover plugin at path \"%s\"." % f, None) )
+				continue
+			else:
+				raise mesPluginError("ERROR: Could not discover plugin at path \"%s\"." % f)
 
 		try:
-			module = imp.load_module(name, file, filename, data)
+			module = imp.load_module(id, file, filename, data)
 		except:
-			raise mesPluginError("ERROR: Could not import plugin module \"%s\". Reason: %s" % (name,sys.exc_info()[1]))
+			if dry_run:
+				plugins.append( (id, False, "Could not import plugin module \"%s\". Reason: %s" % (id,sys.exc_info()[1]), None) )
+				continue
+			else:
+				raise mesPluginError("ERROR: Could not import plugin module \"%s\". Reason: %s" % (id,sys.exc_info()[1]))
 		finally:
 			file.close()
 
-		# following is not exception-wrapped for easier debugging in MESMER
-		plugins.append( module.plugin( *args ) )
+		if dry_run:
+			try:
+				plugins.append( (id, True, '', module.plugin( *args )) )
+			except:
+				plugins.append( (id, False, "Could not load plugin \"%s\". Reason: %s" % (id,sys.exc_info()[1]), None) )
+				
+		else:
+			# following is not exception-wrapped for easier debugging
+			plugins.append( module.plugin( *args ) )
 
 	return plugins
 

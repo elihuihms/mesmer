@@ -1,0 +1,123 @@
+
+MESMER v. 0.9.0 
+(c)2012-2014 Elihu Ihms
+Arguments:
+	force	:	False
+	scratch	:	None
+	boots	:	200
+	Pmin	:	1.0
+	seed	:	1
+	Smin	:	0.0
+	Rn	:	30
+	Ralgorithm	:	3
+	size	:	3
+	ensembles	:	1000
+	Gmutate	:	1.0
+	Gmax	:	3
+	Pbest	:	True
+	Rprecision	:	0.01
+	Gsource	:	0.1
+	Pstate	:	True
+	resume	:	None
+	uniform	:	False
+	Pextra	:	True
+	Fmin	:	0.0
+	Pstats	:	True
+	target	:	['/Users/elihuihms/mesmer/tests/data/test_cam_1.target']
+	name	:	cam_mesmer_1
+	Pcorr	:	1.0
+	Rforce	:	False
+	plugin	:	None
+	components	:	[['/Users/elihuihms/mesmer/tests/data/cam_components']]
+	Popt	:	True
+	threads	:	3
+	dir	:	/Users/elihuihms/mesmer/tests/out/cam_mesmer_1
+	Gcross	:	0.8
+
+INFO: Reading target file "/Users/elihuihms/mesmer/tests/data/test_cam_1.target"
+INFO: Target file "/Users/elihuihms/mesmer/tests/data/test_cam_1.target" lines 3-67 - plugin "default_CURV" created 1.0x weighted "SAXS" restraint.
+INFO: Target file "/Users/elihuihms/mesmer/tests/data/test_cam_1.target" lines 70-107 - plugin "default_LIST" created 1.0x weighted "TABL1" restraint.
+INFO: Target file "/Users/elihuihms/mesmer/tests/data/test_cam_1.target" lines 110-140 - plugin "default_LIST" created 1.0x weighted "TABL2" restraint.
+INFO: Target file "/Users/elihuihms/mesmer/tests/data/test_cam_1.target" lines 143-259 - plugin "default_LIST" created 1.0x weighted "TABL3" restraint.
+INFO: Target file "/Users/elihuihms/mesmer/tests/data/test_cam_1.target" lines 262-436 - plugin "default_LIST" created 1.0x weighted "TABL4" restraint.
+INFO: Found 100 component files.
+
+Algorithm starting on 2015-05-29 19:25:46.512482.
+
+Generation 0
+
+	Current time: 2015-05-29 19:28:15.109181
+	Parent survival percentage: 49%, 960 unique ensembles
+
+		Best Score	|	Average		|	Stdev
+		------------------------------------------------------------
+		1.797e+00	|	1.981e+01	|	1.085e+01
+	SAXS	1.024e+00	|	1.712e+01	|	1.051e+01
+	TABL1	4.796e-01	|	1.168e+00	|	3.424e-01
+	TABL2	2.757e-01	|	1.172e+00	|	3.934e-01
+	TABL3	7.230e-03	|	2.097e-01	|	1.268e-01
+	TABL4	1.052e-02	|	1.388e-01	|	6.572e-02
+
+	test_cam_1
+		0.000 +/- 0.000	00012cam
+		0.989 +/- 0.000	00050cam
+		0.011 +/- 0.000	00095cam
+
+Generation 1
+
+	Current time: 2015-05-29 19:29:56.064105
+	Parent survival percentage: 53%, 940 unique ensembles
+
+		Best Score	|	Average		|	Stdev
+		------------------------------------------------------------
+		1.797e+00	|	1.110e+01	|	6.006e+00
+	SAXS	1.024e+00	|	8.595e+00	|	5.402e+00
+	TABL1	4.796e-01	|	1.126e+00	|	4.053e-01
+	TABL2	2.757e-01	|	1.047e+00	|	4.019e-01
+	TABL3	7.230e-03	|	1.997e-01	|	1.050e-01
+	TABL4	1.052e-02	|	1.338e-01	|	6.348e-02
+
+	test_cam_1
+		0.000 +/- 0.000	00012cam
+		0.989 +/- 0.000	00050cam
+		0.011 +/- 0.000	00095cam
+
+Generation 2
+
+	Current time: 2015-05-29 19:31:38.238375
+	Parent survival percentage: 52%, 898 unique ensembles
+
+		Best Score	|	Average		|	Stdev
+		------------------------------------------------------------
+		1.796e+00	|	5.947e+00	|	3.340e+00
+	SAXS	1.026e+00	|	3.932e+00	|	2.703e+00
+	TABL1	4.715e-01	|	8.919e-01	|	3.361e-01
+	TABL2	2.701e-01	|	8.490e-01	|	4.289e-01
+	TABL3	1.479e-02	|	1.630e-01	|	1.083e-01
+	TABL4	1.342e-02	|	1.120e-01	|	7.289e-02
+
+	test_cam_1
+		0.937 +/- 0.000	00050cam
+		0.053 +/- 0.000	00059cam
+		0.010 +/- 0.000	00068cam
+
+Generation 3
+
+	Current time: 2015-05-29 19:33:34.071011
+	Parent survival percentage: 55%, 808 unique ensembles
+
+		Best Score	|	Average		|	Stdev
+		------------------------------------------------------------
+		1.792e+00	|	3.383e+00	|	1.745e+00
+	SAXS	1.022e+00	|	1.884e+00	|	1.085e+00
+	TABL1	4.720e-01	|	7.033e-01	|	2.656e-01
+	TABL2	2.686e-01	|	6.063e-01	|	3.893e-01
+	TABL3	1.543e-02	|	1.110e-01	|	1.112e-01
+	TABL4	1.388e-02	|	7.801e-02	|	7.446e-02
+
+	test_cam_1
+		0.010 +/- 0.000	00068cam
+		0.054 +/- 0.000	00059cam
+		0.937 +/- 0.000	00050cam
+
+Generation counter has reached Gmax, exiting.

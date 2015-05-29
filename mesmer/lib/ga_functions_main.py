@@ -3,7 +3,7 @@ import sys
 from datetime				import datetime
 
 from exceptions				import *
-from ga_functions_mp		import *
+from ga_objects_mp			import Optimizer
 from ga_functions_misc		import *
 from ga_functions_stats		import *
 from ga_functions_output	import *
@@ -21,6 +21,8 @@ def run_ga( args, plugins, targets, components ):
 	components	- A list of possible components to be used in recreating/fitting the target data
 	"""
 
+	optimizer = Optimizer(args, plugins, targets, components)
+
 	print_msg("\nAlgorithm starting on %s." % datetime.utcnow() )
 
 	print "\tCreating parent ensembles..."
@@ -31,11 +33,11 @@ def run_ga( args, plugins, targets, components ):
 	print "\tOptimizing parent component ratios..."
 	sys.stdout.flush()
 
-	parents = mp_optimize_ratios( args, components, plugins, targets, parents )
-
+	parents = optimizer.optimize( parents )
+	
 	generation_counter = 0
-	loop = True
-	while( loop ):
+	while( True ):
+		
 		print_msg( "\nGeneration %i" % (generation_counter) )
 		sys.stdout.flush()
 
@@ -51,7 +53,7 @@ def run_ga( args, plugins, targets, components ):
 		sys.stdout.flush()
 
 		# optimize component ratios for newly-mutated/crossed offspring
-		offspring = mp_optimize_ratios( args, components, plugins, targets, offspring )
+		offspring = optimizer.optimize( offspring )
 
 		# retrieve the 1/2 best-scoring ensembles and some collected statistics
 		(best_scored,ensemble_stats) = get_best_ensembles( args, targets, parents, offspring )
@@ -85,7 +87,7 @@ def run_ga( args, plugins, targets, components ):
 				sys.stdout.flush()
 
 			# get the error intervals for the best ensemble component ratios
-			best_ratio_errors = get_ratio_errors( args, components, plugins, targets, [best_scored[0]] )
+			best_ratio_errors = get_ratio_errors( args, plugins, targets, [best_scored[0]], optimizer )
 			print_ensemble_state( args, best_ratio_errors[0] )
 
 		if(args.Pextra):
@@ -95,15 +97,15 @@ def run_ga( args, plugins, targets, components ):
 		# loop exit criteron
 		if( ensemble_stats['scores'][args.size] < args.Fmin ):
 			print_msg(  "\nMaximum ensemble score is less than Fmin, exiting." )
-			loop = False
+			break
 
 		if( (ensemble_stats['total'][2]/ensemble_stats['total'][1]) < args.Smin ):
 			print_msg(  "\nEnsemble score RSD is less than Smin, exiting." )
-			loop = False
+			break
 
 		if (args.Gmax > -1) and (generation_counter >= args.Gmax):
 			print_msg(  "\nGeneration counter has reached Gmax, exiting." )
-			loop = False
+			break
 
 		# set up for the next generation
 		parents = best_scored

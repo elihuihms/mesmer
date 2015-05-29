@@ -3,7 +3,6 @@ import tkFileDialog
 
 from .. exceptions			import *
 from .. setup_functions		import parse_arguments
-from .. plugin_functions	import load_plugins,unload_plugins
 from tools_plugin			import *
 
 def extractDataFromFile( file ):

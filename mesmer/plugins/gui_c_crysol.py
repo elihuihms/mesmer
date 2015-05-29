@@ -10,9 +10,12 @@ from lib.gui.tools_plugin	import makeStringFromOptions
 class plugin(guiCalcPlugin):
 
 	def __init__(self):
+		guiCalcPlugin.__init__(self)
 		self.name = 'SAXS - Crysol'
 		self.version = '2013.09.13'
+		self.info = 'This plugin uses the external program CRYSOL (see http://www.embl-hamburg.de/biosaxs/manuals/crysol.html) to predict a SAXS profile from a PDB. CRYSOL arguments and descriptions (C) the ATSAS team.'
 		self.type = 'SAXS'
+		self.path = 'crysol'
 		self.respawn = 100
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
@@ -45,7 +48,7 @@ class plugin(guiCalcPlugin):
 		if not os.path.exists(pdb):
 			raise Exception( "Could not find \"%s\"" % (pdb) )
 
-		cmd = ['crysol']
+		cmd = [self.path]
 		cmd.extend( makeStringFromOptions(self.options).split() )
 		cmd.append( pdb )
 		
@@ -54,7 +57,7 @@ class plugin(guiCalcPlugin):
 			pipe.wait()
 		except OSError as e:
 			if(e.errno == os.errno.ENOENT):
-				raise Exception("Could not find \"crysol\" program. Perhaps it isn't installed?")
+				raise Exception("Could not find \"crysol\" program. Perhaps it isn't installed, or the path to it is wrong?")
 			else:
 				raise e
 

@@ -6,12 +6,12 @@ import tkMessageBox
 
 from .. exceptions		import *
 from tools_TkTooltip	import ToolTip
-from tools_plugin		import getTargetPluginOptions
 from win_target			import TargetWindow
 from win_components		import ComponentsWindow
 from win_setup			import SetupWindow
 from win_config			import ConfigWindow
 from win_analysis		import AnalysisWindow
+from win_plugins		import PluginWindow
 from win_about			import AboutWindow,programInfo
 from tools_general		import openUserPrefs,tryProgramCall,setDefaultPrefs
 
@@ -37,8 +37,9 @@ class MainWindow(tk.Frame):
 		self.windows	= []
 		self.setupMaster	= None
 		self.configMaster	= None
+		self.manageMaster	= None
 		self.aboutMaster	= None
-
+		
 	def loadPrefs(self):
 		self.Ready = True
 
@@ -60,14 +61,6 @@ class MainWindow(tk.Frame):
 			self.Ready = False
 				
 		self.prefs.sync()
-
-		# preload plugins
-		try:
-			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs['mesmer_base_dir'])
-		except Exception as e:
-			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
-			self.close(1)
-
 		self.prefs.close()
 
 	def createMenus(self):
@@ -79,13 +72,19 @@ class MainWindow(tk.Frame):
 		self.fileMenu.add_command(label='Quit', accelerator="Ctrl+Q", command=self.close)
 
 		self.actionMenu = tk.Menu(self.topMenu)
-		self.actionMenu.add_command(label='Make Target', accelerator="Ctrl+T", command=self.makeTarget)
-		self.actionMenu.add_command(label='Make Components', accelerator="Ctrl+K", command=self.makeComponents)
-		self.actionMenu.add_command(label='Setup Run', accelerator="Ctrl+R", command=self.setupMESMER)
-		self.actionMenu.add_command(label='Analyze Run', accelerator="Ctrl+Y", command=self.openAnalysis)
+		self.actionMenu.add_command(label='Make Target...', accelerator="Ctrl+T", command=self.makeTarget)
+		self.actionMenu.add_command(label='Make Components...', accelerator="Ctrl+K", command=self.makeComponents)
+		self.actionMenu.add_command(label='Setup Run...', accelerator="Ctrl+R", command=self.setupMESMER)
+		self.actionMenu.add_command(label='Analyze Run...', accelerator="Ctrl+Y", command=self.openAnalysis)
+		
+		self.toolsMenu = tk.Menu(self.topMenu)
+		self.toolsMenu.add_command(label='Manage plugins...', command=self.managePlugins)
+		self.toolsMenu.add_command(label='Generate PDBs...', command=None)
+		self.toolsMenu.add_command(label='Calculate Attributes...', command=None)
 
 		self.topMenu.add_cascade(label="File", menu=self.fileMenu)
 		self.topMenu.add_cascade(label="Actions", menu=self.actionMenu)
+		self.topMenu.add_cascade(label="Tools", menu=self.toolsMenu)
 
 		self.master.bind_all("<Control-q>", lambda a: sys.exit(0) )
 		self.master.bind_all("<Control-t>", lambda a: self.makeTarget() )
@@ -123,10 +122,15 @@ class MainWindow(tk.Frame):
 			self.configMaster = tk.Toplevel(self.master)
 			self.configWindow = ConfigWindow(self.configMaster,self)
 
+	def managePlugins(self):
+		if(self.manageMaster == None or not self.manageMaster.winfo_exists()):
+			self.manageMaster = tk.Toplevel(self.master)
+			self.manageWindow = PluginWindow(self.manageMaster)
+
 	def setupAbout(self):
 		if(self.aboutMaster == None or not self.aboutMaster.winfo_exists()):
 			self.aboutMaster = tk.Toplevel(self.master)
-			self.aboutMaster = AboutWindow(self.aboutMaster)
+			self.aboutWindow = AboutWindow(self.aboutMaster)
 
 	def createToolTips(self):
 		self.createTargetTT 	= ToolTip(self.createTargetButton,		follow_mouse=0,text='Create a target file from experimental data')

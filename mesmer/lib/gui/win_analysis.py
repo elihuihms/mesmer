@@ -9,7 +9,7 @@ import tools_run # to avoid circular import of AnalysisWindow
 from tools_analysis		import *
 from tools_plot			import *
 from tools_pdb			import *
-from tools_plugin		import getGUIPlotPlugins
+from tools_plugin		import tryLoadPlugins
 from tools_TkTooltip	import ToolTip
 from win_log			import LogWindow
 from win_about			import programInfo
@@ -47,9 +47,9 @@ class AnalysisWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
-				
+
 		try:
-			self.plot_plugins = getGUIPlotPlugins( os.path.dirname(os.path.dirname(os.path.dirname(__file__))) )
+			self.plot_plugins = tryLoadPlugins(self.prefs, 'gui_p' )
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading GUI plot plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()

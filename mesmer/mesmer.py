@@ -39,7 +39,7 @@ def run():
 
 	# attempt to load available plugin modules
 	try:
-		plugins = load_plugins(os.path.dirname(__file__), 'mesmer', args )
+		plugins = load_plugins(os.path.dirname(__file__), 'mesmer', args=[args] )
 	except mesPluginError as e:
 		print e.msg
 		sys.exit(10)

@@ -1,15 +1,13 @@
 import os
 import glob
-import shelve
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
-import copy
 
 from .. utility_functions 	import get_input_blocks
 from tools_TkTooltip		import ToolTip
 from tools_component		import makeComponentsFromWindow,calcDataFromWindow
-from tools_plugin			import getTargetPluginOptions,getGUICalcPlugins
+from tools_plugin			import getTargetPluginOptions,tryLoadPlugins
 from tools_general			import openUserPrefs
 
 class ComponentsWindow(tk.Frame):
@@ -25,7 +23,6 @@ class ComponentsWindow(tk.Frame):
 		self.grid_propagate(0)
 
 		self.loadPrefs()
-
 		self.createControlVars()
 		self.createWidgets()
 		self.createToolTips()
@@ -39,24 +36,22 @@ class ComponentsWindow(tk.Frame):
 		self.Ready = False
 
 		try:
-			self.prefs = openUserPrefs()
+			self.prefs = openUserPrefs(mode='w')
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
-
-		mesmer_base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-
+		
 		try:
-			(self.target_plugin_types,self.target_plugin_options) = getTargetPluginOptions(mesmer_base_dir)
+			(self.target_plugin_types,self.target_plugin_options) = getTargetPluginOptions(self.prefs)
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
 			self.master.destroy()
 
 		try:
-			self.calc_plugins = getGUICalcPlugins(mesmer_base_dir)
+			self.calc_plugins = tryLoadPlugins(self.prefs, 'gui_c')
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Failure loading GUI calculator plugins.\n\nReported error:%s' % e,parent=self)
-			self.master.destroy()
+			self.master.destroy()			
 
 	def loadTarget(self):
 		tmp = tkMessageBox.askquestion("Load Target","Are you sure you would like to load an existing target as a template?\nThis will clear your current entries.", icon='warning',parent=self)

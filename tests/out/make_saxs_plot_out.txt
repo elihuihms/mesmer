@@ -1,0 +1,1 @@
+Plotting figure "/Users/elihuihms/mesmer/tests/out/cam_mesmer_1_SAXS.png"

@@ -11,6 +11,8 @@ class mesPluginBasic:
 	def __init__( self, args ):
 		self.name = ''
 		self.version = ''
+		self.info = ''
+		self.path = None
 		self.type = ('NONE')
 
 		self.target_parser = argparse.ArgumentParser(prog=self.type[0])
@@ -58,6 +60,7 @@ class mesPluginBasic:
 class mesPluginDB( mesPluginBasic ):
 
 	def __init__( self, args ):
+		mesPluginBasic.__init__( self, args )
 
 		if( args.scratch ):
 			self._db_path = os.path.join(args.scratch,uuid.uuid1().hex)
@@ -74,12 +77,14 @@ class mesPluginDB( mesPluginBasic ):
 			self._db_path = "%s%s" % (self._db_path,'.db')
 
 	def __del__( self ):
+		try:
+			if (self._db_handle != None):
+				self._db_handle.close()
 
-		if (self._db_handle != None):
-			self._db_handle.close()
-
-		if (self._db_path != None):
-			os.unlink(self._db_path)
+			if (self._db_path != None):
+				os.unlink(self._db_path)
+		except AttributeError:
+			pass
 
 	def put( self, data, key=None ):
 		if( key == None ):

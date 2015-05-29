@@ -92,18 +92,29 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	if(plugin == None):
 		return
 
-	if( plugin.parser ): # get options for the plugin
-		options = convertParserToOptions( plugin.parser )
-		w.newWindow = tk.Toplevel(w.master)
-		w.optWindow = OptionsWindow(w.newWindow,options)
-		w.newWindow.transient(w)
-		w.newWindow.focus_set()
-		w.newWindow.grab_set()
-		w.newWindow.wait_window()
-		if w.optWindow.returncode > 0: # did user cancel the options window?
-			return
-	else:
-		options = None
+	# overwrite plugin executable path
+	if( plugin.path ):
+		plugin.path = getPluginPrefs( w.prefs, plugin.name )['path']
+
+	# get user-specifiable options from the plugin argument parser object
+	options = convertParserToOptions( plugin.parser )
+	
+	# retrieve saved options from preferences
+	saved_options = getPluginPrefs( w.prefs, plugin.name )['options']
+	for o in options:
+		if o['dest'] in saved_options and saved_options[o['dest']] != None: o['value'] = saved_options[o['dest']]
+
+	w.newWindow = tk.Toplevel(w.master)
+	w.optWindow = OptionsWindow(w.newWindow,options)
+	w.newWindow.transient(w)
+	w.newWindow.focus_set()
+	w.newWindow.grab_set()
+	w.newWindow.wait_window()
+	if w.optWindow.returncode > 0: # did user cancel the options window?
+		return
+	
+	# save the modified preferences/options with a handy generator	
+	setPluginPrefs( w.prefs, plugin.name, options={o['dest']:o['value'] for o in options} )
 
 	dir = tkFileDialog.asksaveasfilename(title='Folder to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.type) )
 	if(dir == ''):
