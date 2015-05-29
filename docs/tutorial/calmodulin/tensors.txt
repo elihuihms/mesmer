@@ -1,0 +1,22 @@
+Paramagnetic center:
+	Residue: 150
+	Chain:	A
+	Atom:	CA
+
+B0:	16.44
+temp:	298.0
+
+Terbium:
+	Dax:	37.04
+	Drh:	-13.92
+	Alpha:	71.66
+	Beta:	43.89
+	Gamma:	56.48
+
+Thulium:
+	Dax:	25.51
+	Drh:	-9.112
+	Alpha:	149.3
+	Beta:	107.3
+	Gamma:	223.7
+

@@ -1,0 +1,4 @@
+NAME	tutorial_B_saxs
+
+# calculated SAXS curve for components 00008 + 00009 + 1% noise
+SAXS0	1	-scale -offset -file saxs_data/target_saxs_B.dat
