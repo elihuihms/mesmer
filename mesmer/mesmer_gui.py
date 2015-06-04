@@ -17,6 +17,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import os
 import sys
 
 def run():
@@ -24,7 +25,7 @@ def run():
 		import Tkinter as tk
 		import tkMessageBox
 	except ImportError:
-		print "The MESMER GUI requires the Tk/Tcl toolbox."
+		print "The MESMER GUI requires the Tk/Tcl library."
 		sys.exit()
 
 	if( sys.version_info < (2,6) ):
@@ -38,6 +39,9 @@ def run():
 		sys.exit()
 
 	root = tk.Tk()
+	if sys.platform == 'darwin':
+		os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
+	
 	app = MainWindow(root)
 	app.mainloop()
 

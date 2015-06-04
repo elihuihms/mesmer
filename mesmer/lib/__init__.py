@@ -5,6 +5,7 @@ __all__ = [
 	'component_objects',
 	'ensemble_objects',
 	'exceptions',
+	'ga_objects',
 	'ga_functions_main',
 	'ga_functions_misc',
 	'ga_functions_output',

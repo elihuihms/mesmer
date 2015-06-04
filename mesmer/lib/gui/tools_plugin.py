@@ -7,20 +7,11 @@ from .. setup_functions		import parse_arguments
 from tools_general			import setDefaultPrefs
 
 def tryLoadPlugins( shelf, type, args=None ):
-	if args:
-		for (id,state,error,module) in load_plugins( shelf['mesmer_base_dir'], type, True, shelf['disabled_plugins'], args ):
-			if not state:
-				shelf['disabled_plugins'] = shelf['disabled_plugins'].append( id )
-	else:
-		for (id,state,error,module) in load_plugins( shelf['mesmer_base_dir'], type, True, shelf['disabled_plugins'] ):
-			if not state:
-				shelf['disabled_plugins'] = shelf['disabled_plugins'].append( id )
-	shelf.sync()
 	try:
 		if args:
-			plugins = load_plugins( shelf['mesmer_base_dir'], type, False, shelf['disabled_plugins'], args )
+			plugins = load_plugins( shelf['mesmer_base_dir'], type, dry_run=False, disabled=shelf['disabled_plugins'], args=[args] )
 		else:
-			plugins = load_plugins( shelf['mesmer_base_dir'], type, False, shelf['disabled_plugins'] )
+			plugins = load_plugins( shelf['mesmer_base_dir'], type, dry_run=False, disabled=shelf['disabled_plugins'] )
 	except mesPluginError as e:
 		tkMessageBox.showerror("Error",'Failed to load one or more plugins: %s' % (e.msg))
 		raise

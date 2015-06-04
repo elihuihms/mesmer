@@ -37,16 +37,16 @@ class TargetWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = openUserPrefs()
+			self.prefs = openUserPrefs(mode='w')
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 		
-		try:
-			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs)
-		except Exception as e:
-			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
-			self.master.destroy()
+		#try:
+		(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs)
+		#except Exception as e:
+		#	tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
+		#	self.master.destroy()
 
 	def openOptionsWindow(self, evt):
 		# find the row that generated the event
@@ -111,7 +111,13 @@ class TargetWindow(tk.Frame):
 			self.saveButton.config(state=tk.ACTIVE)
 		else:
 			self.saveButton.config(state=tk.DISABLED)
-
+		
+		if evt != None:
+			for i in xrange(len(self.widgetRowTypes)):
+				if self.widgetRowTypes[i].get() != '':
+					self.widgetRowFileButtons[i].config(state=tk.NORMAL)
+					self.widgetRowOptButtons[i].config(state=tk.NORMAL)
+					
 	def attachDataFile(self,evt):
 		tmp = tkFileDialog.askopenfilename(title='Select experimental datafile:',parent=self)
 		if(tmp == ''):
@@ -120,6 +126,7 @@ class TargetWindow(tk.Frame):
 			if w == evt.widget:
 				break
 		self.widgetRowFiles[i].set(tmp)
+		self.widgetRowFileEntries[i].xview_moveto(1.0)
 		self.updateWidgets()
 
 	def close(self):
@@ -231,11 +238,11 @@ class TargetWindow(tk.Frame):
 		self.widgetRowFileEntries.append( tk.Entry(self.f_container,width=30,textvariable=self.widgetRowFiles[-1]) )
 		self.widgetRowFileEntries[-1].grid(in_=self.f_container,column=3,row=self.rowCounter+1)
 
-		self.widgetRowFileButtons.append( tk.Button(self.f_container,text='Attach Data...') )
+		self.widgetRowFileButtons.append( tk.Button(self.f_container,text='Attach Data...',state=tk.DISABLED) )
 		self.widgetRowFileButtons[-1].bind('<ButtonRelease-1>',self.attachDataFile)
 		self.widgetRowFileButtons[-1].grid(in_=self.f_container,column=4,row=self.rowCounter+1)
 
-		self.widgetRowOptButtons.append( tk.Button(self.f_container,text='Set Options...') )
+		self.widgetRowOptButtons.append( tk.Button(self.f_container,text='Set Options...',state=tk.DISABLED) )
 		self.widgetRowOptButtons[-1].bind('<ButtonRelease-1>',self.openOptionsWindow)
 		self.widgetRowOptButtons[-1].grid(in_=self.f_container,column=5,row=self.rowCounter+1)
 		

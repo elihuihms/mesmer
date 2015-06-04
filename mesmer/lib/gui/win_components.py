@@ -143,6 +143,7 @@ class ComponentsWindow(tk.Frame):
 			if w == evt.widget:
 				break
 		self.widgetRowFolders[i].set(tmp)
+		self.widgetRowFolderEntries[i].xview_moveto(1.0)
 		self.updateWidgets()
 
 	def close(self):

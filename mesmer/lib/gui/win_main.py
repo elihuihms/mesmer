@@ -6,6 +6,8 @@ import tkMessageBox
 
 from .. exceptions		import *
 from tools_TkTooltip	import ToolTip
+from tools_general		import openUserPrefs,tryProgramCall,setDefaultPrefs
+
 from win_target			import TargetWindow
 from win_components		import ComponentsWindow
 from win_setup			import SetupWindow
@@ -13,7 +15,7 @@ from win_config			import ConfigWindow
 from win_analysis		import AnalysisWindow
 from win_plugins		import PluginWindow
 from win_about			import AboutWindow,programInfo
-from tools_general		import openUserPrefs,tryProgramCall,setDefaultPrefs
+from pdb_build			import PDBBuildWindow
 
 class MainWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -38,6 +40,7 @@ class MainWindow(tk.Frame):
 		self.setupMaster	= None
 		self.configMaster	= None
 		self.manageMaster	= None
+		self.pdbMaster		= None
 		self.aboutMaster	= None
 		
 	def loadPrefs(self):
@@ -79,7 +82,7 @@ class MainWindow(tk.Frame):
 		
 		self.toolsMenu = tk.Menu(self.topMenu)
 		self.toolsMenu.add_command(label='Manage plugins...', command=self.managePlugins)
-		self.toolsMenu.add_command(label='Generate PDBs...', command=None)
+		self.toolsMenu.add_command(label='Generate PDBs...', command=self.makePDBs)
 		self.toolsMenu.add_command(label='Calculate Attributes...', command=None)
 
 		self.topMenu.add_cascade(label="File", menu=self.fileMenu)
@@ -126,6 +129,11 @@ class MainWindow(tk.Frame):
 		if(self.manageMaster == None or not self.manageMaster.winfo_exists()):
 			self.manageMaster = tk.Toplevel(self.master)
 			self.manageWindow = PluginWindow(self.manageMaster)
+			
+	def makePDBs(self):
+		if(self.pdbMaster == None or not self.pdbMaster.winfo_exists()):
+			self.pdbMaster = tk.Toplevel(self.master)
+			self.pdbWindow = PDBBuildWindow(self.pdbMaster)
 
 	def setupAbout(self):
 		if(self.aboutMaster == None or not self.aboutMaster.winfo_exists()):

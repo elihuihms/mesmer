@@ -3,7 +3,7 @@ import sys
 from datetime				import datetime
 
 from exceptions				import *
-from ga_objects_mp			import Optimizer
+from ga_objects				import Optimizer
 from ga_functions_misc		import *
 from ga_functions_stats		import *
 from ga_functions_output	import *
