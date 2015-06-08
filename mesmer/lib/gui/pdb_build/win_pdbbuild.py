@@ -2,9 +2,16 @@ import os
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
+import Queue
+
+from multiprocessing import cpu_count,Queue
 
 import mcpdb_objects
 import mcpdb_utilities
+import mcpdb_generator
+
+_PDB_generator_timer = 1000 # in ms
+_PDB_generator_format= "%05i.pdb"
 
 class PDBBuildWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -12,27 +19,44 @@ class PDBBuildWindow(tk.Frame):
 		self.master.title('PDB Builder')
 
 		self.master.resizable(width=False, height=False)
-		self.master.protocol('WM_DELETE_WINDOW', self.close)
+		self.master.protocol('WM_DELETE_WINDOW', self.cancelWindow)
 
 		tk.Frame.__init__(self,master)
 		self.pack(expand=True,fill='both',padx=6,pady=6)
 		self.pack_propagate(True)
 		
 		self.createWidgets()
-		self.updateWidgets()
 
 	def loadPDB(self):
 		tmp = tkFileDialog.askopenfilename(title='Select PDB coordinate file:',parent=self,filetypes=[('PDB',"*.pdb")])
 		if(tmp == ''):
 			return
 
+		self.destroyWidgetRows()
+
+		self.pdbName.set( "Checking PDB:" )
+		self.pdbInfo.set( "Looking for discontinuities..." )
+		self.update_idletasks()
+
 		err,msg = mcpdb_utilities.check_PDB(tmp)
 		if err > 0:
 			tkMessageBox.showerror("Error",'Problem with PDB file: %s' % (msg),parent=self)
+			self.pdbName.set( "PDB check failed." )
+			self.pdbInfo.set( "" )
+			return
+	
+		self.pdbInfo.set( "Looking for steric clashes..." )
+		self.update_idletasks()
+		
+		model = mcpdb_objects.TransformationModel( tmp, [], 0 )
+		clashes = mcpdb_objects.ModelEvaluator( model, clash_radius=self.clashTolerance.get() ).count_clashes()
+		if clashes > 0:
+			tkMessageBox.showerror("Error","Problem with PDB file: %i CA-CA clashes already exist. Check your PDB's sterics and try again." % (clashes),parent=self)
+			self.pdbName.set( "PDB check failed." )
+			self.pdbInfo.set( "" )
 			return
 	
 		self.pdbChains = mcpdb_utilities.get_chain_info(tmp)
-		
 		self.pdb = tmp
 		self.pdbName.set( os.path.basename(self.pdb) )
 		
@@ -42,28 +66,123 @@ class PDBBuildWindow(tk.Frame):
 			self.pdbInfo.set( "1 chain, %i residues"%(self.pdbChains[lchains[0]][1]-self.pdbChains[lchains[0]][0]) )
 		else:
 			self.pdbInfo.set( "%i chains: %s"%(nchains,",".join(lchains)) )
-			
-		# remove existing rows
-		self.destroyWidgetRows()
-			
-		self.createWidgetRow()
+					
+		self.createWidgetRow(initial=True)
 
-		self.addRigidGroupButton.config(state=tk.NORMAL)	
+		self.addRigidGroupButton.config(state=tk.NORMAL)
+		self.generateButton.config(state=tk.NORMAL)
 	
-	def checkGroups(self):
-	
+	def generatePDBs(self):	
+		groups = []
+		for i in xrange(self.groupCounter):
+			groups.append( [] )
+			
+			for j,chain in enumerate(self.pdbChains):
+				if self.groupChainStarts[i][j].get() != '' and self.groupChainEnds[i][j].get() != '':
+					start	= int(self.groupChainStarts[i][j].get())
+					end		= int(self.groupChainEnds[i][j].get())
+					groups[-1].append( (chain,start,end) )
+			
+			if groups[-1] == []:
+				groups.pop( len(groups) -1 )
+			
 		err,msg = mcpdb_utilities.check_groups( self.pdb, groups )
 		if err > 0:
 			tkMessageBox.showerror("Error",'Problem with group definitions: %s' % (msg),parent=self)
-			return False
+			return
 		
-		return True
+		dir = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
+		if dir == '':
+			return
+		
+		prefix = self.pdbPrefix.get()
+		show_warning = True
+		
+		self.pdbInfo.set( "Scanning existing directory..." )
+		self.update_idletasks()
+	
+		self.in_Queue,self.out_Queue = Queue(),Queue()
+		for i in range(self.pdbNumber.get()):
+			if os.path.exists(os.path.join(dir,prefix+(_PDB_generator_format%(i)))):
+			
+				if show_warning:
+					if tkMessageBox.askquestion("Warning", "Directory already contains PDBs, PDB generator will start where previous iterations left off.", icon='warning', parent=self) != 'yes':
+						return
+					show_warning = False
+					
+			else:
+				self.in_Queue.put( i )
+				
+		self.pdbName.set( "Generating PDBs:" )
+		self.pdbInfo.set( "Initializing generators..." )
+		self.update_idletasks()
+		
+		if self.useMultiCores.get() > 0:
+			self.pdbGenerators = [None]*cpu_count()
+		else:
+			self.pdbGenerators = [None]
+		
+		for i in xrange(len(self.pdbGenerators)):
+			self.pdbGenerators[i] = mcpdb_generator.PDBGenerator(
+				self.in_Queue,
+				self.out_Queue,
+				self.pdb,
+				groups,
+				dir=dir,
+				prefix=prefix,
+				format=_PDB_generator_format,
+				eval_kwargs={'clash_radius':self.clashTolerance.get()}
+			)
+			self.pdbGenerators[i].start()
+		
+		self.pdbInfo.set( "Generating structures..." )
+		self.update_idletasks()
+		
+		self.after( _PDB_generator_timer, self.updatePDBGenerators )
 
-	def updateWidgets(self, evt=None):
-		pass
+	def updatePDBGenerators(self):
+		# get all of the indices generated since the last call
+		indices = []
+		while not self.out_Queue.empty():
+			indices.append( self.out_Queue.get() )
+		indices.sort(reverse=True)
+		
+		if len(indices) > 0:
+			self.pdbInfo.set( "Generated structure %i of %i"%(indices[0]+1,self.pdbNumber.get()) )
+		
+			if indices[0]+1 == self.pdbNumber.get():
+				self.stopPDBGenerators()
+				return
+					
+		self.after( _PDB_generator_timer, self.updatePDBGenerators )
+	
+	def stopPDBGenerators(self):
+		# send term signal to workers
+		for i in xrange(len(self.pdbGenerators)):
+			self.in_Queue.put( None )
+		
+		self.pdbInfo.set( "Stopping generators..." )
+		self.update_idletasks()
+			
+		# make sure they're all shut down
+		for i in xrange(len(self.pdbGenerators)):
+			if self.pdbGenerators[i] != None:
+				self.pdbGenerators[i].join()
+			self.pdbGenerators[i] = None
+			
+		self.pdbIndices = []
+		self.pdbName.set( "Done." )
+		self.pdbInfo.set( "" )
+		self.update_idletasks()
 
-	def close(self):
-		self.master.destroy()
+	def cancelWindow(self):
+		if self.pdbName.get() == 'Done.':
+			self.stopPDBGenerators()
+			self.master.destroy()
+			return
+
+		if tkMessageBox.askquestion("Cancel", "Stop generating structures?", icon='warning',parent=self) == 'yes':
+			self.stopPDBGenerators()
 
 	def createWidgets(self):
 		self.pdbLoadButton = tk.Button(self,text='Load PDB...',command=self.loadPDB)
@@ -90,7 +209,7 @@ class PDBBuildWindow(tk.Frame):
 		self.groupChainStartEntries = []
 		self.groupChainEnds = []
 		self.groupChainEndEntries = []
-		self.groupDeleteButtons = []
+		self.groupRemoveButtons = []
 		
 		self.addRigidGroupButton = tk.Button(self,text='Add Rigid Group',command=lambda: self.createWidgetRow(),state=tk.DISABLED)
 		self.addRigidGroupButton.grid(row=3,column=0,sticky=tk.E+tk.W)
@@ -98,34 +217,52 @@ class PDBBuildWindow(tk.Frame):
 		self.f_options = tk.LabelFrame(self,text='Options')
 		self.f_options.grid(row=4,sticky=tk.E+tk.W)
 
+		self.pdbPrefix = tk.StringVar()
+		self.pdbPrefixLabel = tk.Label(self.f_options,text="Output prefix:")
+		self.pdbPrefixLabel.grid(row=0,column=0,sticky=tk.W)
+		self.pdbPrefixEntry = tk.Entry(self.f_options,textvariable=self.pdbPrefix)
+		self.pdbPrefixEntry.grid(row=0,column=1,sticky=tk.W)
+		
+		self.pdbNumber = tk.IntVar()
+		self.pdbNumber.set( 10 )
+		self.pdbNumberLabel = tk.Label(self.f_options,text="Number of PDBs:")
+		self.pdbNumberLabel.grid(row=1,column=0,sticky=tk.W)
+		self.pdbNumberEntry = tk.Entry(self.f_options,textvariable=self.pdbNumber)
+		self.pdbNumberEntry.grid(row=1,column=1,sticky=tk.W)
+
 		self.fixFirstGroup = tk.IntVar()
 		self.fixFirstGroup.set(1)
 		self.fixFirstGroupCheckbox = tk.Checkbutton(self.f_options,text='Fix first rigid group',variable=self.fixFirstGroup)
-		self.fixFirstGroupCheckbox.grid(row=0,column=0,sticky=tk.W)
+		self.fixFirstGroupCheckbox.grid(row=2,column=0,columnspan=2,sticky=tk.W)
 
 		self.useMultiCores = tk.IntVar()
 		self.useMultiCores.set(1)
 		self.useMultiCoresCheckbox = tk.Checkbutton(self.f_options,text='Use all available CPU cores',variable=self.useMultiCores)
-		self.useMultiCoresCheckbox.grid(row=1,column=0,sticky=tk.W)
+		self.useMultiCoresCheckbox.grid(row=3,column=0,columnspan=2,sticky=tk.W)
 
-		self.useRamachandran = tk.IntVar()
-		self.useRamachandran.set(0)
-		self.useRamachandranCheckbox = tk.Checkbutton(self.f_options,text='Use Ramachandran probabilities',variable=self.useRamachandran,state=tk.DISABLED)
-		self.useRamachandranCheckbox.grid(row=2,column=0,sticky=tk.W)
+#		self.useRamachandran = tk.IntVar()
+#		self.useRamachandran.set(0)
+#		self.useRamachandranCheckbox = tk.Checkbutton(self.f_options,text='Use Ramachandran linkers',variable=self.useRamachandran,state=tk.DISABLED)
+#		self.useRamachandranCheckbox.grid(row=4,column=0,columnspan=2,sticky=tk.W)
+		
+		self.clashToleranceLabel = tk.Label(self.f_options,text="CA-CA tolerance: ")
+		self.clashToleranceLabel.grid(row=5,column=0,sticky=tk.E)
+		self.clashTolerance = tk.DoubleVar()
+		self.clashTolerance.set(1.0)
+		self.clashToleranceEntry = tk.Entry(self.f_options,textvariable=self.clashTolerance,width=3)
+		self.clashToleranceEntry.grid(row=5,column=1,sticky=tk.W)
 
 		self.f_footer = tk.Frame(self,borderwidth=0)
 		self.f_footer.grid(row=5)
 
-		self.generateButton = tk.Button(self.f_footer,text='Generate PDBs...',default=tk.ACTIVE,command=lambda: makeTargetFromWindow(self),state=tk.DISABLED)
+		self.generateButton = tk.Button(self.f_footer,text='Generate PDBs...',default=tk.ACTIVE,command=self.generatePDBs,state=tk.DISABLED)
 		self.generateButton.grid(column=1,row=6,sticky=tk.W,pady=4)
-		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
+		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
 		self.cancelButton.grid(column=2,row=6,sticky=tk.E,pady=4)
 
-	def createWidgetRow(self):		
-		self.groupCounter+=1
-		
-		self.groupFrames.append( tk.LabelFrame(self.f_groups,text="Rigid Group %i"%(self.groupCounter)) )
-		self.groupFrames[-1].grid(row=(self.groupCounter -1)%3,column=int((self.groupCounter-1)/3),ipadx=6,ipady=6)
+	def createWidgetRow(self,initial=False):		
+		self.groupFrames.append( tk.LabelFrame(self.f_groups,text="Rigid Group %i"%(self.groupCounter+1)) )
+		self.groupFrames[-1].grid(row=self.groupCounter%3,column=int(self.groupCounter/3),ipadx=6,ipady=6)
 		
 		self.groupLabels.append( [tk.Label(self.groupFrames[-1],text=text) for text in ('Chain:','Start residue:','End residue:')] )
 		for i,label in enumerate(self.groupLabels[-1]):
@@ -144,52 +281,61 @@ class PDBBuildWindow(tk.Frame):
 			self.groupChainStarts[-1].append( tk.StringVar() )
 			self.groupChainStartEntries[-1].append( tk.Entry(self.groupFrames[-1],width=3,textvariable=self.groupChainStarts[-1][-1]) )
 			self.groupChainStartEntries[-1][-1].grid(column=i+1,row=1)
+			
 			self.groupChainEnds[-1].append( tk.StringVar() )
 			self.groupChainEndEntries[-1].append( tk.Entry(self.groupFrames[-1],width=3,textvariable=self.groupChainEnds[-1][-1]) )
 			self.groupChainEndEntries[-1][-1].grid(column=i+1,row=2)
+			
+			if initial:
+				self.groupChainStarts[-1][-1].set( self.pdbChains[chain][0] )
+				self.groupChainEnds[-1][-1].set( self.pdbChains[chain][1] )
 
 		nchains = len(self.pdbChains)
-		self.groupDeleteButtons.append( tk.Button(self.groupFrames[-1],text='Remove Group') )
-		self.groupDeleteButtons[-1].grid(column=0,row=3,columnspan=nchains+1,sticky=tk.E+tk.W)
+		self.groupRemoveButtons.append( tk.Button(self.groupFrames[-1],text='Remove Group') )
+		self.groupRemoveButtons[-1].grid(column=0,row=3,columnspan=nchains+1,sticky=tk.E+tk.W)
+		self.groupRemoveButtons[-1].bind('<ButtonRelease-1>',self.clearWidgetRow)
 		
-#		self.master.geometry('%ix%i' % (max(250,120+nchains*35),320+self.groupCounter*60))
-#		self.config(width=max(250,120+nchains*35),height=320+self.groupCounter*60)
+		self.groupCounter+=1
 
+	def clearWidgetRow(self,event):
+		showinfo = True
+		for i,button in enumerate(self.groupRemoveButtons):
+			if button is event.widget:
+
+				for j,chain in enumerate(self.pdbChains):
+					if self.groupChainStarts[i][j].get() != '' or self.groupChainEnds[i][j].get() != '':
+						showinfo = False
+						
+					self.groupChainStarts[i][j].set('')
+					self.groupChainEnds[i][j].set('')
+					
+		if showinfo:
+			tkMessageBox.showinfo("Note","Rigid groups without any specified start or end residues are automatically ignored",parent=self)
+		
 	def destroyWidgetRows(self):
-		return
-		index=0
-		while(index<self.rowCounter):
-			if(self.widgetRowChecks[index].get() > 0):
-				self.widgetRowCheckboxes[index].destroy()
-				self.widgetRowTypeMenus[index].destroy()
-				self.widgetRowWeightEntries[index].destroy()
-				self.widgetRowFileEntries[index].destroy()
-				self.widgetRowFileButtons[index].destroy()
-				self.widgetRowOptButtons[index].destroy()
-				del self.widgetRowCheckboxes[index]
-				del self.widgetRowTypeMenus[index]
-				del self.widgetRowWeights[index]
-				del self.widgetRowWeightEntries[index]
-				del self.widgetRowFileEntries[index]
-				del self.widgetRowFileButtons[index]
-				del self.widgetRowOptButtons[index]
-				del self.widgetRowChecks[index]
-				del self.widgetRowTypeOptions[index]
-				del self.widgetRowTypes[index]
-				del self.widgetRowFiles[index]
-				del self.widgetRowOptions[index]
-				del self.widgetRowCheckboxesTT[index]
-				del self.widgetRowTypeMenusTT[index]
-				del self.widgetRowWeightEntriesTT[index]
-				del self.widgetRowFileEntriesTT[index]
-				del self.widgetRowFileButtonsTT[index]
-				del self.widgetRowOptButtonsTT[index]
-				self.rowCounter-=1
-			else:
-				index+=1
+		for i in range(self.groupCounter):
+			self.groupFrames[i].destroy()
+			
+			for j in range(3):
+				self.groupLabels[i][j].destroy()
+			
+			for j in range(len(self.pdbChains)):
+				self.groupChainLabels[i][j].destroy()
+				self.groupChainStartEntries[i][j].destroy()
+				self.groupChainEndEntries[i][j].destroy()
 
-		if(self.rowCounter==0):
-			self.delRowButton.config(state=tk.DISABLED)
+				del self.groupChainStarts[i][j]
+				del self.groupChainEnds[i][j]
 
-#		self.master.geometry('720x%i' % (180+self.rowCounter*30))
-#		self.config(width=720,height=(180+self.rowCounter*30))
+			self.groupRemoveButtons[i].destroy()
+		
+		self.groupFrames = []
+		self.groupLabels = []
+		self.groupChainLabels = []
+		self.groupChainStarts = []
+		self.groupChainStartEntries = []
+		self.groupChainEnds = []
+		self.groupChainEndEntries = []
+		self.groupRemoveButtons = []
+
+		self.groupCounter = 0

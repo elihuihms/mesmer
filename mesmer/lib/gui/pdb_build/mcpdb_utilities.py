@@ -1,3 +1,6 @@
+import os
+import glob
+
 from Bio.PDB import *
 
 def get_chain_info( path ):
@@ -66,3 +69,6 @@ def check_PDB( path, model=0 ):
 			prev_resnum = resnum
 	
 	return 0,None
+	
+	
+	

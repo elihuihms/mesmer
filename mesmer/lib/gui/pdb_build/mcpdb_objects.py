@@ -147,7 +147,11 @@ class TransformationModel():
 		self.parser		= PDBParser()
 		self.structure	= self.parser.get_structure('',pdb)
 		self.model		= self.structure[model]
-				
+		
+		self._assigned_residues = []
+		if group_specifiers == []:
+			return
+		
 		# create a list of residues that are to be held rigid
 		self._rigid_groups,self._rigid_residues = [],[]
 		for group_specifier in group_specifiers:
@@ -157,8 +161,7 @@ class TransformationModel():
 			self._rigid_groups.append( TransformationGroup(residues[:]) )
 			self._rigid_residues.extend( residues[:] )
 										
-		# start recursively assigning transformationGroups
-		self._assigned_residues = []
+		# recursively assign transformationGroups
 		self._transformation_group = self._get_children( self._rigid_groups[0] )
 	
 	def print_hierarchy(self):
