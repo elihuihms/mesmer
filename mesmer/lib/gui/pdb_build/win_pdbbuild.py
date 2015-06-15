@@ -128,6 +128,8 @@ class PDBBuildWindow(tk.Frame):
 				self.out_Queue,
 				self.pdb,
 				groups,
+				use_rama=(self.useRamachandran.get() == 1),
+				fix_first=(self.fixFirstGroup.get() == 1),
 				dir=dir,
 				prefix=prefix,
 				format=_PDB_generator_format,
@@ -137,7 +139,7 @@ class PDBBuildWindow(tk.Frame):
 		
 		self.pdbInfo.set( "Generating structures..." )
 		self.update_idletasks()
-		
+		self.generatorStatus = 1
 		self.after( _PDB_generator_timer, self.updatePDBGenerators )
 
 	def updatePDBGenerators(self):
@@ -174,9 +176,10 @@ class PDBBuildWindow(tk.Frame):
 		self.pdbName.set( "Done." )
 		self.pdbInfo.set( "" )
 		self.update_idletasks()
+		self.generatorStatus = 0
 
 	def cancelWindow(self):
-		if self.pdbName.get() == 'Done.':
+		if self.generatorStatus == 0:
 			self.stopPDBGenerators()
 			self.master.destroy()
 			return
@@ -240,10 +243,10 @@ class PDBBuildWindow(tk.Frame):
 		self.useMultiCoresCheckbox = tk.Checkbutton(self.f_options,text='Use all available CPU cores',variable=self.useMultiCores)
 		self.useMultiCoresCheckbox.grid(row=3,column=0,columnspan=2,sticky=tk.W)
 
-#		self.useRamachandran = tk.IntVar()
-#		self.useRamachandran.set(0)
-#		self.useRamachandranCheckbox = tk.Checkbutton(self.f_options,text='Use Ramachandran linkers',variable=self.useRamachandran,state=tk.DISABLED)
-#		self.useRamachandranCheckbox.grid(row=4,column=0,columnspan=2,sticky=tk.W)
+		self.useRamachandran = tk.IntVar()
+		self.useRamachandran.set(0)
+		self.useRamachandranCheckbox = tk.Checkbutton(self.f_options,text='Use Ramachandran linkers',variable=self.useRamachandran)
+		self.useRamachandranCheckbox.grid(row=4,column=0,columnspan=2,sticky=tk.W)
 		
 		self.clashToleranceLabel = tk.Label(self.f_options,text="CA-CA tolerance: ")
 		self.clashToleranceLabel.grid(row=5,column=0,sticky=tk.E)
@@ -259,6 +262,8 @@ class PDBBuildWindow(tk.Frame):
 		self.generateButton.grid(column=1,row=6,sticky=tk.W,pady=4)
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
 		self.cancelButton.grid(column=2,row=6,sticky=tk.E,pady=4)
+		
+		self.generatorStatus = 0
 
 	def createWidgetRow(self,initial=False):		
 		self.groupFrames.append( tk.LabelFrame(self.f_groups,text="Rigid Group %i"%(self.groupCounter+1)) )

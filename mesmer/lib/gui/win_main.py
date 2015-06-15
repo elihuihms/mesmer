@@ -81,9 +81,10 @@ class MainWindow(tk.Frame):
 		self.actionMenu.add_command(label='Analyze Run...', accelerator="Ctrl+Y", command=self.openAnalysis)
 		
 		self.toolsMenu = tk.Menu(self.topMenu)
-		self.toolsMenu.add_command(label='Manage plugins...', command=self.managePlugins)
 		self.toolsMenu.add_command(label='Generate PDBs...', command=self.makePDBs)
 		self.toolsMenu.add_command(label='Calculate Attributes...', command=None)
+		self.toolsMenu.add_separator()
+		self.toolsMenu.add_command(label='Manage plugins...', command=self.managePlugins)
 
 		self.topMenu.add_cascade(label="File", menu=self.fileMenu)
 		self.topMenu.add_cascade(label="Actions", menu=self.actionMenu)

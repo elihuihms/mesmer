@@ -1,5 +1,6 @@
 from Bio.PDB import *
-from numpy import array
+from numpy import array,dot,sin,cos
+from random import random
 
 class TransformationGroup():
 	def __init__(self,residues,children=[]):
@@ -65,19 +66,33 @@ class TransformationGroup():
 			ret.append( (calc_dihedral(CP,N,CA,C),calc_dihedral(N,CA,C,NN)) )
 		return ret
 					
-	def apply_transformation(self, rotation_array ):
+	def apply_transformation(self, rotation_array, difference=True ):
 		assert( len(rotation_array) == self.linker_length -2 )
+
+		if difference:
+			linker_phipsi = self.get_linker_phipsi()
 
 		if self._morph_direction > 0: # N to C direction
 			for i in xrange(1,self.linker_length-1):
-				self._rotate_phi( i, rotation_array[i-1][0] )
-				self._rotate_psi( i, rotation_array[i-1][1] )
+				if difference:
+					oldphi,oldpsi = linker_phipsi[i-1]
+				else:
+					oldphi,oldpsi = 0.0,0.0
+
+				self._rotate_phi( i, rotation_array[i-1][0]-oldphi )
+				self._rotate_psi( i, rotation_array[i-1][1]-oldpsi )
 		else:
 			for i in xrange(self.linker_length-2,0,-1):
-				self._rotate_psi( i, rotation_array[i-1][1] )
-				self._rotate_phi( i, rotation_array[i-1][0] )
-		return
+				if difference:
+					oldphi,oldpsi = linker_phipsi[i-1]
+				else:
+					oldphi,oldpsi = 0.0,0.0
+
+				self._rotate_psi( i, rotation_array[i-1][1]-oldphi )
+				self._rotate_phi( i, rotation_array[i-1][0]-oldpsi )
 		
+		return
+				
 	def rotate(self, r, t=None):
 		r = r.astype('f')
 
@@ -99,7 +114,7 @@ class TransformationGroup():
 			
 		N	= self._linker_residues[i]['N'].coord
 		CA	= self._linker_residues[i]['CA'].coord
-		m = rotaxis2m( angle, Vector(CA - N) )
+		m = rotaxis2m( -1*angle, Vector(CA - N) )
 		t = array((0,0,0),'f')
 
 		for j in xrange(i,self.linker_length):
@@ -123,7 +138,7 @@ class TransformationGroup():
 			
 		C = self._linker_residues[i]['C'].coord
 		CA	= self._linker_residues[i]['CA'].coord
-		m = rotaxis2m( angle, Vector(C - CA) )
+		m = rotaxis2m( -1*angle, Vector(C - CA) )
 		t = array((0,0,0),'f')
 
 		for j in xrange(i,self.linker_length):
@@ -251,6 +266,21 @@ class TransformationModel():
 				_recursive( g )
 		
 		_recursive( self._transformation_group )
+		
+	def tumble(self, x=None,y=None,z=None):
+		if x == None:
+			x = random()*2*3.1415
+		if y == None:
+			y = random()*2*3.1415
+		if z == None:
+			z = random()*2*3.1415
+
+		Rx = array([[1,0,0], [0, cos(x), -sin(x)], [0, sin(x), cos(x)]],'f')
+		Ry = array([[cos(y), 0, -sin(y)], [0, 1, 0], [sin(y), 0, cos(y)]],'f')
+		Rz = array([[cos(z), -sin(z), 0], [sin(z), cos(z), 0], [0,0,1]],'f')
+		
+		for a in self.model.get_atoms():
+			a.transform( dot(Rx, dot(Ry, Rz)), array((0,0,0),'f') )	
 		
 	def savePDB(self,path):
 		output = PDBIO()
