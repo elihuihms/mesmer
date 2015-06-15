@@ -93,16 +93,16 @@ class OptionsWindow(tk.Frame):
 		self.stringTT		= {}
 
 		self.container = tk.Frame(self)
-		self.container.grid(in_=self,padx=6,pady=6)
+		self.container.grid(padx=6,pady=6)
 
 		rowCounter = 0
 		for (name,opt,value,help) in self.spec['bool_options']:
 			self.booleans[opt] = tk.IntVar()
 			self.booleans[opt].set(value)
 			self.booleanLabels[opt] = tk.Label(self.container,text=name)
-			self.booleanLabels[opt].grid(in_=self.container,column=0,row=rowCounter,sticky=tk.W)
+			self.booleanLabels[opt].grid(column=0,row=rowCounter,sticky=tk.W)
 			self.booleanInputs[opt] = tk.Checkbutton(self.container,variable=self.booleans[opt])
-			self.booleanInputs[opt].grid(in_=self.container,column=1,row=rowCounter,sticky=tk.W)
+			self.booleanInputs[opt].grid(column=1,row=rowCounter,sticky=tk.W)
 			self.booleanTT[opt] = ToolTip(self.booleanLabels[opt],follow_mouse=0,text=help)
 			rowCounter+=1
 
@@ -110,9 +110,9 @@ class OptionsWindow(tk.Frame):
 			self.integers[opt] = tk.IntVar()
 			self.integers[opt].set(value)
 			self.integerLabels[opt] = tk.Label(self.container,text=name)
-			self.integerLabels[opt].grid(in_=self.container,column=0,row=rowCounter,sticky=tk.W)
+			self.integerLabels[opt].grid(column=0,row=rowCounter,sticky=tk.W)
 			self.integerInputs[opt] = tk.Entry(self.container,textvariable=self.integers[opt],width=3)
-			self.integerInputs[opt].grid(in_=self.container,column=1,row=rowCounter,sticky=tk.W)
+			self.integerInputs[opt].grid(column=1,row=rowCounter,sticky=tk.W)
 			self.integerTT[opt] = ToolTip(self.integerLabels[opt],follow_mouse=0,text=help)
 			rowCounter+=1
 
@@ -120,9 +120,9 @@ class OptionsWindow(tk.Frame):
 			self.floats[opt] = tk.DoubleVar()
 			self.floats[opt].set(value)
 			self.floatLabels[opt] = tk.Label(self.container,text=name)
-			self.floatLabels[opt].grid(in_=self.container,column=0,row=rowCounter,sticky=tk.W)
+			self.floatLabels[opt].grid(column=0,row=rowCounter,sticky=tk.W)
 			self.floatInputs[opt] = tk.Entry(self.container,textvariable=self.floats[opt],width=4)
-			self.floatInputs[opt].grid(in_=self.container,column=1,row=rowCounter,sticky=tk.W)
+			self.floatInputs[opt].grid(column=1,row=rowCounter,sticky=tk.W)
 			self.floatTT[opt] = ToolTip(self.floatLabels[opt],follow_mouse=0,text=help)
 			rowCounter+=1
 
@@ -130,13 +130,13 @@ class OptionsWindow(tk.Frame):
 			self.strings[opt] = tk.StringVars()
 			self.strings[opt].set(value)
 			self.stringLabels[opt] = tk.Label(self.container,text=name)
-			self.stringLabels[opt].grid(in_=self.container,column=0,row=rowCounter,sticky=tk.W)
+			self.stringLabels[opt].grid(column=0,row=rowCounter,sticky=tk.W)
 			self.stringInputs[opt] = tk.Entry(self.container,textvariable=self.strings[opt],width=4)
-			self.stringInputs[opt].grid(in_=self.container,column=1,row=rowCounter,sticky=tk.W)
+			self.stringInputs[opt].grid(column=1,row=rowCounter,sticky=tk.W)
 			self.stringTT[opt] = ToolTip(self.stringLabels[opt],follow_mouse=0,text=help)
 			rowCounter+=1
 
 		self.cancelButton = tk.Button(self.container,text='Cancel',command=self.cancelWindow)
-		self.cancelButton.grid(in_=self.container,column=0,row=rowCounter,sticky=tk.E,pady=8)
+		self.cancelButton.grid(column=0,row=rowCounter,sticky=tk.E,pady=8)
 		self.saveButton = tk.Button(self.container,text='Save',command=self.saveWindow,default=tk.ACTIVE)
-		self.saveButton.grid(in_=self.container,column=1,row=rowCounter,sticky=tk.W,pady=8)
+		self.saveButton.grid(column=1,row=rowCounter,sticky=tk.W,pady=8)

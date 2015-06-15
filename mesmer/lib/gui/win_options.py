@@ -38,7 +38,7 @@ class OptionsWindow(tk.Frame):
 		
 	def createWidgets(self):
 		self.container = tk.Frame(self)
-		self.container.grid(in_=self,padx=6,pady=6)
+		self.container.grid(padx=6,pady=6)
 
 		self.optionGroups	= {}
 		self.optionLabels	= []
@@ -47,19 +47,19 @@ class OptionsWindow(tk.Frame):
 		self.optionEntries	= []
 
 		self.optionGroups[''] = tk.Frame(self.container,border=0)
-		self.optionGroups[''].grid(in_=self.container,column=0,row=0,columnspan=2,sticky=tk.W)
+		self.optionGroups[''].grid(column=0,row=0,columnspan=2,sticky=tk.W)
 		for option in self.options:
 			if option['group'] == 'optional arguments':
 				option['group'] = ''
 			if option['group'] not in self.optionGroups:
 				self.optionGroups[option['group']] = tk.LabelFrame(self.container,text=option['group'])
-				self.optionGroups[option['group']].grid(in_=self.container,column=0,row=len(self.optionGroups),columnspan=2,sticky=tk.W)
+				self.optionGroups[option['group']].grid(column=0,row=len(self.optionGroups),columnspan=2,sticky=tk.W)
 				
 		for option in self.options:
 			container = self.optionGroups[option['group']]
 			row = len(container.winfo_children())/2
 			self.optionLabels.append( tk.Label(container,text=option['dest']) )
-			self.optionLabels[-1].grid(in_=container,column=0,row=row,sticky=tk.W)
+			self.optionLabels[-1].grid(column=0,row=row,sticky=tk.W)
 			self.optionToolTips.append( ToolTip(self.optionLabels[-1],follow_mouse=0,text=option['help']) )
 
 			if(option['choices'] != None):
@@ -82,9 +82,9 @@ class OptionsWindow(tk.Frame):
 				self.optionValues.append( tk.StringVar() )
 				self.optionValues[-1].set(option['value'])
 				self.optionEntries.append( tk.Entry(container,textvariable=self.optionValues[-1],width=12) )
-			self.optionEntries[-1].grid(in_=container,column=1,row=row,sticky=tk.W)
+			self.optionEntries[-1].grid(column=1,row=row,sticky=tk.W)
 
 		self.cancelButton = tk.Button(self.container,text='Cancel',command=self.cancelWindow)
-		self.cancelButton.grid(in_=self.container,column=0,row=len(self.optionGroups)+1,sticky=tk.E,pady=(8,0))
+		self.cancelButton.grid(column=0,row=len(self.optionGroups)+1,sticky=tk.E,pady=(8,0))
 		self.saveButton = tk.Button(self.container,text='Apply',command=self.saveWindow,width=8,default=tk.ACTIVE)
-		self.saveButton.grid(in_=self.container,row=len(self.optionGroups)+1,column=1,sticky=tk.W,pady=(8,0))
+		self.saveButton.grid(row=len(self.optionGroups)+1,column=1,sticky=tk.W,pady=(8,0))

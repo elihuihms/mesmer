@@ -33,10 +33,10 @@ class StatusWindow(tk.Frame):
 		self.container.place(relx=0.5,rely=0.5,anchor=tk.CENTER)
 
 		self.CalcProgressLabel = tk.Label(self.container,textvariable=self.CalcProgress)
-		self.CalcProgressLabel.grid(in_=self.container,column=0,row=0,sticky=tk.W)
+		self.CalcProgressLabel.grid(column=0,row=0,sticky=tk.W)
 
 		self.CurrentPDBLabel = tk.Label(self.container,textvariable=self.CurrentPDB)
-		self.CurrentPDBLabel.grid(in_=self.container,column=0,row=1,sticky=tk.W)
+		self.CurrentPDBLabel.grid(column=0,row=1,sticky=tk.W)
 
 		self.cancelButton = tk.Button(self.container, text='Cancel',command=self.cancelCalc, width=20)
-		self.cancelButton.grid(in_=self.container,column=0,row=2,sticky=tk.E)
+		self.cancelButton.grid(column=0,row=2,sticky=tk.E)

@@ -160,35 +160,35 @@ class TargetWindow(tk.Frame):
 
 	def createWidgets(self):
 		self.f_header = tk.LabelFrame(self,text='General Info')
-		self.f_header.grid(in_=self,row=0,sticky=tk.W,ipady=4,ipadx=8,padx=8)
+		self.f_header.grid(row=0,sticky=tk.W,ipady=4,ipadx=8,padx=8)
 
 		self.targetNameLabel = tk.Label(self.f_header,text='Name:')
-		self.targetNameLabel.grid(in_=self.f_header,column=0,row=0,sticky=tk.E)
+		self.targetNameLabel.grid(column=0,row=0,sticky=tk.E)
 		self.targetNameEntry = tk.Entry(self.f_header,textvariable=self.targetName)
-		self.targetNameEntry.grid(in_=self.f_header,column=1,row=0,sticky=tk.W)
+		self.targetNameEntry.grid(column=1,row=0,sticky=tk.W)
 		self.targetNameEntry.bind("<Key>",self.updateWidgets)
 
 		self.targetCommentsLabel = tk.Label(self.f_header,text='Comments:')
-		self.targetCommentsLabel.grid(in_=self.f_header,column=2,row=0,sticky=tk.E)
+		self.targetCommentsLabel.grid(column=2,row=0,sticky=tk.E)
 		self.targetCommentsEntry = tk.Entry(self.f_header,textvariable=self.targetComments,width=36)
-		self.targetCommentsEntry.grid(in_=self.f_header,column=3,row=0,sticky=tk.W)
+		self.targetCommentsEntry.grid(column=3,row=0,sticky=tk.W)
 
 		self.f_container = tk.LabelFrame(self,borderwidth=2,relief='groove',text='Experimental Data')
-		self.f_container.grid(in_=self,sticky=tk.W,ipady=4,ipadx=8,padx=8)
+		self.f_container.grid(sticky=tk.W,ipady=4,ipadx=8,padx=8)
 
 		self.addRowButton = tk.Button(self.f_container,text='Add',command=self.createWidgetRow)
-		self.addRowButton.grid(in_=self.f_container,column=0,row=0,sticky=tk.E)
+		self.addRowButton.grid(column=0,row=0,sticky=tk.E)
 		self.delRowButton = tk.Button(self.f_container,text='Remove',command=self.destroyWidgetRows)
-		self.delRowButton.grid(in_=self.f_container,column=1,row=0,sticky=tk.W)
+		self.delRowButton.grid(column=1,row=0,sticky=tk.W)
 
 		self.rowHeaderSelectLabel = tk.Label(self.f_container,text='Select')
-		self.rowHeaderSelectLabel.grid(in_=self.f_container,column=0,row=1)
+		self.rowHeaderSelectLabel.grid(column=0,row=1)
 		self.rowHeaderTypeLabel = tk.Label(self.f_container,text='Type')
-		self.rowHeaderTypeLabel.grid(in_=self.f_container,column=1,row=1)
+		self.rowHeaderTypeLabel.grid(column=1,row=1)
 		self.rowHeaderWeightLabel = tk.Label(self.f_container,text='Weight')
-		self.rowHeaderWeightLabel.grid(in_=self.f_container,column=2,row=1,sticky=tk.W)
+		self.rowHeaderWeightLabel.grid(column=2,row=1,sticky=tk.W)
 		self.rowHeaderFileLabel = tk.Label(self.f_container,text='File Path')
-		self.rowHeaderFileLabel.grid(in_=self.f_container,column=3,row=1,sticky=tk.W)
+		self.rowHeaderFileLabel.grid(column=3,row=1,sticky=tk.W)
 
 		self.rowCounter = 0
 		self.widgetRowCheckboxes = []
@@ -199,14 +199,14 @@ class TargetWindow(tk.Frame):
 		self.widgetRowOptButtons = []
 
 		self.f_footer = tk.Frame(self,borderwidth=0)
-		self.f_footer.grid(in_=self,row=2)
+		self.f_footer.grid(row=2)
 
 		self.openButton = tk.Button(self.f_footer,text='Load Target...',command=self.loadTarget)
-		self.openButton.grid(in_=self.f_footer,column=0,row=0,sticky=tk.N+tk.S+tk.E,pady=8)
+		self.openButton.grid(column=0,row=0,sticky=tk.N+tk.S+tk.E,pady=8)
 		self.saveButton = tk.Button(self.f_footer,text='Save Target...',default=tk.ACTIVE,command=lambda: makeTargetFromWindow(self))
-		self.saveButton.grid(in_=self.f_footer,column=1,row=0,sticky=tk.N+tk.S+tk.W,pady=8)
+		self.saveButton.grid(column=1,row=0,sticky=tk.N+tk.S+tk.W,pady=8)
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
-		self.cancelButton.grid(in_=self.f_footer,column=2,row=0,sticky=tk.N+tk.S+tk.E,pady=8,padx=20)
+		self.cancelButton.grid(column=2,row=0,sticky=tk.N+tk.S+tk.E,pady=8,padx=20)
 
 	def createWidgetRow(self):
 		self.rowCounter+=1
@@ -221,30 +221,30 @@ class TargetWindow(tk.Frame):
 
 		self.widgetRowChecks.append( tk.IntVar() )
 		self.widgetRowCheckboxes.append( tk.Checkbutton(self.f_container,variable=self.widgetRowChecks[-1]) )
-		self.widgetRowCheckboxes[-1].grid(in_=self.f_container,column=0,row=self.rowCounter+1)
+		self.widgetRowCheckboxes[-1].grid(column=0,row=self.rowCounter+1)
 
 		self.widgetRowTypeOptions.append( available_types )
 		self.widgetRowTypes.append( tk.StringVar() )
 		self.widgetRowTypes[-1].set( available_types[0] )
 		self.widgetRowTypeMenus.append( tk.OptionMenu(self.f_container,self.widgetRowTypes[-1],*available_types,command=self.updateWidgets) )
-		self.widgetRowTypeMenus[-1].grid(in_=self.f_container,column=1,row=self.rowCounter+1)
+		self.widgetRowTypeMenus[-1].grid(column=1,row=self.rowCounter+1)
 
 		self.widgetRowWeights.append( tk.DoubleVar() )
 		self.widgetRowWeights[-1].set( 1.0 )
 		self.widgetRowWeightEntries.append( tk.Entry(self.f_container,width=3,textvariable=self.widgetRowWeights[-1]) )
-		self.widgetRowWeightEntries[-1].grid(in_=self.f_container,column=2,row=self.rowCounter+1)
+		self.widgetRowWeightEntries[-1].grid(column=2,row=self.rowCounter+1)
 
 		self.widgetRowFiles.append( tk.StringVar() )
 		self.widgetRowFileEntries.append( tk.Entry(self.f_container,width=30,textvariable=self.widgetRowFiles[-1]) )
-		self.widgetRowFileEntries[-1].grid(in_=self.f_container,column=3,row=self.rowCounter+1)
+		self.widgetRowFileEntries[-1].grid(column=3,row=self.rowCounter+1)
 
 		self.widgetRowFileButtons.append( tk.Button(self.f_container,text='Attach Data...',state=tk.DISABLED) )
 		self.widgetRowFileButtons[-1].bind('<ButtonRelease-1>',self.attachDataFile)
-		self.widgetRowFileButtons[-1].grid(in_=self.f_container,column=4,row=self.rowCounter+1)
+		self.widgetRowFileButtons[-1].grid(column=4,row=self.rowCounter+1)
 
 		self.widgetRowOptButtons.append( tk.Button(self.f_container,text='Set Options...',state=tk.DISABLED) )
 		self.widgetRowOptButtons[-1].bind('<ButtonRelease-1>',self.openOptionsWindow)
-		self.widgetRowOptButtons[-1].grid(in_=self.f_container,column=5,row=self.rowCounter+1)
+		self.widgetRowOptButtons[-1].grid(column=5,row=self.rowCounter+1)
 		
 		# append tool tips
 		self.widgetRowCheckboxesTT.append( ToolTip(self.widgetRowCheckboxes[-1], 	follow_mouse=0, text='Mark restraint for deletion') )

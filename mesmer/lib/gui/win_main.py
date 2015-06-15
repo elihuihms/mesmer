@@ -174,16 +174,16 @@ class MainWindow(tk.Frame):
 		self.versionLabel.pack(side=tk.TOP,anchor=tk.NE)
 
 		self.createTargetButton = tk.Button(self.f_buttons, text='Create Target', command=self.makeTarget,width=20,height=1)
-		self.createTargetButton.grid(in_=self.f_buttons,column=0,row=1,sticky=tk.S)
+		self.createTargetButton.grid(column=0,row=1,sticky=tk.S)
 
 		self.createComponentsButton = tk.Button(self.f_buttons, text='Create Components', command=self.makeComponents,width=20,height=1)
-		self.createComponentsButton.grid(in_=self.f_buttons,column=0,row=2,sticky=tk.S)
+		self.createComponentsButton.grid(column=0,row=2,sticky=tk.S)
 
 		self.runMESMERButton = tk.Button(self.f_buttons, text='Run MESMER', command=self.setupMESMER,width=20,height=1)
-		self.runMESMERButton.grid(in_=self.f_buttons,column=0,row=3,sticky=tk.S)
+		self.runMESMERButton.grid(column=0,row=3,sticky=tk.S)
 
 		self.analyzeDataButton = tk.Button(self.f_buttons, text='Analyze Run Data', command=self.openAnalysis,width=20,height=1)
-		self.analyzeDataButton.grid(in_=self.f_buttons,column=0,row=4,sticky=tk.S)
+		self.analyzeDataButton.grid(column=0,row=4,sticky=tk.S)
 
 		self.configureButton = tk.Button(self.f_buttons, text='Configure',width=20,height=1,command=self.setConfig)
-		self.configureButton.grid(in_=self.f_buttons,column=0,row=5,sticky=tk.S,pady=10)
+		self.configureButton.grid(column=0,row=5,sticky=tk.S,pady=10)

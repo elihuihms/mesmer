@@ -33,7 +33,7 @@ class AboutWindow(tk.Frame):
 	def createWidgets(self):
 
 		self.container = tk.Frame(self)
-		self.container.grid(in_=self,column=0,row=0,padx=6,pady=6,sticky=tk.N+tk.S+tk.E+tk.W)
+		self.container.grid(column=0,row=0,padx=6,pady=6,sticky=tk.N+tk.S+tk.E+tk.W)
 		self.container.columnconfigure(0,weight=1)
 		self.container.rowconfigure(0,weight=1)
 
@@ -60,7 +60,7 @@ The Ohio State University
 www.shedreamsindigital.net
 """ % (programInfo['version'],programInfo['copyright']))
 
-		self.aboutText.grid(in_=self.container,column=0,row=1)
+		self.aboutText.grid(column=0,row=1)
 
 		self.cancelButton = tk.Button(self.container,text='Close',command=self.cancelWindow)
-		self.cancelButton.grid(in_=self.container,column=0,columnspan=2,row=2,pady=(8,0))
+		self.cancelButton.grid(column=0,columnspan=2,row=2,pady=(8,0))

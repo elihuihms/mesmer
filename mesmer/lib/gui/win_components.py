@@ -156,50 +156,50 @@ class ComponentsWindow(tk.Frame):
 
 	def createWidgets(self):
 		self.f_filelist = tk.LabelFrame(self,text='Component PDBs')
-		self.f_filelist.grid(in_=self,column=0,row=0,sticky=tk.W,ipady=4,ipadx=8,padx=8)
+		self.f_filelist.grid(column=0,row=0,sticky=tk.W,ipady=4,ipadx=8,padx=8)
 
 		self.componentPDBsList = tk.Listbox(self.f_filelist,width=50,height=10,selectmode=tk.EXTENDED)
-		self.componentPDBsList.grid(in_=self.f_filelist,column=0,row=0,rowspan=4,padx=(6,0))
+		self.componentPDBsList.grid(column=0,row=0,rowspan=4,padx=(6,0))
 		self.componentPDBsList.bind('<<ListboxSelect>>',self.setListStates)
 		self.componentPDBsYScroll = tk.Scrollbar(self.f_filelist,orient=tk.VERTICAL)
-		self.componentPDBsYScroll.grid(in_=self.f_filelist,column=1,row=0,rowspan=4,padx=(0,4),sticky=tk.N+tk.S)
+		self.componentPDBsYScroll.grid(column=1,row=0,rowspan=4,padx=(0,4),sticky=tk.N+tk.S)
 		self.componentPDBsList.config(yscrollcommand=self.componentPDBsYScroll.set)
 		self.componentPDBsYScroll.config(command=self.componentPDBsList.yview)
 		self.componentPDBsXScroll = tk.Scrollbar(self.f_filelist,orient=tk.HORIZONTAL)
-		self.componentPDBsXScroll.grid(in_=self.f_filelist,column=0,row=4,sticky=tk.E+tk.W,padx=(6,0))
+		self.componentPDBsXScroll.grid(column=0,row=4,sticky=tk.E+tk.W,padx=(6,0))
 		self.componentPDBsList.config(xscrollcommand=self.componentPDBsYScroll.set)
 		self.componentPDBsXScroll.config(command=self.componentPDBsList.xview)
 
 		self.componentFoldersLabel = tk.Label(self.f_filelist,text='0/0')
-		self.componentFoldersLabel.grid(in_=self.f_filelist,column=2,row=0,sticky=tk.NW)
+		self.componentFoldersLabel.grid(column=2,row=0,sticky=tk.NW)
 		self.loadComponentsButton = tk.Button(self.f_filelist,text='Load...',command=self.loadComponentPDBs)
-		self.loadComponentsButton.grid(in_=self.f_filelist,column=2,row=1,sticky=tk.SW)
+		self.loadComponentsButton.grid(column=2,row=1,sticky=tk.SW)
 		self.removeComponentsButton = tk.Button(self.f_filelist,text='Remove',state=tk.DISABLED,command=self.removeComponentPDBs)
-		self.removeComponentsButton.grid(in_=self.f_filelist,column=2,row=2,sticky=tk.SW)
+		self.removeComponentsButton.grid(column=2,row=2,sticky=tk.SW)
 		self.clearComponentsButton = tk.Button(self.f_filelist,text='Clear',state=tk.DISABLED,command=self.clearComponentPDBs)
-		self.clearComponentsButton.grid(in_=self.f_filelist,column=2,row=3,sticky=tk.NW)
+		self.clearComponentsButton.grid(column=2,row=3,sticky=tk.NW)
 
 		self.f_container = tk.LabelFrame(self,borderwidth=2,relief='groove',text='Calculated Data')
-		self.f_container.grid(in_=self,sticky=tk.W,ipady=4,ipadx=8,padx=8)
+		self.f_container.grid(sticky=tk.W,ipady=4,ipadx=8,padx=8)
 
 		self.addRowButton = tk.Button(self.f_container,text='Add',command=self.createWidgetRow)
-		self.addRowButton.grid(in_=self.f_container,column=0,row=0,sticky=tk.E)
+		self.addRowButton.grid(column=0,row=0,sticky=tk.E)
 		self.delRowButton = tk.Button(self.f_container,text='Remove',command=self.destroyWidgetRows)
-		self.delRowButton.grid(in_=self.f_container,column=1,row=0,sticky=tk.W)
+		self.delRowButton.grid(column=1,row=0,sticky=tk.W)
 
 		tmp = ['Calculate data...']
 		tmp.extend( [p.name for p in self.calc_plugins] )
 		self.calcDataMenuType = tk.StringVar()
 		self.calcDataMenuType.set( tmp[0] )
 		self.calcDataMenu = tk.OptionMenu(self.f_container,self.calcDataMenuType,*tmp,command=self.openCalcWindow)
-		self.calcDataMenu.grid(in_=self.f_container,column=2,row=0,sticky=tk.W,columnspan=2)
+		self.calcDataMenu.grid(column=2,row=0,sticky=tk.W,columnspan=2)
 
 		self.rowHeaderSelectLabel = tk.Label(self.f_container,text='Select')
-		self.rowHeaderSelectLabel.grid(in_=self.f_container,column=0,row=1)
+		self.rowHeaderSelectLabel.grid(column=0,row=1)
 		self.rowHeaderTypeLabel = tk.Label(self.f_container,text='Type')
-		self.rowHeaderTypeLabel.grid(in_=self.f_container,column=1,row=1)
+		self.rowHeaderTypeLabel.grid(column=1,row=1)
 		self.rowHeaderFileLabel = tk.Label(self.f_container,text='Data Folder')
-		self.rowHeaderFileLabel.grid(in_=self.f_container,column=2,row=1,sticky=tk.W)
+		self.rowHeaderFileLabel.grid(column=2,row=1,sticky=tk.W)
 
 		self.rowCounter = 0
 		self.widgetRowCheckboxes = []
@@ -208,14 +208,14 @@ class ComponentsWindow(tk.Frame):
 		self.widgetRowFolderButtons = []
 
 		self.f_footer = tk.Frame(self,borderwidth=0)
-		self.f_footer.grid(in_=self,row=2)
+		self.f_footer.grid(row=2)
 
 		self.openButton = tk.Button(self.f_footer,text='Load Target...',command=self.loadTarget)
-		self.openButton.grid(in_=self.f_footer,column=0,row=0,sticky=tk.N+tk.S+tk.E,pady=8)
+		self.openButton.grid(column=0,row=0,sticky=tk.N+tk.S+tk.E,pady=8)
 		self.saveButton = tk.Button(self.f_footer,text='Save Components...',default=tk.ACTIVE,command=lambda: makeComponentsFromWindow(self))
-		self.saveButton.grid(in_=self.f_footer,column=1,row=0,sticky=tk.N+tk.S+tk.W,pady=8)
+		self.saveButton.grid(column=1,row=0,sticky=tk.N+tk.S+tk.W,pady=8)
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
-		self.cancelButton.grid(in_=self.f_footer,column=2,row=0,sticky=tk.N+tk.S+tk.E,pady=8,padx=20)
+		self.cancelButton.grid(column=2,row=0,sticky=tk.N+tk.S+tk.E,pady=8,padx=20)
 
 	def createWidgetRow(self):
 		self.rowCounter+=1
@@ -227,20 +227,20 @@ class ComponentsWindow(tk.Frame):
 
 		self.widgetRowChecks.append( tk.IntVar() )
 		self.widgetRowCheckboxes.append( tk.Checkbutton(self.f_container,variable=self.widgetRowChecks[-1]) )
-		self.widgetRowCheckboxes[-1].grid(in_=self.f_container,column=0,row=self.rowCounter+1)
+		self.widgetRowCheckboxes[-1].grid(column=0,row=self.rowCounter+1)
 
 		self.widgetRowTypes.append( tk.StringVar() )
 		self.widgetRowTypes[-1].set( available_types[0] )
 		self.widgetRowTypeMenus.append( tk.OptionMenu(self.f_container,self.widgetRowTypes[-1],*available_types,command=self.updateWidgets) )
-		self.widgetRowTypeMenus[-1].grid(in_=self.f_container,column=1,row=self.rowCounter+1)
+		self.widgetRowTypeMenus[-1].grid(column=1,row=self.rowCounter+1)
 
 		self.widgetRowFolders.append( tk.StringVar() )
 		self.widgetRowFolderEntries.append( tk.Entry(self.f_container,width=30,textvariable=self.widgetRowFolders[-1]) )
-		self.widgetRowFolderEntries[-1].grid(in_=self.f_container,column=2,row=self.rowCounter+1)
+		self.widgetRowFolderEntries[-1].grid(column=2,row=self.rowCounter+1)
 
 		self.widgetRowFolderButtons.append( tk.Button(self.f_container,text='Set Folder...') )
 		self.widgetRowFolderButtons[-1].bind('<ButtonRelease-1>',self.attachDataFolder)
-		self.widgetRowFolderButtons[-1].grid(in_=self.f_container,column=3,row=self.rowCounter+1)
+		self.widgetRowFolderButtons[-1].grid(column=3,row=self.rowCounter+1)
 
 		# append tool tips
 		self.widgetRowCheckboxesTT.append( ToolTip(self.widgetRowCheckboxes[-1], 	follow_mouse=0, text='Mark attribute for deletion') )

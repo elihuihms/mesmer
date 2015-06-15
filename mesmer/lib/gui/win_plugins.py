@@ -41,26 +41,26 @@ class PluginWindow(tk.Frame):
 
 	def createWidgets(self):	
 		self.f_tools = tk.Frame(self,borderwidth=0,width=450)
-		self.f_tools.grid(in_=self,column=0,row=0,sticky=tk.E+tk.W)
+		self.f_tools.grid(column=0,row=0,sticky=tk.E+tk.W)
 		self.addPluginButton = tk.Button(self.f_tools,text='Add...',command=self.revealPluginDirectory)
-		self.addPluginButton.grid(in_=self.f_tools,column=0,row=0,sticky=tk.W)
+		self.addPluginButton.grid(column=0,row=0,sticky=tk.W)
 		#self.delPluginButton = tk.Button(self.f_tools,text='Remove Plugin',state=tk.DISABLED)
-		#self.delPluginButton.grid(in_=self.f_tools,column=1,row=0,sticky=tk.W)
+		#self.delPluginButton.grid(column=1,row=0,sticky=tk.W)
 		self.enablePluginButton = tk.Button(self.f_tools,text='Enable',state=tk.DISABLED,command=self.enablePlugin)
-		self.enablePluginButton.grid(in_=self.f_tools,column=1,row=0,sticky=tk.E)
+		self.enablePluginButton.grid(column=1,row=0,sticky=tk.E)
 		self.disablePluginButton = tk.Button(self.f_tools,text='Disable',state=tk.DISABLED,command=self.disablePlugin)
-		self.disablePluginButton.grid(in_=self.f_tools,column=2,row=0,sticky=tk.E)
+		self.disablePluginButton.grid(column=2,row=0,sticky=tk.E)
 	
 		self.f_mesmerplugins	= tk.LabelFrame(self,width=450,text='Attribute comparison plugins')
-		self.f_mesmerplugins.grid(in_=self,column=0,row=1,sticky=tk.E+tk.W,padx=8)
+		self.f_mesmerplugins.grid(column=0,row=1,sticky=tk.E+tk.W,padx=8)
 		self.mesmerplugins_count	= 0
 
 		self.f_calcplugins		= tk.LabelFrame(self,width=450,text='Attribute calculation plugins')
-		self.f_calcplugins.grid(in_=self,column=0,row=2,sticky=tk.E+tk.W,padx=8)
+		self.f_calcplugins.grid(column=0,row=2,sticky=tk.E+tk.W,padx=8)
 		self.calcplugins_count	= 0
 
 		self.f_plotplugins		= tk.LabelFrame(self,width=450,text='Attribute plotting plugins')
-		self.f_plotplugins.grid(in_=self,column=0,row=3,sticky=tk.E+tk.W,padx=8)
+		self.f_plotplugins.grid(column=0,row=3,sticky=tk.E+tk.W,padx=8)
 		self.plotplugins_count	= 0
 
 		self.rowcount = 0
@@ -77,26 +77,26 @@ class PluginWindow(tk.Frame):
 		self.plugin_states			= []
 
 		self.f_actions = tk.LabelFrame(self,width=450,text='Plugin information')
-		self.f_actions.grid(in_=self,column=0,row=4,sticky=tk.E+tk.W,padx=8)
+		self.f_actions.grid(column=0,row=4,sticky=tk.E+tk.W,padx=8)
 		self.pluginInfoText = tk.Text(self.f_actions,width=56,height=6,wrap=tk.WORD)
-		self.pluginInfoText.grid(in_=self.f_actions,column=0,columnspan=4,row=0,sticky=tk.E)
+		self.pluginInfoText.grid(column=0,columnspan=4,row=0,sticky=tk.E)
 		self.pluginExecutableLabel = tk.Label(self.f_actions, text='Executable path:', state=tk.DISABLED)
-		self.pluginExecutableLabel.grid(in_=self.f_actions,column=0,row=1,sticky=tk.W)
+		self.pluginExecutableLabel.grid(column=0,row=1,sticky=tk.W)
 		self.pluginExecutablePath = tk.StringVar()
 		self.pluginExecutableEntry = tk.Entry(self.f_actions,width=26,textvariable=self.pluginExecutablePath,state=tk.DISABLED)
 		self.pluginExecutableEntry.bind('<KeyRelease>', self.enableApplyButton)
-		self.pluginExecutableEntry.grid(in_=self.f_actions,column=1,row=1,sticky=tk.E+tk.W)
+		self.pluginExecutableEntry.grid(column=1,row=1,sticky=tk.E+tk.W)
 		self.pluginExecutableButton = tk.Button(self.f_actions,text='Set...',state=tk.DISABLED)
 		self.pluginExecutableButton.bind('<ButtonRelease-1>',self.setPluginPath)
-		self.pluginExecutableButton.grid(in_=self.f_actions,column=2,row=1,sticky=tk.E)
+		self.pluginExecutableButton.grid(column=2,row=1,sticky=tk.E)
 		self.pluginApplyButton = tk.Button(self.f_actions,text='Apply',state=tk.DISABLED)
-		self.pluginApplyButton.grid(in_=self.f_actions,column=2,row=2,sticky=tk.E)
+		self.pluginApplyButton.grid(column=2,row=2,sticky=tk.E)
 		self.pluginApplyButton.bind('<ButtonRelease-1>',self.applyPluginSettings)
 
 		self.f_footer = tk.Frame(self,width=450,borderwidth=0)
-		self.f_footer.grid(in_=self,column=0,row=5)
+		self.f_footer.grid(column=0,row=5)
 		self.closeButton = tk.Button(self.f_footer,text='Close',command=self.close)
-		self.closeButton.grid(in_=self.f_footer,column=0,row=0,sticky=tk.E)
+		self.closeButton.grid(column=0,row=0,sticky=tk.E)
 
 	def createPluginRow(self, container, error, id, type, version ):		
 		if container == self.f_mesmerplugins:
@@ -126,13 +126,13 @@ class PluginWindow(tk.Frame):
 			state = tk.NORMAL
 		
 		self.plugin_list_checkboxes.append( tk.Radiobutton(container,variable=self.pluginListIndex,value=self.rowcount,command=self.setWidgetState) )
-		self.plugin_list_checkboxes[-1].grid(in_=container,column=0,row=row, sticky=tk.W)
+		self.plugin_list_checkboxes[-1].grid(column=0,row=row, sticky=tk.W)
 		self.plugin_list_ids.append( tk.Label(container, text=id, state=state, width=20) )
-		self.plugin_list_ids[-1].grid(in_=container,column=1,row=row, sticky=tk.W)
+		self.plugin_list_ids[-1].grid(column=1,row=row, sticky=tk.W)
 		self.plugin_list_types.append( tk.Label(container, text=type, state=state, width=6) )
-		self.plugin_list_types[-1].grid(in_=container,column=2,row=row, sticky=tk.E)
+		self.plugin_list_types[-1].grid(column=2,row=row, sticky=tk.E)
 		self.plugin_list_versions.append( tk.Label(container, text=version, state=state, width=20) )
-		self.plugin_list_versions[-1].grid(in_=container,column=3,row=row, sticky=tk.E)
+		self.plugin_list_versions[-1].grid(column=3,row=row, sticky=tk.E)
 
 		self.master.geometry('450x%i' % (360+self.rowcount*20))
 		self.config(width=450,height=(360+self.rowcount*20))

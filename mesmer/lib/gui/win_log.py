@@ -27,19 +27,19 @@ class LogWindow(tk.Frame):
 	def createWidgets(self):
 
 		self.container = tk.Frame(self)
-		self.container.grid(in_=self,column=0,row=0,padx=6,pady=6,sticky=tk.N+tk.S+tk.E+tk.W)
+		self.container.grid(column=0,row=0,padx=6,pady=6,sticky=tk.N+tk.S+tk.E+tk.W)
 		self.container.columnconfigure(0,weight=1)
 		self.container.rowconfigure(0,weight=1)
 
 		self.logText = tk.Text(self.container,width=80,height=20)
-		self.logText.grid(in_=self.container,column=0,row=0,sticky=tk.N+tk.W+tk.E+tk.S)
+		self.logText.grid(column=0,row=0,sticky=tk.N+tk.W+tk.E+tk.S)
 		self.logTextScroll = tk.Scrollbar(self.container,orient=tk.VERTICAL)
-		self.logTextScroll.grid(in_=self.container,column=1,row=0,sticky=tk.N+tk.W+tk.E+tk.S)
+		self.logTextScroll.grid(column=1,row=0,sticky=tk.N+tk.W+tk.E+tk.S)
 		self.logText.config(yscrollcommand=self.logTextScroll.set)
 		self.logTextScroll.config(command=self.logText.yview)
 
 		self.cancelButton = tk.Button(self.container,text='Close',command=self.cancelWindow)
-		self.cancelButton.grid(in_=self.container,column=0,columnspan=2,row=1,pady=(8,0))
+		self.cancelButton.grid(column=0,columnspan=2,row=1,pady=(8,0))
 
 	def updateLog( self, path ):
 		if(self.winfo_exists()):
