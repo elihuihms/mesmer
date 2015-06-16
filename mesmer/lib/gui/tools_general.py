@@ -1,22 +1,5 @@
 from multiprocessing import cpu_count
 
-def openUserPrefs( mode='r' ):
-	import os.path
-	import shelve
-
-	home = os.path.expanduser("~")
-	path = os.path.join( home, ".mesmer_prefs" )
-	return shelve.open( path, mode )
-
-def setDefaultPrefs( shelf ):
-	import multiprocessing
-	shelf['mesmer_base_dir'] = ''
-	shelf['mesmer_scratch'] = ''
-	shelf['cpu_count'] = cpu_count()
-	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
-	shelf['disabled_plugins'] = []
-	shelf['plugin_prefs'] = {}
-
 def tryProgramCall( program ):
 	from subprocess		import Popen,PIPE
 
@@ -39,3 +22,15 @@ def revealDirectory( dir ):
 		call( ['explorer',dir] )
 	else:
 		print "Unrecognized platform %s"%(platform)
+		
+def getColumnNames( path ):
+	handle = open(path)
+	firstline = handle.readline()
+	handle.close()
+	
+	ret = []
+	if firstline[0] == "#" and len(firstline) > 3:
+		return firstline[1:].rstrip().split()
+	else:
+		return None
+		

@@ -5,8 +5,10 @@ import tkMessageBox
 import shelve
 import multiprocessing
 
+from .. setup_functions	import open_user_prefs
+
 from tools_TkTooltip	import ToolTip
-from tools_general		import openUserPrefs,tryProgramCall
+from tools_general		import tryProgramCall
 
 class ConfigWindow(tk.LabelFrame):
 	def __init__(self, master, mainWindow):
@@ -28,7 +30,7 @@ class ConfigWindow(tk.LabelFrame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = openUserPrefs( mode='c' )
+			self.prefs = open_user_prefs( mode='c' )
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read or create MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()

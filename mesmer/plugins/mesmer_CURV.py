@@ -21,7 +21,7 @@ class plugin( mesPluginDB ):
 		mesPluginDB.__init__(self, args)
 
 		self.name = 'default_CURV'
-		self.version = '2013.11.22'
+		self.version = '2015.06.16'
 		self.info = 'This plugin compares two continuous datasets. Several goodness-of-fit metrics are available.'
 		self.type = (
 			'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',
@@ -35,8 +35,8 @@ class plugin( mesPluginDB ):
 		self.target_parser.add_argument('-offset',		action='store_true',	help='Allow the application of an offset to improve fitting')
 		self.target_parser.add_argument('-saxs_offset', type=float,				help='Improve fits to SAXS curves at higher specified scattering angles by applying an additional offset.')
 		self.target_parser.add_argument('-plot',		action='store_true',	help='Create a plot window at each generation showing fit to data (requires matplotlib)')
-		self.target_parser.add_argument('-fitness',		default='',	choices=['','SSE','Pearson','Poisson','Vr'],
-																				help='Method used to calculate goodness-of-fit. Leave blank to use chi squared with explict dY data')
+		self.target_parser.add_argument('-fitness',		default='Chisq',	choices=['Chisq','SSE','Pearson','Poisson','Vr'],
+																				help='Method used to calculate goodness-of-fit. Note that Chisq and Vr require a third column containing dY data')
 
 		self.component_parser = argparse.ArgumentParser(prog=self.name)
 		self.component_parser.add_argument('-file',		metavar='FILE',			help='Read an external file containing the predicted data')

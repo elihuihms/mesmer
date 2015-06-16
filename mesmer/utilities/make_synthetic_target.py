@@ -6,7 +6,7 @@ import scipy
 import sys
 import glob
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), os.path.pardir))
 from lib.plugin_functions		import load_plugins, unload_plugins
 from lib.target_functions		import load_targets
 from lib.component_functions	import load_components
@@ -26,7 +26,7 @@ def run():
 	args.plugin = ''
 
 	# god help you if there's errors here - no checking!
-	plugins = load_plugins(os.path.dirname(__file__), 'mesmer', args=[args] )
+	plugins = load_plugins(os.path.dirname(__file__), 'mesmer', args=args )
 	targets = load_targets( args, plugins )
 	components = load_components( args, plugins, targets )
 

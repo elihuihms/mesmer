@@ -6,11 +6,12 @@ import tkFileDialog
 import tkMessageBox
 
 from .. setup_functions	import parse_arguments
+from .. setup_functions	import open_user_prefs
+
 from tools_TkTooltip	import ToolTip
 from tools_setup		import *
 from tools_run			import startRun
 from win_about			import programInfo
-from tools_general		import openUserPrefs
 
 class SetupWindow(tk.Frame):
 	def __init__(self, master, parent):
@@ -42,7 +43,7 @@ class SetupWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = openUserPrefs()
+			self.prefs = open_user_prefs()
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
@@ -59,6 +60,7 @@ class SetupWindow(tk.Frame):
 		tmp = tkFileDialog.askdirectory(title='Select Results Directory',mustexist=True,parent=self)
 		if(tmp != ''):
 			self.saveResults.set(tmp)
+			self.saveResultsEntry.xview_moveto(1.0)
 			self.basedir = tmp
 
 	def addTargetFile(self):
@@ -330,7 +332,7 @@ class SetupWindow(tk.Frame):
 
 		#
 		self.f_optimization = tk.LabelFrame(self, borderwidth=2, width=210, height=150, relief='groove', text='Ratio Optimization')
-		self.f_optimization.grid(columnspan=2,padx=4,pady=0)
+		self.f_optimization.grid(column=1,row=2,columnspan=2,padx=4,pady=0)
 		self.f_optimization.grid_propagate(0)
 
 		self.optMethodLabel = tk.Label(self.f_optimization,text='Optimization Method:')

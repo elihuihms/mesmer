@@ -5,10 +5,11 @@ import tkMessageBox
 import tkFileDialog
 
 from .. utility_functions 	import get_input_blocks
+from .. setup_functions		import open_user_prefs
+
 from tools_TkTooltip		import ToolTip
 from tools_component		import makeComponentsFromWindow,calcDataFromWindow
 from tools_plugin			import getTargetPluginOptions,tryLoadPlugins
-from tools_general			import openUserPrefs
 
 class ComponentsWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -36,7 +37,7 @@ class ComponentsWindow(tk.Frame):
 		self.Ready = False
 
 		try:
-			self.prefs = openUserPrefs(mode='w')
+			self.prefs = open_user_prefs(mode='w')
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()

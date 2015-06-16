@@ -68,11 +68,11 @@ NAME	$0
 	return True
 
 def pluginCalculator( w, plugin, pdbs, dir ):
-	try:
-		counter = plugin.calculator()
-	except Exception as e:
-		tkMessageBox.showerror("Error","Plugin \"%s\" reported an error.\n\n%s" % (plugin.name,e) )
-		return
+#	try:
+	counter = plugin.calculator()
+#	except Exception as e:
+#		tkMessageBox.showerror("Error","Plugin \"%s\" reported an error.\n\n%s" % (plugin.name,e) )
+#		return
 
 	if( counter < len(pdbs) ):
 		w.CalcProgress.set("Progress: %i/%i" % (counter+1,len(pdbs)) )
@@ -93,7 +93,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 		return
 
 	# overwrite plugin executable path
-	if( plugin.path ):
+	if getPluginPrefs( w.prefs, plugin.name )['path'] != None:
 		plugin.path = getPluginPrefs( w.prefs, plugin.name )['path']
 
 	# get user-specifiable options from the plugin argument parser object

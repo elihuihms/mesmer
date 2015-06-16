@@ -6,11 +6,12 @@ import tkFileDialog
 import copy
 
 from .. utility_functions 	import get_input_blocks
+from .. setup_functions		import open_user_prefs
+
 from tools_TkTooltip		import ToolTip
 from tools_plugin			import getTargetPluginOptions,setOptionsFromBlock
 from tools_target			import makeTargetFromWindow
 from win_options			import OptionsWindow
-from tools_general			import openUserPrefs
 
 class TargetWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -37,16 +38,16 @@ class TargetWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = openUserPrefs(mode='w')
+			self.prefs = open_user_prefs(mode='w')
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 		
-		#try:
-		(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs)
-		#except Exception as e:
-		#	tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
-		#	self.master.destroy()
+		try:
+			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs)
+		except Exception as e:
+			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
+			self.master.destroy()
 
 	def openOptionsWindow(self, evt):
 		# find the row that generated the event

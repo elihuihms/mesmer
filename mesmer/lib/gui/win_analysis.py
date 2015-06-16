@@ -5,6 +5,8 @@ import tkFont
 import tkFileDialog
 import tkMessageBox
 
+from .. setup_functions	import open_user_prefs
+
 import tools_run # to avoid circular import of AnalysisWindow
 from tools_analysis		import *
 from tools_plot			import *
@@ -13,7 +15,6 @@ from tools_plugin		import tryLoadPlugins
 from tools_TkTooltip	import ToolTip
 from win_log			import LogWindow
 from win_about			import programInfo
-from tools_general		import openUserPrefs
 
 class AnalysisWindow(tk.Frame):
 	def __init__(self, master, path=None, pHandle=None):
@@ -43,7 +44,7 @@ class AnalysisWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = openUserPrefs()
+			self.prefs = open_user_prefs()
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
@@ -76,11 +77,13 @@ class AnalysisWindow(tk.Frame):
 		tmp = tkFileDialog.askdirectory(title='Select Results Directory',mustexist=True,parent=self)
 		if(tmp != ''):
 			openRunDir(self, tmp)
+			self.activeDirEntry.xview_moveto(1.0)
 
 	def setAttributeTable(self):
 		tmp = tkFileDialog.askopenfilename(title='Select PDB attribute table',parent=self)
 		if(tmp != ''):
 			self.attributeTable.set(tmp)
+			self.attributeTableEntry.xview_moveto(1.0)
 
 	def setGenerationSel( self, evt=None ):
 		if(len(self.generationsList.curselection())<1):

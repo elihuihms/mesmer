@@ -1,13 +1,19 @@
 import sys
+import os.path
 
 from scipy					import optimize
-
 from multiprocessing		import Process,Queue
+
+from exceptions				import *
+from plugin_functions		import load_plugins,unload_plugins
 
 class Optimizer:
 	def __init__(self,args,plugins,targets,components):
 		self.workers = [None]*args.threads
 		self.in_Queue,self.out_Queue = Queue(maxsize=args.threads),Queue()
+				
+#		self.plugins = load_plugins(os.path.join(os.path.dirname(__file__),os.path.pardir), type='mesmer', args=args )
+		
 		for i in xrange(args.threads):
 			self.workers[i] = Worker(args, plugins, targets, components, self.in_Queue, self.out_Queue)
 			self.workers[i].start()

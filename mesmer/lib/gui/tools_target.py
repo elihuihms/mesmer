@@ -57,4 +57,5 @@ def makeTargetFromWindow( w ):
 	else:
 		return False
 
+	tkMessageBox.showinfo("Saved","Target file saved successfully.",parent=w)
 	return True

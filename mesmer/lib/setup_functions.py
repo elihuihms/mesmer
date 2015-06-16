@@ -23,7 +23,8 @@ def parse_arguments(str=None):
 
 	class mesParser(argparse.ArgumentParser):
 		def error(self, message):
-			self.print_usage()
+			print "ERROR: Argument parser encountered an error: %s"%(message)
+#			self.print_usage()
 			sys.exit(1)
 
 	# argument groups are just used for more attractive formatting when help is invoked
@@ -53,7 +54,7 @@ def parse_arguments(str=None):
 	group3.add_argument('-Rforce'	,	action='store_true',default=False,									help='Force ensemble ratio reoptimization at every generation.')
 	group3.add_argument('-Ralgorithm',	action='store',		default=3,	type=int,	choices=[0,1,2,3,4,5,6],	metavar='3',	help='Algorithm to use for optimal component ratios (0-6), 0=no ratio optimization')
 	group3.add_argument('-Rprecision',	action='store',		default=0.01,	type=float,		metavar='0.01',	help='Precision of weighting algorithm')
-	group3.add_argument('-Rn',			action='store',		default=-1,		type=int,		metavar='10N',	help='Number of weighting algorithm iterations')
+	group3.add_argument('-Rn',			action='store',		default=-1,		type=int,		metavar='10*N',	help='Number of weighting algorithm iterations')
 	group3.add_argument('-boots',		action='store',		default=200,	type=int,		metavar='200',	help='The number of bootstrap samples for component weighting error analysis. 0=no error analysis')
 
 	group4 = parser.add_argument_group('Output options')
@@ -72,6 +73,7 @@ def parse_arguments(str=None):
 	group5.add_argument('-threads',		action='store',		default=1,		type=int,		metavar='1',	help='Number of multiprocessing threads to use.')
 	group5.add_argument('-scratch',		action='store',		default=None,					metavar='DIR',	help='Scratch directory in which to save temporary files.')
 	group5.add_argument('-plugin',		action='store',										metavar='NAME',	help='Print information about the specified plugin and exit.')
+#	group5.add_argument('-reset',		action='store_true',default=False,									help='Reset saved MESMER preferences.')
 
 	if(str == None):
 		args = parser.parse_args()
@@ -127,3 +129,17 @@ def make_results_dir( args ):
 
 	if(oWrite):
 		print_msg("INFO: Overwriting old result directory \"%s\"" % (args.dir))
+		
+def open_user_prefs( mode='r' ):
+	home = os.path.expanduser("~")
+	path = os.path.join( home, ".mesmer_prefs" )
+	return shelve.open( path, mode )
+
+def set_default_prefs( shelf ):
+	import multiprocessing
+	shelf['mesmer_base_dir'] = ''
+	shelf['mesmer_scratch'] = ''
+	shelf['cpu_count'] = cpu_count()
+	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
+	shelf['disabled_plugins'] = []
+	shelf['plugin_prefs'] = {}

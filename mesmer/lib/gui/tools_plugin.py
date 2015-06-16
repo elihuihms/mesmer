@@ -3,15 +3,11 @@ import tkMessageBox
 
 from .. exceptions			import *
 from .. plugin_functions	import load_plugins
-from .. setup_functions		import parse_arguments
-from tools_general			import setDefaultPrefs
+from .. setup_functions		import parse_arguments,set_default_prefs
 
 def tryLoadPlugins( shelf, type, args=None ):
 	try:
-		if args:
-			plugins = load_plugins( shelf['mesmer_base_dir'], type, dry_run=False, disabled=shelf['disabled_plugins'], args=[args] )
-		else:
-			plugins = load_plugins( shelf['mesmer_base_dir'], type, dry_run=False, disabled=shelf['disabled_plugins'] )
+		plugins = load_plugins( shelf['mesmer_base_dir'], type, dry_run=False, disabled=shelf['disabled_plugins'], args=args )
 	except mesPluginError as e:
 		tkMessageBox.showerror("Error",'Failed to load one or more plugins: %s' % (e.msg))
 		raise
@@ -32,7 +28,7 @@ def getPluginPrefs( shelf, name ):
 	try:
 		plugin_prefs = shelf['plugin_prefs']
 	except KeyError:
-		setDefaultPrefs( shelf )
+		set_default_prefs( shelf )
 		return getPluginPrefs( shelf, name )
 	if name not in plugin_prefs:
 		plugin_prefs[name] = {'options':{},'path':None}

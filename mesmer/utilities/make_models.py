@@ -5,7 +5,7 @@ import os
 import sys
 import tarfile
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), os.path.pardir))
 from lib.exceptions			import *
 from lib.output_parsers		import get_ensembles_from_state
 from lib.model_extraction	import *

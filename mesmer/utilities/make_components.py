@@ -4,7 +4,7 @@ import sys
 import os
 import argparse
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), os.path.pardir))
 from lib.component_generation	import *
 from lib.exceptions				import *
 

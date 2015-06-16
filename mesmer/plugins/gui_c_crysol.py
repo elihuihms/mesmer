@@ -51,7 +51,7 @@ class plugin(guiCalcPlugin):
 		cmd = [self.path]
 		cmd.extend( makeStringFromOptions(self.options).split() )
 		cmd.append( pdb )
-		
+				
 		try:
 			pipe = Popen(cmd, cwd=self.dir, stdout=PIPE)
 			pipe.wait()

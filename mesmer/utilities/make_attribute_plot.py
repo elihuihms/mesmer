@@ -8,7 +8,7 @@ import random
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), os.path.pardir))
 from lib.output_parsers		import get_ensembles_from_state
 from lib.utility_functions	import extract_list_elements
 

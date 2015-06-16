@@ -5,8 +5,10 @@ import Tkinter as tk
 import tkMessageBox
 
 from .. exceptions		import *
+from .. setup_functions	import open_user_prefs,set_default_prefs
+
 from tools_TkTooltip	import ToolTip
-from tools_general		import openUserPrefs,tryProgramCall,setDefaultPrefs
+from tools_general		import tryProgramCall
 
 from win_target			import TargetWindow
 from win_components		import ComponentsWindow
@@ -47,13 +49,13 @@ class MainWindow(tk.Frame):
 		self.Ready = True
 
 		try:
-			self.prefs = openUserPrefs( mode='c' )
+			self.prefs = open_user_prefs( mode='c' )
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read or create MESMER preferences file: %s' % (e),parent=self)
 			self.close(1)
 		
 		if( not self.prefs.has_key('mesmer_base_dir') ):
-			setDefaultPrefs(self.prefs)
+			set_default_prefs(self.prefs)
 		
 		if( self.prefs['mesmer_base_dir'] == '' and not tryProgramCall('mesmer') ):
 			self.prefs['mesmer_base_dir'] = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))

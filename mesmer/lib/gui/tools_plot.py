@@ -8,6 +8,7 @@ import tkFileDialog
 from subprocess		import Popen,PIPE
 
 from tools_plugin	import convertParserToOptions,makeListFromOptions
+from tools_general	import getColumnNames
 from win_options	import OptionsWindow
 
 def makeCorrelationPlot( w ):
@@ -35,7 +36,7 @@ def makeCorrelationPlot( w ):
 
 def plotRestraint( w ):
 	for p in w.plot_plugins:
-		if (w.currentSelection[2] in p.types):
+		if (w.currentSelection[2] == p.type):
 			path = (os.path.join(w.activeDir.get(), 'restraints_%s_%s_%05i.out' % (w.currentSelection[1],w.currentSelection[2],w.currentSelection[0])))
 
 			if( not os.access( path, os.R_OK ) ):
@@ -71,6 +72,8 @@ def plotAttributes( w ):
 	if( not os.access( p1, os.R_OK ) ):
 		tkMessageBox.showerror("Error","Could not read attribute table \"%s\"" % p1,parent=w)
 		return
+		
+	column_names = getColumnNames( p1 )
 
 	if(w.currentSelection[0] == None or w.currentSelection[1] == None):
 		return
@@ -83,9 +86,15 @@ def plotAttributes( w ):
 	if( 'attributePlotter' not in w.pluginOptions ):
 		parser = argparse.ArgumentParser()
 		parser.add_argument('-nCol',	type=int,	default=0,		help='Column containing component names')
-		parser.add_argument('-xCol',	type=int,	default=1,		help='Column to use as the plot\'s X axis')
-		parser.add_argument('-yCol',	type=int,	default=2,		help='Column to use as the plot\'s Y axis')
-		parser.add_argument('-zCol',				default='',		help='Column to use as the plot\'s Z axis. Leave blank for regular 2D scatter plot')
+		if column_names == None or len(column_names) < 3:
+			parser.add_argument('-xCol',	type=int,	default=1,		help='Column to use as the plot\'s X axis')
+			parser.add_argument('-yCol',	type=int,	default=2,		help='Column to use as the plot\'s Y axis')
+			parser.add_argument('-zCol',				default='',		help='Column to use as the plot\'s Z axis. Leave blank for regular 2D scatter plot')
+		else:
+			parser.add_argument('-xCol',	default=column_names[1],	choices=column_names,	help='Attribute to use as the plot\'s X axis')
+			parser.add_argument('-yCol',	default=column_names[2],	choices=column_names,	help='Attribute to use as the plot\'s Y axis')
+			parser.add_argument('-zCol',	default='',					choices=['']+column_names,	help='Attribute to use as the plot\'s Z axis. Leave blank for regular 2D scatter plot')
+
 		parser.add_argument('-axes',				default='',		help='Axes sizing (Xmin Xmax Ymin Ymax)')
 		parser.add_argument('-xLabel',				default='',		help='The label for the x-axis')
 		parser.add_argument('-yLabel',				default='',		help='The label for the y-axis')
@@ -103,7 +112,17 @@ def plotAttributes( w ):
 	w.newWindow.grab_set()
 	w.newWindow.transient(w)
 	w.newWindow.wait_window()
-
+	
+	# convert column names into indices
+	if column_names != None and len(column_names) > 2:
+		for group in w.pluginOptions['attributePlotter']:
+			if group['dest'] == 'xCol':
+				group['value'] = column_names.index(group['value'])
+			elif group['dest'] == 'yCol':
+				group['value'] = column_names.index(group['value'])
+			elif group['dest'] == 'zCol' and group['value'] != '':
+				group['value'] = column_names.index(group['value'])
+		
 	if w.optWindow.returncode == 0:
 		cmd = ['make_attribute_plot']
 		if( w.prefs['mesmer_base_dir'] != '' ):

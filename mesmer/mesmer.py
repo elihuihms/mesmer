@@ -22,7 +22,7 @@ import os
 
 from lib import __version__
 from lib.exceptions				import *
-from lib.setup_functions		import parse_arguments,make_results_dir
+from lib.setup_functions		import parse_arguments,make_results_dir,open_user_prefs
 from lib.utility_functions		import print_msg
 from lib.plugin_functions		import load_plugins,unload_plugins
 from lib.target_functions		import load_targets
@@ -34,12 +34,15 @@ def run():
 		print "Python version must be 2.6 or greater"
 		sys.exit()
 
+	# get user preferences
+	prefs = open_user_prefs(mode='c')
+	
 	# obtain the parameters for the run
 	args = parse_arguments()
 
 	# attempt to load available plugin modules
 	try:
-		plugins = load_plugins(os.path.dirname(__file__), 'mesmer', args=[args] )
+		plugins = load_plugins(os.path.dirname(__file__), 'mesmer', args=args )
 	except mesPluginError as e:
 		print e.msg
 		sys.exit(10)

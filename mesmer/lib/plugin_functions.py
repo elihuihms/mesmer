@@ -5,7 +5,7 @@ import glob
 
 from exceptions import *
 
-def load_plugins( dir, type, dry_run=False, disabled=[], args=[] ):
+def load_plugins( dir, type, dry_run=False, disabled=[], args=None ):
 	"""
 	Finds all MESMER plugin (plugin_*.py) files in the provided directory, and returns them
 	"""
@@ -17,9 +17,18 @@ def load_plugins( dir, type, dry_run=False, disabled=[], args=[] ):
 
 	# add plugin directory to the system path, for plugin-specific libraries
 	path = os.path.abspath( os.path.join(dir, 'plugins') )
+	if not os.path.exists( path ):
+		raise mesPluginError("ERROR: Could not find plugin directory at path \"%s\"." % path)
+	
 	if not path in sys.path:
 		sys.path.append( path )
-		
+	
+	# some plugins may need access to command line args
+	if args is None:
+		args = []
+	else:
+		args = [args]
+				
 	plugins = []
 	for f in glob.glob( '%s%s%s_*.py' % (path,os.sep,type) ):
 

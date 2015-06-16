@@ -6,10 +6,10 @@ import tkMessageBox
 import tkFileDialog
 
 from .. plugin_functions	import load_plugins
-from .. setup_functions		import parse_arguments
+from .. setup_functions		import parse_arguments,open_user_prefs
 
 from tools_TkTooltip		import ToolTip
-from tools_general			import openUserPrefs,revealDirectory
+from tools_general			import revealDirectory
 from tools_plugin			import getPluginPrefs,setPluginPrefs
 
 class PluginWindow(tk.Frame):
@@ -31,7 +31,7 @@ class PluginWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = openUserPrefs(mode='w')
+			self.prefs = open_user_prefs(mode='w')
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()		
@@ -247,7 +247,7 @@ class PluginWindow(tk.Frame):
 				self.plugin_list_info.append( error )
 				self.createPluginRow( self.f_mesmerplugins, True, id, '', '' )
 
-		for (id,ok,msg,module) in load_plugins( self.prefs['mesmer_base_dir'], 'mesmer', dry_run=True, args=[parse_arguments('')] ):
+		for (id,ok,msg,module) in load_plugins( self.prefs['mesmer_base_dir'], 'mesmer', dry_run=True, args=parse_arguments('') ):
 			_apply(id,ok,msg,module,self.f_mesmerplugins)
 
 		for (id,ok,msg,module) in load_plugins( self.prefs['mesmer_base_dir'], 'gui_c', dry_run=True ):
