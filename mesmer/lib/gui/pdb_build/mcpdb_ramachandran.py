@@ -1,3 +1,4 @@
+import numpy as np
 from scipy import stats
 
 class MCPDBRamaError(Exception):
@@ -118,6 +119,9 @@ def make_rama_CDFs( _map, Phi_rv_kwargs={}, Psi_rv_kwargs={} ):
 #_MCPDB_RAMA_RAW = get_raw_rama_map( "./ramachandran.txt" )
 _MCPDB_RAMA_RAW = [(sum(_MCPDB_RAMA_FLAT[i]),_MCPDB_RAMA_FLAT[i]) for i in xrange(73)]
 _MCPDB_RAMA_CDFS = make_rama_CDFs(_MCPDB_RAMA_RAW)
+
+def set_seed( seed ):
+	np.random.seed( int(seed) )
 
 def get_random_Phi_Psi(radians=True,degrees=False):
 		

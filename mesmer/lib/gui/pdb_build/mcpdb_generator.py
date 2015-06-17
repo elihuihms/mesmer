@@ -1,13 +1,14 @@
 import os
+import time
+import random
 
 from multiprocessing	import Process
-from random import random
 from copy import deepcopy
 
 from mcpdb_objects import *
 
 class PDBGenerator(Process):
-	def __init__(self,in_queue,out_queue,pdb,groups,use_rama=False,fix_first=False,dir='',prefix='',format='%05i.pdb',eval_kwargs={}):
+	def __init__(self,in_queue,out_queue,pdb,groups,use_rama=False,fix_first=False,dir='',prefix='',format='%05i.pdb',eval_kwargs={},seed=0):
 		super(PDBGenerator, self).__init__()
 		self.iQ = in_queue
 		self.oQ = out_queue
@@ -19,6 +20,7 @@ class PDBGenerator(Process):
 
 		self.use_rama	= use_rama
 		self.fix_first	= fix_first
+		self.seed = seed
 		
 		self.model	= TransformationModel(pdb,groups,model=0)
 		self.evaluator	= ModelEvaluator(self.model,**eval_kwargs)
@@ -27,6 +29,9 @@ class PDBGenerator(Process):
 	def run(self):
 		if self.use_rama:
 			import mcpdb_ramachandran as ramachandran
+			ramachandran.set_seed( time.time() + self.seed )
+		else:
+			random.seed( int(time.time() + self.seed) )
 	
 		for index in iter(self.iQ.get, None):
 			
@@ -38,7 +43,7 @@ class PDBGenerator(Process):
 						if self.use_rama:
 							l[i] = ramachandran.get_random_Phi_Psi(radians=True)
 						else:
-							l[i] = 2*3.14159*random(),2*3.14159*random()
+							l[i] = 2*3.14159*random.random(),2*3.14159*random.random()
 				
 				self.model.set_linker_phipsi( tmp )
 

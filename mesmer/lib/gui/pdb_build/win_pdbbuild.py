@@ -2,7 +2,6 @@ import os
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
-import Queue
 
 from multiprocessing import cpu_count,Queue
 
@@ -10,13 +9,13 @@ import mcpdb_objects
 import mcpdb_utilities
 import mcpdb_generator
 
-_PDB_generator_timer = 1000 # in ms
+_PDB_generator_timer = 500 # in ms
 _PDB_generator_format= "%05i.pdb"
 
 class PDBBuildWindow(tk.Frame):
 	def __init__(self, master=None):
 		self.master = master
-		self.master.title('PDB Builder')
+		self.master.title('PDB Generator')
 
 		self.master.resizable(width=False, height=False)
 		self.master.protocol('WM_DELETE_WINDOW', self.cancelWindow)
@@ -26,158 +25,7 @@ class PDBBuildWindow(tk.Frame):
 		self.pack_propagate(True)
 		
 		self.createWidgets()
-
-	def loadPDB(self):
-		tmp = tkFileDialog.askopenfilename(title='Select PDB coordinate file:',parent=self,filetypes=[('PDB',"*.pdb")])
-		if(tmp == ''):
-			return
-
-		self.destroyWidgetRows()
-
-		self.pdbName.set( "Checking PDB:" )
-		self.pdbInfo.set( "Looking for discontinuities..." )
-		self.update_idletasks()
-
-		err,msg = mcpdb_utilities.check_PDB(tmp)
-		if err > 0:
-			tkMessageBox.showerror("Error",'Problem with PDB file: %s' % (msg),parent=self)
-			self.pdbName.set( "PDB check failed." )
-			self.pdbInfo.set( "" )
-			return
-	
-		self.pdbInfo.set( "Looking for steric clashes..." )
-		self.update_idletasks()
 		
-		model = mcpdb_objects.TransformationModel( tmp, [], 0 )
-		clashes = mcpdb_objects.ModelEvaluator( model, clash_radius=self.clashTolerance.get() ).count_clashes()
-		if clashes > 0:
-			tkMessageBox.showerror("Error","Problem with PDB file: %i CA-CA clashes already exist. Check your PDB's sterics and try again." % (clashes),parent=self)
-			self.pdbName.set( "PDB check failed." )
-			self.pdbInfo.set( "" )
-			return
-	
-		self.pdbChains = mcpdb_utilities.get_chain_info(tmp)
-		self.pdb = tmp
-		self.pdbName.set( os.path.basename(self.pdb) )
-		
-		lchains = self.pdbChains.keys()
-		nchains = len(lchains)
-		if nchains == 1:
-			self.pdbInfo.set( "1 chain, %i residues"%(self.pdbChains[lchains[0]][1]-self.pdbChains[lchains[0]][0]) )
-		else:
-			self.pdbInfo.set( "%i chains: %s"%(nchains,",".join(lchains)) )
-					
-		self.createWidgetRow(initial=True)
-
-		self.addRigidGroupButton.config(state=tk.NORMAL)
-		self.generateButton.config(state=tk.NORMAL)
-	
-	def generatePDBs(self):	
-		groups = []
-		for i in xrange(self.groupCounter):
-			groups.append( [] )
-			
-			for j,chain in enumerate(self.pdbChains):
-				if self.groupChainStarts[i][j].get() != '' and self.groupChainEnds[i][j].get() != '':
-					start	= int(self.groupChainStarts[i][j].get())
-					end		= int(self.groupChainEnds[i][j].get())
-					groups[-1].append( (chain,start,end) )
-			
-			if groups[-1] == []:
-				groups.pop( len(groups) -1 )
-			
-		err,msg = mcpdb_utilities.check_groups( self.pdb, groups )
-		if err > 0:
-			tkMessageBox.showerror("Error",'Problem with group definitions: %s' % (msg),parent=self)
-			return
-		
-		dir = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
-		if dir == '':
-			return
-		
-		prefix = self.pdbPrefix.get()
-		show_warning = True
-		
-		self.pdbInfo.set( "Scanning existing directory..." )
-		self.update_idletasks()
-	
-		self.in_Queue,self.out_Queue = Queue(),Queue()
-		for i in range(self.pdbNumber.get()):
-			if os.path.exists(os.path.join(dir,prefix+(_PDB_generator_format%(i)))):
-			
-				if show_warning:
-					if tkMessageBox.askquestion("Warning", "Directory already contains PDBs, PDB generator will start where previous iterations left off.", icon='warning', parent=self) != 'yes':
-						return
-					show_warning = False
-					
-			else:
-				self.in_Queue.put( i )
-				
-		self.pdbName.set( "Generating PDBs:" )
-		self.pdbInfo.set( "Initializing generators..." )
-		self.update_idletasks()
-		
-		if self.useMultiCores.get() > 0:
-			self.pdbGenerators = [None]*cpu_count()
-		else:
-			self.pdbGenerators = [None]
-		
-		for i in xrange(len(self.pdbGenerators)):
-			self.pdbGenerators[i] = mcpdb_generator.PDBGenerator(
-				self.in_Queue,
-				self.out_Queue,
-				self.pdb,
-				groups,
-				use_rama=(self.useRamachandran.get() == 1),
-				fix_first=(self.fixFirstGroup.get() == 1),
-				dir=dir,
-				prefix=prefix,
-				format=_PDB_generator_format,
-				eval_kwargs={'clash_radius':self.clashTolerance.get()}
-			)
-			self.pdbGenerators[i].start()
-		
-		self.pdbInfo.set( "Generating structures..." )
-		self.update_idletasks()
-		self.generatorStatus = 1
-		self.after( _PDB_generator_timer, self.updatePDBGenerators )
-
-	def updatePDBGenerators(self):
-		# get all of the indices generated since the last call
-		indices = []
-		while not self.out_Queue.empty():
-			indices.append( self.out_Queue.get() )
-		indices.sort(reverse=True)
-		
-		if len(indices) > 0:
-			self.pdbInfo.set( "Generated structure %i of %i"%(indices[0]+1,self.pdbNumber.get()) )
-		
-			if indices[0]+1 == self.pdbNumber.get():
-				self.stopPDBGenerators()
-				return
-					
-		self.after( _PDB_generator_timer, self.updatePDBGenerators )
-	
-	def stopPDBGenerators(self):
-		# send term signal to workers
-		for i in xrange(len(self.pdbGenerators)):
-			self.in_Queue.put( None )
-		
-		self.pdbInfo.set( "Stopping generators..." )
-		self.update_idletasks()
-			
-		# make sure they're all shut down
-		for i in xrange(len(self.pdbGenerators)):
-			if self.pdbGenerators[i] != None:
-				self.pdbGenerators[i].join()
-			self.pdbGenerators[i] = None
-			
-		self.pdbIndices = []
-		self.pdbName.set( "Done." )
-		self.pdbInfo.set( "" )
-		self.update_idletasks()
-		self.generatorStatus = 0
-
 	def cancelWindow(self):
 		if self.generatorStatus == 0:
 			self.stopPDBGenerators()
@@ -344,3 +192,159 @@ class PDBBuildWindow(tk.Frame):
 		self.groupRemoveButtons = []
 
 		self.groupCounter = 0
+	
+	#	
+	# action functions
+	#
+	
+	def loadPDB(self):
+		tmp = tkFileDialog.askopenfilename(title='Select PDB coordinate file:',parent=self,filetypes=[('PDB',"*.pdb")])
+		if(tmp == ''):
+			return
+
+		self.destroyWidgetRows()
+
+		self.pdbName.set( "Checking PDB:" )
+		self.pdbInfo.set( "Looking for discontinuities..." )
+		self.update_idletasks()
+
+		err,msg = mcpdb_utilities.check_PDB(tmp)
+		if err > 0:
+			tkMessageBox.showerror("Error",'Problem with PDB file: %s' % (msg),parent=self)
+			self.pdbName.set( "PDB check failed." )
+			self.pdbInfo.set( "" )
+			return
+	
+		self.pdbInfo.set( "Looking for steric clashes..." )
+		self.update_idletasks()
+		
+		model = mcpdb_objects.TransformationModel( tmp, [], 0 )
+		clashes = mcpdb_objects.ModelEvaluator( model, clash_radius=self.clashTolerance.get() ).count_clashes()
+		if clashes > 0:
+			tkMessageBox.showerror("Error","Problem with PDB file: %i CA-CA clashes already exist. Check your PDB's sterics and try again." % (clashes),parent=self)
+			self.pdbName.set( "PDB check failed." )
+			self.pdbInfo.set( "" )
+			return
+	
+		self.pdbChains = mcpdb_utilities.get_chain_info(tmp)
+		self.pdb = tmp
+		self.pdbName.set( os.path.basename(self.pdb) )
+		
+		lchains = self.pdbChains.keys()
+		nchains = len(lchains)
+		if nchains == 1:
+			self.pdbInfo.set( "1 chain, %i residues"%(self.pdbChains[lchains[0]][1]-self.pdbChains[lchains[0]][0]) )
+		else:
+			self.pdbInfo.set( "%i chains: %s"%(nchains,",".join(lchains)) )
+					
+		self.createWidgetRow(initial=True)
+
+		self.addRigidGroupButton.config(state=tk.NORMAL)
+		self.generateButton.config(state=tk.NORMAL)
+	
+	def generatePDBs(self):	
+		groups = []
+		for i in xrange(self.groupCounter):
+			groups.append( [] )
+			
+			for j,chain in enumerate(self.pdbChains):
+				if self.groupChainStarts[i][j].get() != '' and self.groupChainEnds[i][j].get() != '':
+					start	= int(self.groupChainStarts[i][j].get())
+					end		= int(self.groupChainEnds[i][j].get())
+					groups[-1].append( (chain,start,end) )
+			
+			if groups[-1] == []:
+				groups.pop( len(groups) -1 )
+			
+		err,msg = mcpdb_utilities.check_groups( self.pdb, groups )
+		if err > 0:
+			tkMessageBox.showerror("Error",'Problem with group definitions: %s' % (msg),parent=self)
+			return
+		
+		dir = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
+		if dir == '':
+			return
+		
+		prefix = self.pdbPrefix.get()
+		show_warning = True
+		
+		self.pdbInfo.set( "Scanning existing directory..." )
+		self.update_idletasks()
+	
+		self.in_Queue,self.out_Queue = Queue(),Queue()
+		for i in range(self.pdbNumber.get()):
+			if os.path.exists(os.path.join(dir,prefix+(_PDB_generator_format%(i)))):
+			
+				if show_warning:
+					if tkMessageBox.askquestion("Warning", "Directory already contains PDBs, PDB generator will start where previous iterations left off.", icon='warning', parent=self) != 'yes':
+						return
+					show_warning = False
+					
+			else:
+				self.in_Queue.put( i )
+				
+		self.pdbName.set( "Generating PDBs:" )
+		self.pdbInfo.set( "Initializing generators..." )
+		self.update_idletasks()
+		
+		if self.useMultiCores.get() > 0:
+			self.pdbGenerators = [None]*cpu_count()
+		else:
+			self.pdbGenerators = [None]
+		
+		for i in xrange(len(self.pdbGenerators)):
+			self.pdbGenerators[i] = mcpdb_generator.PDBGenerator(
+				self.in_Queue,
+				self.out_Queue,
+				self.pdb,
+				groups,
+				use_rama=(self.useRamachandran.get() == 1),
+				fix_first=(self.fixFirstGroup.get() == 1),
+				dir=dir,
+				prefix=prefix,
+				format=_PDB_generator_format,
+				eval_kwargs={'clash_radius':self.clashTolerance.get()},
+				seed=i*100
+			)
+			self.pdbGenerators[i].start()
+		
+		self.pdbInfo.set( "Generating structures..." )
+		self.update_idletasks()
+		self.generatorStatus = 1
+		self.after( _PDB_generator_timer, self.updatePDBGenerators )
+
+	def updatePDBGenerators(self):
+		# get all of the indices generated since the last call
+		indices = []
+		while not self.out_Queue.empty():
+			indices.append( self.out_Queue.get() )
+		indices.sort(reverse=True)
+		
+		if len(indices) > 0:
+			self.pdbInfo.set( "Generated structure %i of %i"%(indices[0]+1,self.pdbNumber.get()) )
+		
+			if indices[0]+1 == self.pdbNumber.get():
+				self.stopPDBGenerators()
+				return
+					
+		self.after( _PDB_generator_timer, self.updatePDBGenerators )
+	
+	def stopPDBGenerators(self):
+		# send term signal to workers
+		for i in xrange(len(self.pdbGenerators)):
+			self.in_Queue.put( None )
+		
+		self.pdbInfo.set( "Stopping generators..." )
+		self.update_idletasks()
+			
+		# make sure they're all shut down
+		for i in xrange(len(self.pdbGenerators)):
+			if self.pdbGenerators[i] != None:
+				self.pdbGenerators[i].join()
+			self.pdbGenerators[i] = None
+			
+		self.pdbIndices = []
+		self.pdbName.set( "Done." )
+		self.pdbInfo.set( "" )
+		self.update_idletasks()
+		self.generatorStatus = 0

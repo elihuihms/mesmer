@@ -18,6 +18,7 @@ from win_analysis		import AnalysisWindow
 from win_plugins		import PluginWindow
 from win_about			import AboutWindow,programInfo
 from pdb_build			import PDBBuildWindow
+from pdb_attribute		import PDBAttributeWindow
 
 class MainWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -42,8 +43,11 @@ class MainWindow(tk.Frame):
 		self.setupMaster	= None
 		self.configMaster	= None
 		self.manageMaster	= None
-		self.pdbMaster		= None
+		self.pdbBuildMaster	= None
+		self.calcAttrMaster	= None
 		self.aboutMaster	= None
+		
+		self.calcAttributes()
 		
 	def loadPrefs(self):
 		self.Ready = True
@@ -74,17 +78,25 @@ class MainWindow(tk.Frame):
 
 		self.fileMenu = tk.Menu(self.topMenu)
 		self.fileMenu.add_command(label='About MESMER...', command=self.setupAbout)
-		self.fileMenu.add_command(label='Quit', accelerator="Ctrl+Q", command=self.close)
-
-		self.actionMenu = tk.Menu(self.topMenu)
-		self.actionMenu.add_command(label='Make Target...', accelerator="Ctrl+T", command=self.makeTarget)
-		self.actionMenu.add_command(label='Make Components...', accelerator="Ctrl+K", command=self.makeComponents)
-		self.actionMenu.add_command(label='Setup Run...', accelerator="Ctrl+R", command=self.setupMESMER)
-		self.actionMenu.add_command(label='Analyze Run...', accelerator="Ctrl+Y", command=self.openAnalysis)
 		
+		self.actionMenu = tk.Menu(self.topMenu)
+		
+		if sys.platform == 'darwin':
+			self.fileMenu.add_command(label='Quit', accelerator="Command-Q", command=self.close)
+			self.actionMenu.add_command(label='Make Target...', accelerator="Command-T", command=self.makeTarget)
+			self.actionMenu.add_command(label='Make Components...', accelerator="Command-K", command=self.makeComponents)
+			self.actionMenu.add_command(label='Setup Run...', accelerator="Command-R", command=self.setupMESMER)
+			self.actionMenu.add_command(label='Analyze Run...', accelerator="Command-Y", command=self.openAnalysis)
+		else:
+			self.fileMenu.add_command(label='Quit', accelerator="Ctrl+Q", command=self.close)
+			self.actionMenu.add_command(label='Make Target...', accelerator="Ctrl+T", command=self.makeTarget)
+			self.actionMenu.add_command(label='Make Components...', accelerator="Ctrl+K", command=self.makeComponents)
+			self.actionMenu.add_command(label='Setup Run...', accelerator="Ctrl+R", command=self.setupMESMER)
+			self.actionMenu.add_command(label='Analyze Run...', accelerator="Ctrl+Y", command=self.openAnalysis)
+
 		self.toolsMenu = tk.Menu(self.topMenu)
 		self.toolsMenu.add_command(label='Generate PDBs...', command=self.makePDBs)
-		self.toolsMenu.add_command(label='Calculate Attributes...', command=None)
+		self.toolsMenu.add_command(label='Calculate Attributes...', command=self.calcAttributes)
 		self.toolsMenu.add_separator()
 		self.toolsMenu.add_command(label='Manage plugins...', command=self.managePlugins)
 
@@ -97,6 +109,11 @@ class MainWindow(tk.Frame):
 		self.master.bind_all("<Control-k>", lambda a: self.makeComponents() )
 		self.master.bind_all("<Control-r>", lambda a: self.setupMESMER() )
 		self.master.bind_all("<Control-y>", lambda a: self.openAnalysis() )
+		self.master.bind_all("<Command-q>", lambda a: sys.exit(0) )
+		self.master.bind_all("<Command-t>", lambda a: self.makeTarget() )
+		self.master.bind_all("<Command-k>", lambda a: self.makeComponents() )
+		self.master.bind_all("<Command-r>", lambda a: self.setupMESMER() )
+		self.master.bind_all("<Command-y>", lambda a: self.openAnalysis() )
 
 	def close(self, returncode=0):
 		self.master.destroy()
@@ -134,9 +151,14 @@ class MainWindow(tk.Frame):
 			self.manageWindow = PluginWindow(self.manageMaster)
 			
 	def makePDBs(self):
-		if(self.pdbMaster == None or not self.pdbMaster.winfo_exists()):
-			self.pdbMaster = tk.Toplevel(self.master)
-			self.pdbWindow = PDBBuildWindow(self.pdbMaster)
+		if(self.pdbBuildMaster == None or not self.pdbBuildMaster.winfo_exists()):
+			self.pdbBuildMaster = tk.Toplevel(self.master)
+			self.pdbBuildMasterWindow = PDBBuildWindow(self.pdbBuildMaster)
+			
+	def calcAttributes(self):
+		if(self.calcAttrMaster == None or not self.calcAttrMaster.winfo_exists()):
+			self.calcAttrMaster = tk.Toplevel(self.master)
+			self.calcAttrWindow = PDBAttributeWindow(self.calcAttrMaster)
 
 	def setupAbout(self):
 		if(self.aboutMaster == None or not self.aboutMaster.winfo_exists()):
