@@ -2,6 +2,7 @@ import os
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
+import tkFont
 
 from multiprocessing import cpu_count,Queue
 
@@ -36,17 +37,19 @@ class PDBBuildWindow(tk.Frame):
 			self.stopPDBGenerators()
 
 	def createWidgets(self):
+		self.infoFont = tkFont.Font(slant=tkFont.ITALIC)
+
 		self.pdbLoadButton = tk.Button(self,text='Load PDB...',command=self.loadPDB)
 		self.pdbLoadButton.grid(row=0,column=0,sticky=tk.E+tk.W)
 		
 		self.f_header = tk.LabelFrame(self,text='Info')
 		self.f_header.grid(row=1,sticky=tk.E+tk.W)
 		self.pdbName = tk.StringVar()
-		self.pdbNameLabel = tk.Label(self.f_header,textvariable=self.pdbName)
+		self.pdbNameLabel = tk.Label(self.f_header,textvariable=self.pdbName,font=self.infoFont)
 		self.pdbNameLabel.grid(column=0,row=0,sticky=tk.W)
 
 		self.pdbInfo = tk.StringVar()
-		self.pdbInfoLabel = tk.Label(self.f_header,textvariable=self.pdbInfo)
+		self.pdbInfoLabel = tk.Label(self.f_header,textvariable=self.pdbInfo,font=self.infoFont)
 		self.pdbInfoLabel.grid(column=0,row=1,sticky=tk.W)
 
 		self.f_groups = tk.Frame(self)

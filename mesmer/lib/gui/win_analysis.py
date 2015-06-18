@@ -165,14 +165,15 @@ class AnalysisWindow(tk.Frame):
 	def createControlVars(self):
 		self.activeDir = tk.StringVar()
 		self.statusText = tk.StringVar()
-		self.statusText.set('Not Loaded')
+		self.statusText.set('No work folder loaded')
 		self.attributeTable = tk.StringVar()
 
 	def createWidgets(self):
 		self.container = tk.Frame(self)
 		self.container.grid(padx=6,pady=6)
 
-		monospaceFont = tkFont.Font(family='Courier',weight='bold')
+		self.monospaceFont = tkFont.Font(family='Courier',weight='bold')
+		self.infoFont = tkFont.Font(slant=tkFont.ITALIC)
 
 		self.f_logo = tk.Frame(self.container)
 		self.f_logo.grid(column=0,row=0,columnspan=3,sticky=tk.W,pady=(0,8))
@@ -191,14 +192,14 @@ class AnalysisWindow(tk.Frame):
 
 		self.statusTextLabel = tk.Label(self.container,text='Run Status:')
 		self.statusTextLabel.grid(column=0,row=2,sticky=tk.E,pady=(0,4))
-		self.statusTextEntry = tk.Label(self.container,textvariable=self.statusText)
+		self.statusTextEntry = tk.Label(self.container,textvariable=self.statusText,font=self.infoFont)
 		self.statusTextEntry.grid(column=1,row=2,sticky=tk.W,pady=(0,4))
 		self.abortButton = tk.Button(self.container,text='Abort',command=self.abortCurrentRun,state=tk.DISABLED)
 		self.abortButton.grid(column=2,row=2,sticky=tk.W,pady=(0,4))
 
 		self.f_generations = tk.LabelFrame(self.container,text='Generations')
 		self.f_generations.grid(column=0,row=3,columnspan=3)
-		self.generationsList = tk.Listbox(self.f_generations,width=48,height=6,font=monospaceFont,selectmode=tk.BROWSE,exportselection=False)
+		self.generationsList = tk.Listbox(self.f_generations,width=48,height=6,font=self.monospaceFont,selectmode=tk.BROWSE,exportselection=False)
 		self.generationsList.grid(sticky=tk.W,padx=(6,0),pady=(2,0),column=0,row=0)
 		self.generationsListScroll = tk.Scrollbar(self.f_generations,orient=tk.VERTICAL)
 		self.generationsListScroll.grid(column=2,row=0,sticky=tk.W+tk.N+tk.S,pady=(2,0))
@@ -210,7 +211,7 @@ class AnalysisWindow(tk.Frame):
 
 		self.f_targets = tk.LabelFrame(self.container,text='Targets')
 		self.f_targets.grid(column=0,row=4,columnspan=3)
-		self.targetsList = tk.Listbox(self.f_targets,width=48,height=5,font=monospaceFont,selectmode=tk.BROWSE,exportselection=False)
+		self.targetsList = tk.Listbox(self.f_targets,width=48,height=5,font=self.monospaceFont,selectmode=tk.BROWSE,exportselection=False)
 		self.targetsList.grid(sticky=tk.W,padx=(6,0),pady=(2,0),column=0,row=0,columnspan=5)
 		self.targetsListScroll = tk.Scrollbar(self.f_targets,orient=tk.VERTICAL)
 		self.targetsListScroll.grid(column=6,row=0,sticky=tk.W+tk.N+tk.S,pady=(2,0))
@@ -232,7 +233,7 @@ class AnalysisWindow(tk.Frame):
 
 		self.f_restraints = tk.LabelFrame(self.container,text='Restraints')
 		self.f_restraints.grid(column=0,row=5,columnspan=3)
-		self.restraintsList = tk.Listbox(self.f_restraints,width=48,height=5,font=monospaceFont,selectmode=tk.BROWSE,exportselection=False)
+		self.restraintsList = tk.Listbox(self.f_restraints,width=48,height=5,font=self.monospaceFont,selectmode=tk.BROWSE,exportselection=False)
 		self.restraintsList.grid(sticky=tk.W,padx=(6,0),pady=(2,0),column=0,row=0)
 		self.restraintsListScroll = tk.Scrollbar(self.f_restraints,orient=tk.VERTICAL)
 		self.restraintsListScroll.grid(column=1,row=0,sticky=tk.W+tk.N+tk.S,pady=(2,0))

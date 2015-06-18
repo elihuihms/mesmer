@@ -1,5 +1,6 @@
 import os
 import Tkinter as tk
+import tkFont
 #import tkMessageBox
 #import tkFileDialog
 
@@ -33,18 +34,21 @@ class PDBAttributeWindow(tk.Frame):
 		pass
 		
 	def createWidgets(self):
+		self.infoFont = tkFont.Font(slant=tkFont.ITALIC)
+	
 		self.pdb_frame = tk.LabelFrame(self,text='PDB Directory')
-		self.pdb_frame.grid(row=0,columnspan=2,sticky=tk.E+tk.W)		
+		self.pdb_frame.grid(row=0,sticky=tk.E+tk.W)		
+		self.pdb_frame.grid_columnconfigure(1,weight=1)
 		self.pdbDirectoryPath = tk.StringVar()
-		self.pdbDirectoryEntry = tk.Entry(self.pdb_frame,textvariable=self.pdbDirectoryPath,width=30)
+		self.pdbDirectoryEntry = tk.Entry(self.pdb_frame,textvariable=self.pdbDirectoryPath,width=25)
 		self.pdbDirectoryEntry.grid(row=0,column=0,sticky=tk.W)
 		self.pdbDirectoryButton = tk.Button(self.pdb_frame,text='Set...',command=self.setPDBDirectory)
 		self.pdbDirectoryButton.grid(row=0,column=1,sticky=tk.W)
-		self.pdbDirectoryInfo = tk.Label(self.pdb_frame,text='')
+		self.pdbDirectoryInfo = tk.Label(self.pdb_frame,text='Idle - No PDBs loaded.',font=self.infoFont)
 		self.pdbDirectoryInfo.grid(row=1,columnspan=2,sticky=tk.W)
 		
 		self.button_frame = tk.LabelFrame(self,text="Attribute to calculate")
-		self.button_frame.grid(row=1,columnspan=2,sticky=tk.E+tk.W)
+		self.button_frame.grid(row=1,sticky=tk.E+tk.W)
 		self.calc_RMSD_Button = tk.Button(self.button_frame,text="RMSD",default=tk.ACTIVE)
 		self.calc_RMSD_Button.grid(row=0,column=0)
 		self.calc_RMSD_Button.bind('<ButtonRelease-1>',self.toggleActionPane)
@@ -63,6 +67,7 @@ class PDBAttributeWindow(tk.Frame):
 	
 		self.calc_RMSD_frame = tk.Frame(self.button_frame)
 		self.calc_RMSD_frame.grid(row=1,columnspan=5,sticky=tk.E+tk.W)
+		self.calc_RMSD_frame.grid_columnconfigure(1,weight=1)
 		self.fillRMSDFrame()
 		self.calc_Rg_frame = tk.Frame(self.button_frame)
 		self.fillRgFrame()
@@ -74,24 +79,28 @@ class PDBAttributeWindow(tk.Frame):
 		self.fillDihedralFrame()
 
 		self.attr_frame = tk.LabelFrame(self,text='Attribute Table')
-		self.attr_frame.grid(row=2,columnspan=2,sticky=tk.E+tk.W)
+		self.attr_frame.grid(row=2,sticky=tk.E+tk.W)
+		self.attr_frame.grid_columnconfigure(2,weight=1)
+		self.attr_frame.grid_columnconfigure(3,weight=1)
 		self.attributeFilePath = tk.StringVar()
-		self.attributeFileEntry = tk.Entry(self.attr_frame,textvariable=self.attributeFilePath,width=30)
+		self.attributeFileEntry = tk.Entry(self.attr_frame,textvariable=self.attributeFilePath,width=25)
 		self.attributeFileEntry.grid(row=0,column=0,columnspan=2,sticky=tk.W)
-		self.attributeFileButton = tk.Button(self.attr_frame,text='Set...',command=self.setAttributeFile)
-		self.attributeFileButton.grid(row=0,column=3,sticky=tk.W)
-		self.attributeFileInfo = tk.Label(self.attr_frame,text='')
-		self.attributeFileInfo.grid(row=1,columnspan=3,sticky=tk.W)
+		self.attributeFileSetButton = tk.Button(self.attr_frame,text='Set...',command=self.setAttributeFile)
+		self.attributeFileSetButton.grid(row=0,column=2,sticky=tk.W)
+		self.attributeFileNewButton = tk.Button(self.attr_frame,text='New...',command=self.setAttributeFile)
+		self.attributeFileNewButton.grid(row=0,column=3,sticky=tk.W)
+		self.attributeFileInfo = tk.Label(self.attr_frame,text='Idle - No attribute list loaded.',font=self.infoFont)
+		self.attributeFileInfo.grid(row=1,columnspan=4,sticky=tk.W)
 		self.attributeFileColLabel = tk.Label(self.attr_frame,text="Save to column:")
-		self.attributeFileColLabel.grid(row=2,column=0,sticky=tk.W)
+		self.attributeFileColLabel.grid(row=2,column=0,columnspan=2,sticky=tk.W)
 		self.attributeFileColSel	= tk.StringVar()
 		options = ('none')
 		self.attributeFileColMenu = tk.OptionMenu(self.attr_frame,self.attributeFileColSel,*options)
-		self.attributeFileColMenu.grid(row=2,column=1,sticky=tk.W)
-		self.attributeFileColMenu.config(state=tk.DISABLED,width=15)
+		self.attributeFileColMenu.grid(row=2,column=1,columnspan=3,sticky=tk.W)
+		self.attributeFileColMenu.config(state=tk.DISABLED,width=25)
 
-		self.f_footer = tk.Frame(self,borderwidth=0)
-		self.f_footer.grid(row=5)
+		self.f_footer = tk.Frame(self)
+		self.f_footer.grid(row=3,sticky=tk.E+tk.W)
 		self.calculateButton = tk.Button(self.f_footer,text='Calculate...',state=tk.DISABLED)
 		self.calculateButton.grid(column=1,row=6,sticky=tk.W,pady=4)
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
@@ -128,13 +137,14 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_RMSD_Label = tk.Label(self.calc_RMSD_frame,text="Reference PDB:")
 		self.calc_RMSD_Label.grid(row=0,columnspan=2,sticky=tk.W)
 		self.calc_RMSD_PDBPath = tk.StringVar()
-		self.calc_RMSD_PDBEntry = tk.Entry(self.calc_RMSD_frame,textvariable=self.calc_RMSD_PDBPath,width=30)
+		self.calc_RMSD_PDBEntry = tk.Entry(self.calc_RMSD_frame,textvariable=self.calc_RMSD_PDBPath,width=25)
 		self.calc_RMSD_PDBEntry.grid(row=1,column=0,sticky=tk.W)
 		self.calc_RMSD_PDBButton = tk.Button(self.calc_RMSD_frame,text="Set...")
 		self.calc_RMSD_PDBButton.grid(row=1,column=1,sticky=tk.W)
 		
 		self.calc_RMSD_SuperimposeSelFrame = tk.LabelFrame(self.calc_RMSD_frame,text="Residues to superimpose:")
 		self.calc_RMSD_SuperimposeSelFrame.grid(row=2,columnspan=2,sticky=tk.E+tk.W,padx=10,pady=5)
+		self.calc_RMSD_SuperimposeSelFrame.grid_columnconfigure(1,weight=1)
 
 		self.calc_RMSD_SuperimposeSel = tk.IntVar()
 		self.calc_RMSD_SuperimposeSel.set(0)
@@ -159,8 +169,9 @@ class PDBAttributeWindow(tk.Frame):
 		
 		#
 		
-		self.calc_RMSD_CalcSelFrame = tk.LabelFrame(self.calc_RMSD_frame,text="Calculate RMSD for:")
+		self.calc_RMSD_CalcSelFrame = tk.LabelFrame(self.calc_RMSD_frame,text="Calculate RMSD between:")
 		self.calc_RMSD_CalcSelFrame.grid(row=3,columnspan=2,sticky=tk.E+tk.W,padx=10,pady=5)
+		self.calc_RMSD_CalcSelFrame.grid_columnconfigure(1,weight=1)
 
 		self.calc_RMSD_CalcSel = tk.IntVar()
 		self.calc_RMSD_CalcSel.set(0)
@@ -200,8 +211,8 @@ class PDBAttributeWindow(tk.Frame):
 	def toggle_RMSD_CalcSel(self):
 		if self.calc_RMSD_CalcSel.get() == 1:
 			self.calc_RMSD_CalcChainLabel.grid(row=1,column=0,sticky=tk.E)
-			self.calc_RMSD_CalcResEndLabel.grid(row=2,column=0,sticky=tk.E)
-			self.calc_RMSD_CalcResStartLabel.grid(row=3,column=0,sticky=tk.E)
+			self.calc_RMSD_CalcResStartLabel.grid(row=2,column=0,sticky=tk.E)
+			self.calc_RMSD_CalcResEndLabel.grid(row=3,column=0,sticky=tk.E)
 			self.calc_RMSD_CalcChainEntry.grid(row=1,column=1,sticky=tk.W)
 			self.calc_RMSD_CalcResStartEntry.grid(row=2,column=1,sticky=tk.W)
 			self.calc_RMSD_CalcResEndEntry.grid(row=3,column=1,sticky=tk.W)
@@ -228,9 +239,9 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Distance_Res_Label.grid(row=2,column=0,sticky=tk.E)
 		self.calc_Distance_Atom_Label = tk.Label(self.calc_Distance_frame,text="Name:")
 		self.calc_Distance_Atom_Label.grid(row=3,column=0,sticky=tk.E)
-		self.calc_Distance_Label_A = tk.Label(self.calc_Distance_frame,text='Atom 1')
+		self.calc_Distance_Label_A = tk.Label(self.calc_Distance_frame,text='Atom 1',fg='red')
 		self.calc_Distance_Label_A.grid(row=0,column=1,sticky=tk.E+tk.W)
-		self.calc_Distance_Label_B = tk.Label(self.calc_Distance_frame,text='Atom 2')
+		self.calc_Distance_Label_B = tk.Label(self.calc_Distance_frame,text='Atom 2',fg='blue')
 		self.calc_Distance_Label_B.grid(row=0,column=2,sticky=tk.E+tk.W)
 	
 		self.calc_Distance_SelA_Chain = tk.StringVar()
@@ -255,6 +266,12 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Distance_SelB_Atom_Entry = tk.Entry(self.calc_Distance_frame,textvariable=self.calc_Distance_SelB_Atom,width=3)
 		self.calc_Distance_SelB_Atom_Entry.grid(row=3,column=2,sticky=tk.W)
 		
+		self.calc_Distance_image = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'image_distance.gif'))
+		self.calc_Distance_imageLabel = tk.Label(self.calc_Distance_frame,image=self.calc_Distance_image)
+		self.calc_Distance_frame.grid_columnconfigure(3,weight=1)
+		self.calc_Distance_imageLabel.grid(row=1,column=3,rowspan=3,sticky=tk.E,padx=5)
+
+		
 	def fillAngleFrame(self):
 		self.calc_Angle_Chain_Label = tk.Label(self.calc_Angle_frame,text="Chain:")
 		self.calc_Angle_Chain_Label.grid(row=1,column=0,sticky=tk.E)
@@ -262,11 +279,11 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Angle_Res_Label.grid(row=2,column=0,sticky=tk.E)
 		self.calc_Angle_Atom_Label = tk.Label(self.calc_Angle_frame,text="Name:")
 		self.calc_Angle_Atom_Label.grid(row=3,column=0,sticky=tk.E)
-		self.calc_Angle_Label_A = tk.Label(self.calc_Angle_frame,text='Atom 1')
+		self.calc_Angle_Label_A = tk.Label(self.calc_Angle_frame,text='Atom 1',fg='red')
 		self.calc_Angle_Label_A.grid(row=0,column=1,sticky=tk.E+tk.W)
-		self.calc_Angle_Label_B = tk.Label(self.calc_Angle_frame,text='Atom 2')
+		self.calc_Angle_Label_B = tk.Label(self.calc_Angle_frame,text='Atom 2',fg='blue')
 		self.calc_Angle_Label_B.grid(row=0,column=2,sticky=tk.E+tk.W)
-		self.calc_Angle_Label_C = tk.Label(self.calc_Angle_frame,text='Atom 3')
+		self.calc_Angle_Label_C = tk.Label(self.calc_Angle_frame,text='Atom 3',fg='green3')
 		self.calc_Angle_Label_C.grid(row=0,column=3,sticky=tk.E+tk.W)
 	
 		self.calc_Angle_SelA_Chain = tk.StringVar()
@@ -301,6 +318,12 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Angle_SelC_Atom_Entry = tk.Entry(self.calc_Angle_frame,textvariable=self.calc_Angle_SelC_Atom,width=3)
 		self.calc_Angle_SelC_Atom_Entry.grid(row=3,column=3,sticky=tk.W)
 		
+		self.calc_Angle_image = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'image_angle.gif'))
+		self.calc_Angle_imageLabel = tk.Label(self.calc_Angle_frame,image=self.calc_Angle_image)
+		self.calc_Angle_frame.grid_columnconfigure(4,weight=1)
+		self.calc_Angle_imageLabel.grid(row=1,column=4,rowspan=3,sticky=tk.E,padx=5)
+
+		
 	def fillDihedralFrame(self):
 		self.calc_Dihedral_Chain_Label = tk.Label(self.calc_Dihedral_frame,text="Chain:")
 		self.calc_Dihedral_Chain_Label.grid(row=1,column=0,sticky=tk.E)
@@ -308,13 +331,13 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Dihedral_Res_Label.grid(row=2,column=0,sticky=tk.E)
 		self.calc_Dihedral_Atom_Label = tk.Label(self.calc_Dihedral_frame,text="Name:")
 		self.calc_Dihedral_Atom_Label.grid(row=3,column=0,sticky=tk.E)
-		self.calc_Dihedral_Label_A = tk.Label(self.calc_Dihedral_frame,text='Atom 1')
+		self.calc_Dihedral_Label_A = tk.Label(self.calc_Dihedral_frame,text='Atom 1',fg='red')
 		self.calc_Dihedral_Label_A.grid(row=0,column=1,sticky=tk.E+tk.W)
-		self.calc_Dihedral_Label_B = tk.Label(self.calc_Dihedral_frame,text='Atom 2')
+		self.calc_Dihedral_Label_B = tk.Label(self.calc_Dihedral_frame,text='Atom 2',fg='blue')
 		self.calc_Dihedral_Label_B.grid(row=0,column=2,sticky=tk.E+tk.W)
-		self.calc_Dihedral_Label_C = tk.Label(self.calc_Dihedral_frame,text='Atom 3')
+		self.calc_Dihedral_Label_C = tk.Label(self.calc_Dihedral_frame,text='Atom 3',fg='green3')
 		self.calc_Dihedral_Label_C.grid(row=0,column=3,sticky=tk.E+tk.W)
-		self.calc_Dihedral_Label_C = tk.Label(self.calc_Dihedral_frame,text='Atom 4')
+		self.calc_Dihedral_Label_C = tk.Label(self.calc_Dihedral_frame,text='Atom 4',fg='orange')
 		self.calc_Dihedral_Label_C.grid(row=0,column=4,sticky=tk.E+tk.W)
 	
 		self.calc_Dihedral_SelA_Chain = tk.StringVar()
@@ -358,6 +381,8 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Dihedral_SelD_Res_Entry.grid(row=2,column=4,sticky=tk.W)
 		self.calc_Dihedral_SelD_Atom_Entry = tk.Entry(self.calc_Dihedral_frame,textvariable=self.calc_Dihedral_SelD_Atom,width=3)
 		self.calc_Dihedral_SelD_Atom_Entry.grid(row=3,column=4,sticky=tk.W)
-
-
-			
+		
+		self.calc_Dihedral_image = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'image_dihedral.gif'))
+		self.calc_Dihedral_imageLabel = tk.Label(self.calc_Dihedral_frame,image=self.calc_Dihedral_image)
+		self.calc_Dihedral_frame.grid_columnconfigure(5,weight=1)
+		self.calc_Dihedral_imageLabel.grid(row=1,column=5,rowspan=3,sticky=tk.E,padx=5)
