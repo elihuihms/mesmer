@@ -52,7 +52,7 @@ def parse_arguments(str=None):
 
 	group3 = parser.add_argument_group('Variable component ratio parameters')
 	group3.add_argument('-Rforce'	,	action='store_true',default=False,									help='Force ensemble ratio reoptimization at every generation.')
-	group3.add_argument('-Ralgorithm',	action='store',		default=3,	type=int,	choices=[0,1,2,3,4,5,6],	metavar='3',	help='Algorithm to use for optimal component ratios (0-6), 0=no ratio optimization')
+	group3.add_argument('-Ralgorithm',	action='store',		default=6,	type=int,	choices=[0,1,2,3,4,5,6],	metavar='6',	help='Algorithm to use for optimal component ratios (0-6), 0=no ratio optimization')
 	group3.add_argument('-Rprecision',	action='store',		default=0.01,	type=float,		metavar='0.01',	help='Precision of weighting algorithm')
 	group3.add_argument('-Rn',			action='store',		default=-1,		type=int,		metavar='10*N',	help='Number of weighting algorithm iterations')
 	group3.add_argument('-boots',		action='store',		default=200,	type=int,		metavar='200',	help='The number of bootstrap samples for component weighting error analysis. 0=no error analysis')
@@ -83,11 +83,6 @@ def parse_arguments(str=None):
 	# argument error checking and defaults
 	if (args.Rn < 0):
 		args.Rn = args.size * 10
-
-	# Windows runs afoul of multiprocessing atm
-	if (platform.system() == 'Windows' and args.threads > 1):
-		print_msg("WARNING: Multiprocessing not currently available on Windows, setting -threads to 1")
-		args.threads = 1
 
 	return args
 
@@ -139,7 +134,7 @@ def set_default_prefs( shelf ):
 	import multiprocessing
 	shelf['mesmer_base_dir'] = ''
 	shelf['mesmer_scratch'] = ''
-	shelf['cpu_count'] = cpu_count()
+	shelf['cpu_count'] = multiprocessing.cpu_count()
 	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
 	shelf['disabled_plugins'] = []
 	shelf['plugin_prefs'] = {}

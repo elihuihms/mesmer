@@ -16,9 +16,11 @@ def extractDataFromFile( file ):
 		return None
 
 	text = ''
-	for l in f.readlines():
+	for l in f:
 		if(l.strip() != ''):
 			text+="%s\n" % l.strip()
+			
+	f.close()
 
 	return text
 

@@ -1,6 +1,7 @@
 import sys
 import os.path
 
+from math					import fabs
 from scipy					import optimize
 from multiprocessing		import Process,Queue
 
@@ -11,9 +12,7 @@ class Optimizer:
 	def __init__(self,args,plugins,targets,components):
 		self.workers = [None]*args.threads
 		self.in_Queue,self.out_Queue = Queue(maxsize=args.threads),Queue()
-				
-#		self.plugins = load_plugins(os.path.join(os.path.dirname(__file__),os.path.pardir), type='mesmer', args=args )
-		
+						
 		for i in xrange(args.threads):
 			self.workers[i] = Worker(args, plugins, targets, components, self.in_Queue, self.out_Queue)
 			self.workers[i].start()
@@ -47,7 +46,7 @@ class Optimizer:
 		
 	def close(self):
 		for w in self.workers:
-			self.in_Queue.put("QUIT")	
+			self.in_Queue.put(None)	
 		
 		for w in self.workers:
 			w.join()
@@ -65,11 +64,9 @@ class Worker(Process):
 		self.daemon = True
 
 	def run(self):
-
+		
 		# retrieve ensembles from the queue
 		for e in iter(self.iQ.get, None):
-			if e == "QUIT":
-				return
 		
 			# set up a bounding array for bounded optimizers
 			ratio_bounds = [(0.0,1.0)] * self.args.size
@@ -79,6 +76,7 @@ class Worker(Process):
 	
 				# delta function for fitness algorithm to pass to minimization function
 				def wrapper( ratios ):
+#					map(fabs,ratios) # force ratios to be positive
 					return sum(e.get_fitness( self.components, self.plugins, t, ratios ).itervalues())
 	
 				if(e.optimized[t.name]):

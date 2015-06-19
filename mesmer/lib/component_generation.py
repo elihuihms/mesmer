@@ -10,7 +10,7 @@ def get_component_values( path ):
 		raise ComponentGenException(e.msg)
 
 	ret = {}
-	for l in f.readlines():
+	for l in f:
 		a = l.strip().split()
 
 		# skip comments

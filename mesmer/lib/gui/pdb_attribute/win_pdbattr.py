@@ -1,8 +1,18 @@
 import os
+import glob
+
 import Tkinter as tk
+import tkMessageBox
+import tkFileDialog
 import tkFont
-#import tkMessageBox
-#import tkFileDialog
+
+from ... setup_functions import open_user_prefs
+from .. tools_multiprocessing import Parallelizor
+
+from tools_pdbattr import *
+from tools_rmsd import *
+
+_PDB_calculator_timer = 500 # in ms
 
 class PDBAttributeWindow(tk.Frame):
 	def __init__(self, master=None):
@@ -17,22 +27,23 @@ class PDBAttributeWindow(tk.Frame):
 		self.pack_propagate(True)
 		
 		self.createWidgets()
+		self.pdbList = []
+		self.calculatorStatus = 0
 		
+		#
+		self.loadDirPDBs("/Users/elihuihms/Dropbox/SteelSnowflake/MESMER/monte_carlo/pdbs")
+		self.setAttributeTable(False,"/Users/elihuihms/Dropbox/SteelSnowflake/MESMER/monte_carlo/pdb_attributes.txt")
+		self.setRMSDReference("/Users/elihuihms/Dropbox/SteelSnowflake/MESMER/monte_carlo/pdbs/00079cam.pdb")
+		#
+				
 	def cancelWindow(self):
 		if self.calculatorStatus == 0:
-#			self.stopPDBGenerators()
+			self.master.destroy()
+			return
+		elif tkMessageBox.askquestion("Cancel", "Stop generating structures?", icon='warning',parent=self) == 'yes':
 			self.master.destroy()
 			return
 
-#		if tkMessageBox.askquestion("Cancel", "Stop generating structures?", icon='warning',parent=self) == 'yes':
-#			self.stopPDBGenerators()
-
-	def setPDBDirectory(self):
-		pass
-		
-	def setAttributeFile(self):
-		pass
-		
 	def createWidgets(self):
 		self.infoFont = tkFont.Font(slant=tkFont.ITALIC)
 	
@@ -42,7 +53,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.pdbDirectoryPath = tk.StringVar()
 		self.pdbDirectoryEntry = tk.Entry(self.pdb_frame,textvariable=self.pdbDirectoryPath,width=25)
 		self.pdbDirectoryEntry.grid(row=0,column=0,sticky=tk.W)
-		self.pdbDirectoryButton = tk.Button(self.pdb_frame,text='Set...',command=self.setPDBDirectory)
+		self.pdbDirectoryButton = tk.Button(self.pdb_frame,text='Set...',command=self.loadDirPDBs)
 		self.pdbDirectoryButton.grid(row=0,column=1,sticky=tk.W)
 		self.pdbDirectoryInfo = tk.Label(self.pdb_frame,text='Idle - No PDBs loaded.',font=self.infoFont)
 		self.pdbDirectoryInfo.grid(row=1,columnspan=2,sticky=tk.W)
@@ -85,9 +96,9 @@ class PDBAttributeWindow(tk.Frame):
 		self.attributeFilePath = tk.StringVar()
 		self.attributeFileEntry = tk.Entry(self.attr_frame,textvariable=self.attributeFilePath,width=25)
 		self.attributeFileEntry.grid(row=0,column=0,columnspan=2,sticky=tk.W)
-		self.attributeFileSetButton = tk.Button(self.attr_frame,text='Set...',command=self.setAttributeFile)
+		self.attributeFileSetButton = tk.Button(self.attr_frame,text='Set...',command=lambda: self.setAttributeTable(new=False))
 		self.attributeFileSetButton.grid(row=0,column=2,sticky=tk.W)
-		self.attributeFileNewButton = tk.Button(self.attr_frame,text='New...',command=self.setAttributeFile)
+		self.attributeFileNewButton = tk.Button(self.attr_frame,text='New...',command=lambda: self.setAttributeTable(new=True),state=tk.DISABLED)
 		self.attributeFileNewButton.grid(row=0,column=3,sticky=tk.W)
 		self.attributeFileInfo = tk.Label(self.attr_frame,text='Idle - No attribute list loaded.',font=self.infoFont)
 		self.attributeFileInfo.grid(row=1,columnspan=4,sticky=tk.W)
@@ -98,15 +109,13 @@ class PDBAttributeWindow(tk.Frame):
 		self.attributeFileColMenu = tk.OptionMenu(self.attr_frame,self.attributeFileColSel,*options)
 		self.attributeFileColMenu.grid(row=2,column=1,columnspan=3,sticky=tk.W)
 		self.attributeFileColMenu.config(state=tk.DISABLED,width=25)
-
-		self.f_footer = tk.Frame(self)
-		self.f_footer.grid(row=3,sticky=tk.E+tk.W)
-		self.calculateButton = tk.Button(self.f_footer,text='Calculate...',state=tk.DISABLED)
-		self.calculateButton.grid(column=1,row=6,sticky=tk.W,pady=4)
-		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
-		self.cancelButton.grid(column=2,row=6,sticky=tk.E,pady=4)
 		
-		self.calculatorStatus = 0
+		self.f_footer = tk.Frame(self)
+		self.f_footer.grid(row=4,sticky=tk.E+tk.W)
+		self.calculateButton = tk.Button(self.f_footer,text='Calculate...',state=tk.DISABLED,command=self.calculatePDBAttributes)
+		self.calculateButton.grid(column=0,row=0,sticky=tk.E,pady=4)
+		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
+		self.cancelButton.grid(column=1,row=0,sticky=tk.E,pady=4)
 		
 	def toggleActionPane(self,evt):
 		self.calc_RMSD_Button.configure(default=tk.NORMAL)
@@ -121,7 +130,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Distance_frame.grid_forget()
 		self.calc_Angle_frame.grid_forget()
 		self.calc_Dihedral_frame.grid_forget()
-		
+				
 		if evt.widget == self.calc_RMSD_Button:
 			self.calc_RMSD_frame.grid(row=1,columnspan=5,sticky=tk.E+tk.W)
 		elif evt.widget == self.calc_Rg_Button:
@@ -132,6 +141,8 @@ class PDBAttributeWindow(tk.Frame):
 			self.calc_Angle_frame.grid(row=1,columnspan=5,sticky=tk.E+tk.W)
 		elif evt.widget == self.calc_Dihedral_Button:
 			self.calc_Dihedral_frame.grid(row=1,columnspan=5,sticky=tk.E+tk.W)
+			
+		self.updateCalculateButton()
 
 	def fillRMSDFrame(self):
 		self.calc_RMSD_Label = tk.Label(self.calc_RMSD_frame,text="Reference PDB:")
@@ -139,7 +150,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_RMSD_PDBPath = tk.StringVar()
 		self.calc_RMSD_PDBEntry = tk.Entry(self.calc_RMSD_frame,textvariable=self.calc_RMSD_PDBPath,width=25)
 		self.calc_RMSD_PDBEntry.grid(row=1,column=0,sticky=tk.W)
-		self.calc_RMSD_PDBButton = tk.Button(self.calc_RMSD_frame,text="Set...")
+		self.calc_RMSD_PDBButton = tk.Button(self.calc_RMSD_frame,text="Set...",command=self.setRMSDReference)
 		self.calc_RMSD_PDBButton.grid(row=1,column=1,sticky=tk.W)
 		
 		self.calc_RMSD_SuperimposeSelFrame = tk.LabelFrame(self.calc_RMSD_frame,text="Residues to superimpose:")
@@ -166,9 +177,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_RMSD_SuperimposeResStartEntry = tk.Entry(self.calc_RMSD_SuperimposeSelFrame,textvariable=self.calc_RMSD_SuperimposeResStart,width=4)
 		self.calc_RMSD_SuperimposeResEnd = tk.IntVar()
 		self.calc_RMSD_SuperimposeResEndEntry = tk.Entry(self.calc_RMSD_SuperimposeSelFrame,textvariable=self.calc_RMSD_SuperimposeResEnd,width=4)
-		
-		#
-		
+				
 		self.calc_RMSD_CalcSelFrame = tk.LabelFrame(self.calc_RMSD_frame,text="Calculate RMSD between:")
 		self.calc_RMSD_CalcSelFrame.grid(row=3,columnspan=2,sticky=tk.E+tk.W,padx=10,pady=5)
 		self.calc_RMSD_CalcSelFrame.grid_columnconfigure(1,weight=1)
@@ -271,7 +280,6 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Distance_frame.grid_columnconfigure(3,weight=1)
 		self.calc_Distance_imageLabel.grid(row=1,column=3,rowspan=3,sticky=tk.E,padx=5)
 
-		
 	def fillAngleFrame(self):
 		self.calc_Angle_Chain_Label = tk.Label(self.calc_Angle_frame,text="Chain:")
 		self.calc_Angle_Chain_Label.grid(row=1,column=0,sticky=tk.E)
@@ -322,7 +330,6 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Angle_imageLabel = tk.Label(self.calc_Angle_frame,image=self.calc_Angle_image)
 		self.calc_Angle_frame.grid_columnconfigure(4,weight=1)
 		self.calc_Angle_imageLabel.grid(row=1,column=4,rowspan=3,sticky=tk.E,padx=5)
-
 		
 	def fillDihedralFrame(self):
 		self.calc_Dihedral_Chain_Label = tk.Label(self.calc_Dihedral_frame,text="Chain:")
@@ -386,3 +393,170 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Dihedral_imageLabel = tk.Label(self.calc_Dihedral_frame,image=self.calc_Dihedral_image)
 		self.calc_Dihedral_frame.grid_columnconfigure(5,weight=1)
 		self.calc_Dihedral_imageLabel.grid(row=1,column=5,rowspan=3,sticky=tk.E,padx=5)
+	
+	#
+	# Action functions
+	#
+	
+	def calculatePDBAttributes(self):
+		w.Parallelizor = Parallelizor(function,args,kwargs,threads=w.prefs['cpu_count'])
+		w.Parallelizor_counter = 1
+		
+		if self.calc_RMSD_Button.cget('default') == tk.ACTIVE:
+			f = runRMSDCalculator( self )
+		elif self.calc_Rg_Button.cget('default') == tk.ACTIVE:
+			runRgCalculator( self )		
+		elif self.calc_Distance_Button.cget('default') == tk.ACTIVE:
+			runDistanceCalculator( self )		
+		elif self.calc_Angle_Button.cget('default') == tk.ACTIVE:
+			runAngleCalculator( self )
+		elif self.calc_Dihedral_Button.cget('default') == tk.ACTIVE:
+			runDihedralCalculator( self )
+
+		
+	
+		w.Parallelizor.put(w.pdbList)
+		w.after( _PDB_calculator_timer, lambda: updator(w) )
+	
+	def updatePDBCalculators(self):
+		
+		
+		if len(indices) > 0:
+			self.pdbInfo.set( "Generated structure %i of %i"%(indices[0]+1,self.pdbNumber.get()) )
+		
+			if indices[0]+1 == self.pdbNumber.get():
+				self.stopPDBGenerators()
+				return
+					
+		self.after( _PDB_generator_timer, self.updatePDBGenerators )
+		w.updateAttributeInfo("Consolidating tables...")
+
+	
+	def _reset_menu_options(self,optionmenu,optionvar,options,index=None):
+		optionmenu["menu"].delete(0, "end")
+		for string in options:
+			optionmenu["menu"].add_command(label=string, command=lambda value=string: optionvar.set(value))
+		if index is not None:
+			optionvar.set(options[index])
+			
+	def updateAttributeInfo(self,text):
+		self.attributeFileInfo.config(text=text)
+		self.update_idletasks()
+			
+	def calculatePDBAttributes(self):
+		if self.calc_RMSD_Button.cget('default') == tk.ACTIVE:
+			runRMSDCalculator( self )
+		elif self.calc_Rg_Button.cget('default') == tk.ACTIVE:
+			runRgCalculator( self )		
+		elif self.calc_Distance_Button.cget('default') == tk.ACTIVE:
+			runDistanceCalculator( self )		
+		elif self.calc_Angle_Button.cget('default') == tk.ACTIVE:
+			runAngleCalculator( self )
+		elif self.calc_Dihedral_Button.cget('default') == tk.ACTIVE:
+			runDihedralCalculator( self )
+			
+		self.setAttributeTable(new=False,path=self.attributeFilePath.get())
+
+	def updateCalculateButton(self):
+		if len(self.pdbList) > 0 and self.attributeFilePath.get() != '':
+			if self.calc_RMSD_Button.cget('default') == tk.ACTIVE and self.calc_RMSD_PDBPath.get() == '':
+				self.calculateButton.config(state=tk.DISABLED)
+			else:
+				self.calculateButton.config(state=tk.NORMAL)
+		else:
+			self.calculateButton.config(state=tk.DISABLED)
+			
+	def loadDirPDBs(self,path=''):
+		if path == '':
+			path = tkFileDialog.askdirectory(title="Choose a directory containing PDBs:",parent=self)
+		if path == '':
+			return
+	
+		self.pdbDirectoryInfo.config(text="Scanning directory...")
+		self.update_idletasks()
+		self.pdbList = glob.glob(os.path.join(path,"*.pdb"))
+		self.pdbList.sort()
+		
+		if len(self.pdbList) == 0:
+			if tkMessageBox.askyesno("Empty","There are no readable PDBs in this directory. Try another?",parent=self):
+				self.loadDirPDBs()
+			else:
+				self.pdbDirectoryInfo.config(text="Error.")
+				self.update_idletasks()
+		
+		self.pdbDirectoryInfo.config(text="Loaded %i coordinate files."%(len(self.pdbList)))
+		self.update_idletasks()
+		self.pdbDirectoryPath.set(path)
+		self.pdbDirectoryEntry.xview_moveto(1.0)
+						
+		self.attributeFileNewButton.config(state=tk.NORMAL)
+		self.updateCalculateButton()
+
+	def setAttributeTable(self,new=False,path=''):
+		if path == '':
+			if new:
+				path = tkFileDialog.asksaveasfilename(title='Create new attribute table:',filetypes=[('Attr',"*.attr"),('Text',"*.txt"),('Table',"*.tbl")],initialfile="pdb_attributes.txt",parent=self)
+			else:
+				path = tkFileDialog.askopenfilename(title='Attribute table to append to:',filetypes=[('Attr',"*.attr"),('Text',"*.txt"),('Table',"*.tbl")],parent=self)
+		if path == '':
+			return
+				
+		if new:
+			self.updateAttributeInfo("Creating table...")
+			try:
+				f = open( path, 'w' )
+				f.write("#pdb\t\n")
+				for pdb in self.pdbList:
+					f.write( "%s\t\n"%(os.path.basename(os.path.splitext(pdb)[0])) )
+				f.close()
+			except:
+				tkMessageBox.showerror("Error","Could not open the table for writing.",parent=self)
+				self.updateAttributeInfo("Error.")
+				return
+
+			pdbcounter = len(self.pdbList)
+			self.attributeFileColumns = []
+		else:	
+			self.updateAttributeInfo("Scanning table...")
+			header,pdbcounter = None,0
+			try:
+				f = open( path, 'rw' )
+				for l in f:
+					if pdbcounter == 0 and l[0] == '#' and header == None:
+						header = l
+					if l[0] != '#' and len(l.rstrip()) > 1:
+						pdbcounter += 1
+				f.close()
+			except:
+				tkMessageBox.showerror("Error","Could not open the specified table for modification.",parent=self)
+				self.updateAttributeInfo("Error.")
+				return
+		
+			if header != None and len(header.rstrip())>1:
+				self.attributeFileColumns = header[1:].rstrip().split()[1:]
+			else:
+				tkMessageBox.showerror("Error","Attribute table doesn't contain column header.\ne.g.: #pdb    col1    col2    etc...",parent=self)
+				self.updateAttributeInfo("Error.")
+				return
+				
+		self.attributeFileColumns.append("(Append new)")
+
+		self._reset_menu_options(self.attributeFileColMenu,self.attributeFileColSel,self.attributeFileColumns,len(self.attributeFileColumns)-1)
+		self.attributeFileColMenu.config(state=tk.NORMAL)
+
+		if new:
+			self.updateAttributeInfo("Created new attribute table with %i records."%(pdbcounter))
+		else:
+			self.updateAttributeInfo("Loaded attribute table with %i records and %i column(s)."%(pdbcounter,len(self.attributeFileColumns)-1))
+
+		self.attributeFilePath.set(path)
+		self.attributeFileEntry.xview_moveto(1.0)
+		self.updateCalculateButton()
+			
+	def setRMSDReference(self,tmp=''):
+#		tmp = tkFileDialog.askopenfilename(title='PDB coordinate file to use as a reference:',parent=self,filetypes=[('PDB',"*.pdb")])
+		if tmp == '':
+			return
+		self.calc_RMSD_PDBPath.set(tmp)
+		self.calc_RMSD_PDBEntry.xview_moveto(1.0)
+		self.updateCalculateButton()

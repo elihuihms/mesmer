@@ -17,6 +17,19 @@ class mesPluginBasic:
 
 		self.target_parser = argparse.ArgumentParser(prog=self.type[0])
 		self.component_parser = argparse.ArgumentParser(prog=self.type[0])
+		
+	def __getstate__(self):
+		# Don't need to serialize these parsers once we've started threading
+		# Windows chokes on them anyway
+		try:
+			del self.target_parser
+			del self.component_parser
+		except AttributeError:
+			pass
+		return self.__dict__
+			
+	def __setstate__(self, d):
+		self.__dict__ = d
 
 	def close( self ):
 		pass
@@ -61,28 +74,54 @@ class mesPluginDB( mesPluginBasic ):
 
 	def __init__( self, args ):
 		mesPluginBasic.__init__( self, args )
-
+		
+		# Use the provided scratch directory, or use system default temporary?
 		if( args.scratch ):
 			self._db_path = os.path.join(args.scratch,uuid.uuid1().hex)
 		else:
 			self._db_path = os.path.join(tempfile.gettempdir(),uuid.uuid1().hex)
-			
+		
+		self._db_handle = None
 		try:
 			self._db_handle = shelve.open(self._db_path,'c')
 		except:
 			raise mesPluginError("Could not create temporary scratch DB to store component data: \"%s\"" % self._db_path)
+				
+	def __getstate__(self):
+		# Don't need to serialize these parsers once we've started threading
+		# Windows chokes on them anyway
+		try:
+			del self.target_parser
+			del self.component_parser
+		except AttributeError:
+			pass
 			
-		# some db implementations append a .db to the provided path
-		if( os.path.exists("%s%s" % (self._db_path,'.db')) ):
-			self._db_path = "%s%s" % (self._db_path,'.db')
+		# Disconnect from the database
+		if (self._db_handle != None):
+			self._db_handle.close()
+			self._db_handle = None
+		return self.__dict__
+			
+	def __setstate__(self, d):
+		self.__dict__ = d
+		
+		# Reconnect to the database
+		try:
+			self._db_handle = shelve.open(self._db_path,'r')
+		except:
+			raise mesPluginError("Could not reconnect to scratch DB containing component data: \"%s\"" % self._db_path)
 
 	def __del__( self ):
 		try:
 			if (self._db_handle != None):
 				self._db_handle.close()
 
-			if (self._db_path != None):
+			# some db implementations append a .db to the provided path
+			if( os.path.exists(self._db_path)):
 				os.unlink(self._db_path)
+			elif( os.path.exists("%s%s" % (self._db_path,'.db')) ):
+				os.unlink("%s%s" % (self._db_path,'.db'))
+	
 		except AttributeError:
 			pass
 

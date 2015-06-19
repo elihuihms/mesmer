@@ -4,7 +4,9 @@ import tkMessageBox
 import tkFileDialog
 import tkFont
 
-from multiprocessing import cpu_count,Queue
+from multiprocessing import Queue
+
+from ... setup_functions import open_user_prefs
 
 import mcpdb_objects
 import mcpdb_utilities
@@ -24,8 +26,13 @@ class PDBBuildWindow(tk.Frame):
 		tk.Frame.__init__(self,master)
 		self.pack(expand=True,fill='both',padx=6,pady=6)
 		self.pack_propagate(True)
-		
 		self.createWidgets()
+		
+		try:
+			self.prefs = open_user_prefs(mode='r')
+		except Exception as e:
+			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
+			self.master.destroy()
 		
 	def cancelWindow(self):
 		if self.generatorStatus == 0:
@@ -89,30 +96,25 @@ class PDBBuildWindow(tk.Frame):
 		self.fixFirstGroupCheckbox = tk.Checkbutton(self.f_options,text='Fix first rigid group',variable=self.fixFirstGroup)
 		self.fixFirstGroupCheckbox.grid(row=2,column=0,columnspan=2,sticky=tk.W)
 
-		self.useMultiCores = tk.IntVar()
-		self.useMultiCores.set(1)
-		self.useMultiCoresCheckbox = tk.Checkbutton(self.f_options,text='Use all available CPU cores',variable=self.useMultiCores)
-		self.useMultiCoresCheckbox.grid(row=3,column=0,columnspan=2,sticky=tk.W)
-
 		self.useRamachandran = tk.IntVar()
 		self.useRamachandran.set(0)
 		self.useRamachandranCheckbox = tk.Checkbutton(self.f_options,text='Use Ramachandran linkers',variable=self.useRamachandran)
-		self.useRamachandranCheckbox.grid(row=4,column=0,columnspan=2,sticky=tk.W)
+		self.useRamachandranCheckbox.grid(row=3,column=0,columnspan=2,sticky=tk.W)
 		
 		self.clashToleranceLabel = tk.Label(self.f_options,text="CA-CA tolerance: ")
-		self.clashToleranceLabel.grid(row=5,column=0,sticky=tk.E)
+		self.clashToleranceLabel.grid(row=4,column=0,sticky=tk.E)
 		self.clashTolerance = tk.DoubleVar()
 		self.clashTolerance.set(1.0)
 		self.clashToleranceEntry = tk.Entry(self.f_options,textvariable=self.clashTolerance,width=3)
-		self.clashToleranceEntry.grid(row=5,column=1,sticky=tk.W)
+		self.clashToleranceEntry.grid(row=4,column=1,sticky=tk.W)
 
 		self.f_footer = tk.Frame(self,borderwidth=0)
 		self.f_footer.grid(row=5)
 
 		self.generateButton = tk.Button(self.f_footer,text='Generate PDBs...',default=tk.ACTIVE,command=self.generatePDBs,state=tk.DISABLED)
-		self.generateButton.grid(column=1,row=6,sticky=tk.W,pady=4)
+		self.generateButton.grid(column=1,row=5,sticky=tk.W,pady=4)
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
-		self.cancelButton.grid(column=2,row=6,sticky=tk.E,pady=4)
+		self.cancelButton.grid(column=2,row=5,sticky=tk.E,pady=4)
 		
 		self.generatorStatus = 0
 
@@ -264,8 +266,8 @@ class PDBBuildWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Problem with group definitions: %s' % (msg),parent=self)
 			return
 		
-		dir = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
-		if dir == '':
+		tmp = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
+		if tmp == '':
 			return
 		
 		prefix = self.pdbPrefix.get()
@@ -276,7 +278,7 @@ class PDBBuildWindow(tk.Frame):
 	
 		self.in_Queue,self.out_Queue = Queue(),Queue()
 		for i in range(self.pdbNumber.get()):
-			if os.path.exists(os.path.join(dir,prefix+(_PDB_generator_format%(i)))):
+			if os.path.exists(os.path.join(tmp,prefix+(_PDB_generator_format%(i)))):
 			
 				if show_warning:
 					if tkMessageBox.askquestion("Warning", "Directory already contains PDBs, PDB generator will start where previous iterations left off.", icon='warning', parent=self) != 'yes':
@@ -290,11 +292,7 @@ class PDBBuildWindow(tk.Frame):
 		self.pdbInfo.set( "Initializing generators..." )
 		self.update_idletasks()
 		
-		if self.useMultiCores.get() > 0:
-			self.pdbGenerators = [None]*cpu_count()
-		else:
-			self.pdbGenerators = [None]
-		
+		self.pdbGenerators = [None]*self.prefs['cpu_count']
 		for i in xrange(len(self.pdbGenerators)):
 			self.pdbGenerators[i] = mcpdb_generator.PDBGenerator(
 				self.in_Queue,
@@ -303,7 +301,7 @@ class PDBBuildWindow(tk.Frame):
 				groups,
 				use_rama=(self.useRamachandran.get() == 1),
 				fix_first=(self.fixFirstGroup.get() == 1),
-				dir=dir,
+				dir=tmp,
 				prefix=prefix,
 				format=_PDB_generator_format,
 				eval_kwargs={'clash_radius':self.clashTolerance.get()},
