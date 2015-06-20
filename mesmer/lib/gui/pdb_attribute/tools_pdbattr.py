@@ -9,17 +9,25 @@ import shutil
 import tkMessageBox
 import tkFileDialog
 
-def runRgCalculator( w ):
-	pass
+def get_table_info(path):
+	i,header,rows,cols = 0,None,0,None
+
+	fp = open( path, 'r' )
+	for l in fp:
+		if l[0] == '#' and header == None:
+			header = l.rstrip().split()
+			cols = len(header)
+		if l[0] != '#' and len(l.rstrip()) > 0:
+			r = l.rstrip().split()
+			if cols != None and len(r) != cols:
+				raise Exception("Error on line %i: number of columns does not match header."%(i))
+			elif cols == None:
+				cols = len(r)
+			rows+=1
+		i+=1		
+	fp.close()
 	
-def runDistanceCalculator( w ):		
-	pass
-	
-def runAngleCalculator( w ):
-	pass
-	
-def runDihedralCalculator( w ):
-	pass
+	return header,rows,cols
 	
 def rescue_attribute_table(w,fp):
 	if not tkMessageBox.askyesno("Rescue","Do you wish to save the calculated attribute column anyway?",parent=w):
@@ -38,7 +46,7 @@ def rescue_attribute_table(w,fp):
 	else:
 		out.close()
 	
-def consolidate_attribute_files(w,child_fp,col_title):
+def insert_attribute_column(w,child_fp,col_title):
 	"""
 	Append or insert into the existing attribute table the new name,value pairs from the temp attribute table
 	"""
@@ -55,7 +63,7 @@ def consolidate_attribute_files(w,child_fp,col_title):
 	except Exception as e:
 		tkMessageBox.showwarning("Error","Error backing up original attribute table: %s"%(e),parent=w)
 		rescue_attribute_table(w,child_fp)
-		w.pdbDirectoryInfo.config(text="Error.")
+		w.updateAttributeInfo("Error.")
 		return
 		
 	def _handle_error(text,title='Error',e=''):
@@ -65,7 +73,7 @@ def consolidate_attribute_files(w,child_fp,col_title):
 			pass
 		tkMessageBox.showerror(title,"%s%s"%(text,e),parent=w)
 		rescue_attribute_table(w,child_fp)
-		w.pdbDirectoryInfo.config(text="Error.")
+		w.updateAttributeInfo("Error.")
 			
 	# open a temporary db to save attribute data
 	# also set up a name-keyed dict to track modified records

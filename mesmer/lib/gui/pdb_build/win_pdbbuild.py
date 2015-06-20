@@ -247,7 +247,11 @@ class PDBBuildWindow(tk.Frame):
 		self.addRigidGroupButton.config(state=tk.NORMAL)
 		self.generateButton.config(state=tk.NORMAL)
 	
-	def generatePDBs(self):	
+	def generatePDBs(self):
+		#
+		# This needs to be replaced by the GUI multiprocessing tools, as used in pdbattr
+		#
+		
 		groups = []
 		for i in xrange(self.groupCounter):
 			groups.append( [] )

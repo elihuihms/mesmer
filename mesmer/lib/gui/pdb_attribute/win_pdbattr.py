@@ -1,5 +1,6 @@
 import os
 import glob
+import tempfile
 
 import Tkinter as tk
 import tkMessageBox
@@ -8,9 +9,10 @@ import tkFont
 
 from ... setup_functions import open_user_prefs
 from .. tools_multiprocessing import Parallelizor
-
 from tools_pdbattr import *
-from tools_rmsd import *
+
+import tools_rmsd
+import tools_geom
 
 _PDB_calculator_timer = 500 # in ms
 
@@ -28,8 +30,14 @@ class PDBAttributeWindow(tk.Frame):
 		
 		self.createWidgets()
 		self.pdbList = []
-		self.calculatorStatus = 0
-		
+		self.Calculator = None
+	
+		try:
+			self.prefs = open_user_prefs(mode='r')
+		except Exception as e:
+			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
+			self.master.destroy()
+			
 		#
 		self.loadDirPDBs("/Users/elihuihms/Dropbox/SteelSnowflake/MESMER/monte_carlo/pdbs")
 		self.setAttributeTable(False,"/Users/elihuihms/Dropbox/SteelSnowflake/MESMER/monte_carlo/pdb_attributes.txt")
@@ -37,11 +45,11 @@ class PDBAttributeWindow(tk.Frame):
 		#
 				
 	def cancelWindow(self):
-		if self.calculatorStatus == 0:
+		if self.Calculator == None:
 			self.master.destroy()
 			return
-		elif tkMessageBox.askquestion("Cancel", "Stop generating structures?", icon='warning',parent=self) == 'yes':
-			self.master.destroy()
+		elif tkMessageBox.askquestion("Cancel", "Stop calculations? Progress will be lost.", icon='warning',parent=self) == 'yes':
+			self.stopCalculator(abort=True)
 			return
 
 	def createWidgets(self):
@@ -112,7 +120,7 @@ class PDBAttributeWindow(tk.Frame):
 		
 		self.f_footer = tk.Frame(self)
 		self.f_footer.grid(row=4,sticky=tk.E+tk.W)
-		self.calculateButton = tk.Button(self.f_footer,text='Calculate...',state=tk.DISABLED,command=self.calculatePDBAttributes)
+		self.calculateButton = tk.Button(self.f_footer,text='Calculate...',state=tk.DISABLED,command=self.startCalculator)
 		self.calculateButton.grid(column=0,row=0,sticky=tk.E,pady=4)
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
 		self.cancelButton.grid(column=1,row=0,sticky=tk.E,pady=4)
@@ -398,40 +406,69 @@ class PDBAttributeWindow(tk.Frame):
 	# Action functions
 	#
 	
-	def calculatePDBAttributes(self):
-		w.Parallelizor = Parallelizor(function,args,kwargs,threads=w.prefs['cpu_count'])
-		w.Parallelizor_counter = 1
-		
+	def startCalculator(self):
 		if self.calc_RMSD_Button.cget('default') == tk.ACTIVE:
-			f = runRMSDCalculator( self )
+			args = tools_rmsd.setup(self)
+			if args != None:
+				self.Calculator = Parallelizor( function=tools_rmsd.calculate, args=args, threads=self.prefs['cpu_count'])
+				self.calculatorTitle = "RMSD_to_%s"%(os.path.basename(os.path.splitext(self.calc_RMSD_PDBPath.get())[0]))
 		elif self.calc_Rg_Button.cget('default') == tk.ACTIVE:
-			runRgCalculator( self )		
+			args = tools_geom.setup_rg(self)
+			if args != None:
+				self.Calculator = Parallelizor( function=tools_geom.calculate_rg, args=args, threads=self.prefs['cpu_count'])
+				self.calculatorTitle = "Rg"
 		elif self.calc_Distance_Button.cget('default') == tk.ACTIVE:
-			runDistanceCalculator( self )		
+			args = tools_geom.setup_distance(self)
+			if args != None:
+				self.Calculator = Parallelizor( function=tools_geom.calculate_distance, args=args, threads=self.prefs['cpu_count'])
+				self.calculatorTitle = "%s%i%s-%s%i%s"%tuple(args[0]+args[1])
 		elif self.calc_Angle_Button.cget('default') == tk.ACTIVE:
-			runAngleCalculator( self )
+			args = tools_geom.setup_angle(self)
+			if args != None:
+				self.Calculator = Parallelizor( function=tools_geom.calculate_angle, args=args, threads=self.prefs['cpu_count'])
+				self.calculatorTitle = "%s%i%s-%s%i%s-%s%i%s"%tuple(args[0]+args[1]+args[2])
 		elif self.calc_Dihedral_Button.cget('default') == tk.ACTIVE:
-			runDihedralCalculator( self )
+			args = tools_geom.setup_dihedral(self)
+			if args != None:
+				self.Calculator = Parallelizor( function=tools_geom.calculate_dihedral, args=args, threads=self.prefs['cpu_count'])
+				self.calculatorTitle = "%s%i%s-%s%i%s-%s%i%s-%s%i%s"%tuple(args[0]+args[1]+args[2]+args[3])
 
-		
+		if args != None:
+			self.Calculator.put(self.pdbList)
+			self.calculatorFile = tempfile.TemporaryFile()
+			self.calculatorAfter = self.after( _PDB_calculator_timer, self.updateCalculator )
+			self.calculatorCounter = 0
 	
-		w.Parallelizor.put(w.pdbList)
-		w.after( _PDB_calculator_timer, lambda: updator(w) )
-	
-	def updatePDBCalculators(self):
-		
-		
-		if len(indices) > 0:
-			self.pdbInfo.set( "Generated structure %i of %i"%(indices[0]+1,self.pdbNumber.get()) )
-		
-			if indices[0]+1 == self.pdbNumber.get():
-				self.stopPDBGenerators()
+	def updateCalculator(self):
+		for error,data in self.Calculator.get():
+			if error:
+				tkMessageBox.showerror("Error","Error on PDB %s:\n\nReason:\n%s"%(data[0],data[1]),parent=self)
+				self.stopCalculator(abort=True)
 				return
-					
-		self.after( _PDB_generator_timer, self.updatePDBGenerators )
-		w.updateAttributeInfo("Consolidating tables...")
+			else:
+				self.calculatorFile.write("%s\t%s\n"%(os.path.basename(os.path.splitext(data[0])[0]),data[1]))
+			self.calculatorCounter += 1
 
-	
+		if self.calculatorCounter == len(self.pdbList):
+			insert_attribute_column(self,self.calculatorFile,col_title=self.calculatorTitle)
+			self.stopCalculator()
+			self.setAttributeTable(new=False,path=self.attributeFilePath.get())
+			self.updateAttributeInfo("Done.")
+		else:
+			self.updateAttributeInfo("Processing PDB %i of %i."%(self.calculatorCounter,len(self.pdbList)))
+			self.calculatorAfter = self.after( _PDB_calculator_timer, self.updateCalculator )
+		
+	def stopCalculator(self,abort=False):
+		if self.Calculator != None:
+			self.calculatorFile.close()
+			if abort:
+				self.after_cancel(self.calculatorAfter)
+				self.Calculator.abort()
+				self.updateAttributeInfo("Aborted.")
+			else:
+				self.Calculator.stop()
+			self.Calculator = None
+							
 	def _reset_menu_options(self,optionmenu,optionvar,options,index=None):
 		optionmenu["menu"].delete(0, "end")
 		for string in options:
@@ -443,20 +480,6 @@ class PDBAttributeWindow(tk.Frame):
 		self.attributeFileInfo.config(text=text)
 		self.update_idletasks()
 			
-	def calculatePDBAttributes(self):
-		if self.calc_RMSD_Button.cget('default') == tk.ACTIVE:
-			runRMSDCalculator( self )
-		elif self.calc_Rg_Button.cget('default') == tk.ACTIVE:
-			runRgCalculator( self )		
-		elif self.calc_Distance_Button.cget('default') == tk.ACTIVE:
-			runDistanceCalculator( self )		
-		elif self.calc_Angle_Button.cget('default') == tk.ACTIVE:
-			runAngleCalculator( self )
-		elif self.calc_Dihedral_Button.cget('default') == tk.ACTIVE:
-			runDihedralCalculator( self )
-			
-		self.setAttributeTable(new=False,path=self.attributeFilePath.get())
-
 	def updateCalculateButton(self):
 		if len(self.pdbList) > 0 and self.attributeFilePath.get() != '':
 			if self.calc_RMSD_Button.cget('default') == tk.ACTIVE and self.calc_RMSD_PDBPath.get() == '':
@@ -505,9 +528,9 @@ class PDBAttributeWindow(tk.Frame):
 			self.updateAttributeInfo("Creating table...")
 			try:
 				f = open( path, 'w' )
-				f.write("#pdb\t\n")
+				f.write("#pdb\n")
 				for pdb in self.pdbList:
-					f.write( "%s\t\n"%(os.path.basename(os.path.splitext(pdb)[0])) )
+					f.write( "%s\n"%(os.path.basename(os.path.splitext(pdb)[0])) )
 				f.close()
 			except:
 				tkMessageBox.showerror("Error","Could not open the table for writing.",parent=self)
@@ -518,26 +541,22 @@ class PDBAttributeWindow(tk.Frame):
 			self.attributeFileColumns = []
 		else:	
 			self.updateAttributeInfo("Scanning table...")
-			header,pdbcounter = None,0
 			try:
-				f = open( path, 'rw' )
-				for l in f:
-					if pdbcounter == 0 and l[0] == '#' and header == None:
-						header = l
-					if l[0] != '#' and len(l.rstrip()) > 1:
-						pdbcounter += 1
-				f.close()
-			except:
-				tkMessageBox.showerror("Error","Could not open the specified table for modification.",parent=self)
+				header,rows,columns = get_table_info(path)
+			except Exception as e:
+				tkMessageBox.showerror("Error","Error opening the specified table: %s"%(e),parent=self)
 				self.updateAttributeInfo("Error.")
 				return
 		
-			if header != None and len(header.rstrip())>1:
-				self.attributeFileColumns = header[1:].rstrip().split()[1:]
+			if header != None:
+				self.attributeFileColumns = header[1:]
 			else:
 				tkMessageBox.showerror("Error","Attribute table doesn't contain column header.\ne.g.: #pdb    col1    col2    etc...",parent=self)
 				self.updateAttributeInfo("Error.")
 				return
+				
+			if len(header) != len(set(header)):
+				tkMessageBox.showwarning("Warning","Attribute table has duplicate column headers. Unexpected behavior may occur!",parent=self)
 				
 		self.attributeFileColumns.append("(Append new)")
 
@@ -547,7 +566,7 @@ class PDBAttributeWindow(tk.Frame):
 		if new:
 			self.updateAttributeInfo("Created new attribute table with %i records."%(pdbcounter))
 		else:
-			self.updateAttributeInfo("Loaded attribute table with %i records and %i column(s)."%(pdbcounter,len(self.attributeFileColumns)-1))
+			self.updateAttributeInfo("Loaded attribute table with %i records and %i column(s)."%(rows,len(self.attributeFileColumns)-1))
 
 		self.attributeFilePath.set(path)
 		self.attributeFileEntry.xview_moveto(1.0)
