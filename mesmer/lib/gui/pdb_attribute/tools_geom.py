@@ -48,7 +48,7 @@ def calculate_angle(pdb,A,B,C):
 		vC = model[C[0]][C[1]][C[2]].get_vector()
 	except Exception as e:
 		return True,(pdb,"Error reading specified atoms from PDB: %s"%(e))
-	return pdb,Bio.PDB.calc_angle(vA,vB,vC),False
+	return False,(pdb,Bio.PDB.calc_angle(vA,vB,vC))
 
 def calculate_dihedral(pdb,A,B,C,D):
 	try:

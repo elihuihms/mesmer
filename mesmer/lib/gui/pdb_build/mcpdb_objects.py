@@ -1,6 +1,6 @@
 from Bio.PDB import *
 from numpy import array,dot,sin,cos
-from random import random
+import random
 
 class TransformationGroup():
 	def __init__(self,residues,children=[]):
@@ -158,8 +158,8 @@ class TransformationGroup():
 											
 class TransformationModel():
 	
-	def __init__(self, pdb, group_specifiers=[], model=0):
-		self.parser		= PDBParser()
+	def __init__(self, pdb, group_specifiers=[], model=0, verbose=False):
+		self.parser		= PDBParser(QUIET=not verbose)
 		self.structure	= self.parser.get_structure('',pdb)
 		self.model		= self.structure[model]
 		
@@ -269,11 +269,11 @@ class TransformationModel():
 		
 	def tumble(self, x=None,y=None,z=None):
 		if x == None:
-			x = random()*2*3.1415
+			x = random.random()*2*3.1415
 		if y == None:
-			y = random()*2*3.1415
+			y = random.random()*2*3.1415
 		if z == None:
-			z = random()*2*3.1415
+			z = random.random()*2*3.1415
 
 		Rx = array([[1,0,0], [0, cos(x), -sin(x)], [0, sin(x), cos(x)]],'f')
 		Ry = array([[cos(y), 0, -sin(y)], [0, 1, 0], [sin(y), 0, cos(y)]],'f')

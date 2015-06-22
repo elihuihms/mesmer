@@ -8,7 +8,7 @@ import tkFileDialog
 import tkFont
 
 from ... setup_functions import open_user_prefs
-from .. tools_multiprocessing import Parallelizor
+from .. tools_multiprocessing import Parallelizer
 from tools_pdbattr import *
 
 import tools_rmsd
@@ -37,13 +37,7 @@ class PDBAttributeWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
-			
-		#
-		self.loadDirPDBs("/Users/elihuihms/Dropbox/SteelSnowflake/MESMER/monte_carlo/pdbs")
-		self.setAttributeTable(False,"/Users/elihuihms/Dropbox/SteelSnowflake/MESMER/monte_carlo/pdb_attributes.txt")
-		self.setRMSDReference("/Users/elihuihms/Dropbox/SteelSnowflake/MESMER/monte_carlo/pdbs/00079cam.pdb")
-		#
-				
+							
 	def cancelWindow(self):
 		if self.Calculator == None:
 			self.master.destroy()
@@ -410,27 +404,27 @@ class PDBAttributeWindow(tk.Frame):
 		if self.calc_RMSD_Button.cget('default') == tk.ACTIVE:
 			args = tools_rmsd.setup(self)
 			if args != None:
-				self.Calculator = Parallelizor( function=tools_rmsd.calculate, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = Parallelizer( function=tools_rmsd.calculate, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "RMSD_to_%s"%(os.path.basename(os.path.splitext(self.calc_RMSD_PDBPath.get())[0]))
 		elif self.calc_Rg_Button.cget('default') == tk.ACTIVE:
 			args = tools_geom.setup_rg(self)
 			if args != None:
-				self.Calculator = Parallelizor( function=tools_geom.calculate_rg, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = Parallelizer( function=tools_geom.calculate_rg, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "Rg"
 		elif self.calc_Distance_Button.cget('default') == tk.ACTIVE:
 			args = tools_geom.setup_distance(self)
 			if args != None:
-				self.Calculator = Parallelizor( function=tools_geom.calculate_distance, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = Parallelizer( function=tools_geom.calculate_distance, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "%s%i%s-%s%i%s"%tuple(args[0]+args[1])
 		elif self.calc_Angle_Button.cget('default') == tk.ACTIVE:
 			args = tools_geom.setup_angle(self)
 			if args != None:
-				self.Calculator = Parallelizor( function=tools_geom.calculate_angle, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = Parallelizer( function=tools_geom.calculate_angle, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "%s%i%s-%s%i%s-%s%i%s"%tuple(args[0]+args[1]+args[2])
 		elif self.calc_Dihedral_Button.cget('default') == tk.ACTIVE:
 			args = tools_geom.setup_dihedral(self)
 			if args != None:
-				self.Calculator = Parallelizor( function=tools_geom.calculate_dihedral, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = Parallelizer( function=tools_geom.calculate_dihedral, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "%s%i%s-%s%i%s-%s%i%s-%s%i%s"%tuple(args[0]+args[1]+args[2]+args[3])
 
 		if args != None:
@@ -547,7 +541,12 @@ class PDBAttributeWindow(tk.Frame):
 				tkMessageBox.showerror("Error","Error opening the specified table: %s"%(e),parent=self)
 				self.updateAttributeInfo("Error.")
 				return
-		
+			
+			if rows != len(self.pdbList):
+				tkMessageBox.showerror("Error","The selected table does not have a corresponding number of entries for the provided PDB directory!",parent=self)
+				self.updateAttributeInfo("Error.")
+				return
+						
 			if header != None:
 				self.attributeFileColumns = header[1:]
 			else:
@@ -573,7 +572,8 @@ class PDBAttributeWindow(tk.Frame):
 		self.updateCalculateButton()
 			
 	def setRMSDReference(self,tmp=''):
-#		tmp = tkFileDialog.askopenfilename(title='PDB coordinate file to use as a reference:',parent=self,filetypes=[('PDB',"*.pdb")])
+		if tmp == '':
+			tmp = tkFileDialog.askopenfilename(title='PDB coordinate file to use as a reference:',parent=self,filetypes=[('PDB',"*.pdb")])
 		if tmp == '':
 			return
 		self.calc_RMSD_PDBPath.set(tmp)

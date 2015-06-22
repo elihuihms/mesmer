@@ -15,26 +15,32 @@ def calculate(pdb,ref_atoms,ref_selector,sup_atoms,sup_selector):
 		parser	= Bio.PDB.PDBParser(QUIET=True)
 		model	= parser.get_structure('',pdb)[0]
 	except Exception as e:
-		return True(pdb,"Could not parse PDB file: %s"%(e))
+		return True,(pdb,"Could not parse PDB file: %s"%(e))
 
 	# superimpose models first
 	if sup_atoms != None:
 		if sup_selector == None:
-			match_atoms = [res['CA'] for res in model.get_residues()]
+			try:
+				match_atoms = [res['CA'] for res in model.get_residues()]
+			except KeyError:
+				return True,(pdb,"Error extracting C-alpha atoms from model residues. Perhaps there are solvent or hetams present?")
 		else:
 			try:
 				match_atoms = [model[sup_selector[0]][i]['CA'] for i in range(sup_selector[1],sup_selector[2])]
 			except IndexError:
-				return True(pdb,"Could not find residue %i of chain %s in PDB"%(i,chain),)
+				return True,(pdb,"Could not find residue %i of chain %s in PDB"%(i,chain),)
 		try:		
 			superimposer = Bio.PDB.Superimposer()
 			superimposer.set_atoms(sup_atoms,match_atoms)
 			superimposer.apply( model.get_atoms() ) # move ALL of the atoms in the test model
 		except Exception as e:
-			return True(pdb,"Failed to superimpose PDB %s"%(e))
+			return True,(pdb,"Failed to superimpose PDB %s"%(e))
 	
 	if ref_selector == None:
-		match_coords = [res['CA'].get_coord() for res in model.get_residues()]
+		try:
+			match_coords = [res['CA'].get_coord() for res in model.get_residues()]
+		except KeyError:
+			return True,(pdb,"Error extracting C-alpha atoms from model residues. Perhaps there are solvent or hetams present?")
 	else:
 		try:
 			match_coords = [model[ref_selector[0]][i]['CA'].get_coord() for i in range(ref_selector[1],ref_selector[2])]
@@ -57,7 +63,11 @@ def setup( w ):
 		return None
 		
 	if w.calc_RMSD_SuperimposeSel.get() == 0: # superimpose all residues
-		sup_atoms = [res['CA'] for res in model.get_residues()]
+		try:
+			sup_atoms = [res['CA'] for res in model.get_residues()]
+		except KeyError:
+			tkMessageBox.showerror("Error","Error extracting C-alpha atoms from model residues. Perhaps there are solvent or hetams present?",parent=w)
+			return None
 		sup_selector = None
 	elif w.calc_RMSD_SuperimposeSel.get() == 1: # superimpose a portion
 		sup_selector = w.calc_RMSD_SuperimposeChain.get(),w.calc_RMSD_SuperimposeResStart.get(),w.calc_RMSD_SuperimposeResEnd.get()
@@ -71,7 +81,12 @@ def setup( w ):
 		sup_selector = None
 
 	if w.calc_RMSD_CalcSel.get() == 0: # calculate RMSD using all residues
-		ref_atoms = [res['CA'] for res in model.get_residues()]
+		try:
+			ref_atoms = [res['CA'] for res in model.get_residues()]
+		except KeyError:
+			tkMessageBox.showerror("Error","Error extracting C-alpha atoms from model residues. Perhaps there are solvent or hetams present?",parent=w)
+			return None
+
 		ref_selector = None
 	else: # only calculate RMSD for some
 		ref_selector = w.calc_RMSD_CalcChain.get(),w.calc_RMSD_CalcResStart.get(),w.calc_RMSD_CalcResEnd.get()

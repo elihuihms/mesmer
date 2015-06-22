@@ -26,7 +26,7 @@ class Worker(multiprocessing.Process):
 		for d in iter(self.iQ.get, None):
 			self.oQ.put( self.function(d,*self.args,**self.kwargs) )
 			
-class Parallelizor():
+class Parallelizer():
 	def __init__(self,function,args=[],kwargs={},threads=1):
 		self.in_Queue = multiprocessing.Queue()
 		self.out_Queue = multiprocessing.Queue()

@@ -46,9 +46,7 @@ class MainWindow(tk.Frame):
 		self.pdbBuildMaster	= None
 		self.calcAttrMaster	= None
 		self.aboutMaster	= None
-		
-		self.calcAttributes()
-		
+				
 	def loadPrefs(self):
 		self.Ready = True
 

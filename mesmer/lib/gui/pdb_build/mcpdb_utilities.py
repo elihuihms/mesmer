@@ -4,7 +4,7 @@ import glob
 from Bio.PDB import *
 
 def get_chain_info( path ):
-	parser		= PDBParser()
+	parser		= PDBParser(QUIET=True)
 	structure	= parser.get_structure('',path)
 	model		= structure[0]
 	
@@ -20,7 +20,7 @@ def get_chain_info( path ):
 	return chains
 
 def check_groups( path, groups, model=0):
-	parser		= PDBParser()
+	parser		= PDBParser(QUIET=True)
 	structure	= parser.get_structure('',path)
 	model		= structure[model]
 
@@ -35,6 +35,11 @@ def check_groups( path, groups, model=0):
 				return 2,"Residue %i of chain %s assigned to two groups"%(start,chain)
 			if end in assigned_ranges[chain]:
 				return 2,"Residue %i of chain %s assigned to two groups"%(start,chain)
+				
+			if (start-1) in assigned_ranges[chain]:
+				return 3,"Linker starting at residue %i of chain %s must be at least two residues long"%(start,chain)
+			if (end+1) in assigned_ranges[chain]:
+				return 3,"Linker ending at residue %i of chain %s must be at least two residues long"%(end,chain)
 
 			assigned_ranges[chain].extend( range( min(start,end), max(start,end) ) )
 				
@@ -53,20 +58,26 @@ def check_PDB( path, model=0 ):
 	# returns:
 	# 0,None if ok
 	# 1 if break
-	
-	parser		= PDBParser()
-	structure	= parser.get_structure('',path)
-	model		= structure[model]
-		
-	for chain in model:
-		prev_resnum = None
-		for r in chain:
-			f1, m, c, (f2, resnum, f3) = r.get_full_id()
-			if prev_resnum != None:
-				if resnum != prev_resnum +1:
-					return 1,"Discontinuity in chain %s (jumped from %i to %i)"%(c,prev_resnum,resnum)
+
+	try:
+		parser		= PDBParser(QUIET=False)
+		structure	= parser.get_structure('',path)
+		model		= structure[model]
+	except Exception as e:
+		return 2,"Error during PDB parsing: %s"%(e)
+
+	try:
+		for chain in model:
+			prev_resnum = None
+			for r in chain:
+				f1, m, c, (f2, resnum, f3) = r.get_full_id()
+				if prev_resnum != None:
+					if resnum > prev_resnum +1:
+						return 1,"Discontinuity in chain %s (jumped from %i to %i)"%(c,prev_resnum,resnum)
 			
-			prev_resnum = resnum
+				prev_resnum = resnum
+	except Exception as e:
+		return 2,"Error during PDB parsing: %s"%(e)
 	
 	return 0,None
 	
