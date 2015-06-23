@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # MESMER - Minimal Ensemble Solutions to Multiple Experimental Restraints
-# Copyright (C) 2014 Elihu Ihms
+# Copyright (C) 2015 SteelSnowflake Software LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ except ImportError:
 try:
 	import Bio
 except ImportError:
-	s = raw_input("WARNING: Biopython is not installed, some plugins may not work properly, continue? (Y/N): ")
+	s = raw_input("WARNING: Biopython is not installed, some GUI plugins may not work properly, continue? (Y/N): ")
 	if s[0]!='Y' and s[0]!='y':
 		exit()
 
@@ -62,6 +62,8 @@ packages = [
 	'mesmer',
 	'mesmer.lib',
 	'mesmer.lib.gui',
+	'mesmer.lib.gui.pdb_attribute',
+	'mesmer.lib.gui.pdb_build',
 	'mesmer.utilities',
 	'mesmer.plugins',
 ]
@@ -70,7 +72,9 @@ package_data = {
 	'':
 		['LICENSE.txt'],
 	'mesmer.lib.gui':
-		['mesmer_logo.gif']
+		['mesmer_logo.gif'],
+	'mesmer.lib.gui_pdb_attribute':
+		['image_angle.gif','image_dihedral.gif','image_distance.gif']
 }
 
 plugin_packages = [
