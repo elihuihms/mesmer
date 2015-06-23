@@ -7,7 +7,7 @@ import tkFont
 from multiprocessing import Queue
 
 from ... setup_functions import open_user_prefs
-from .. tools_multiprocessing import Parallelizer
+from .. tools_multiprocessing import ObjectParallelizer
 
 import mcpdb_generator
 import mcpdb_objects

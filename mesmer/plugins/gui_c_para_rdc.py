@@ -1,22 +1,11 @@
 import os
 import argparse
-import shutil
-import sys
+import tkFileDialog
+import Bio.PDB
 
-from tkFileDialog			import askopenfilename
-
+from lib.exceptions			import *
 from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
-
-# preflight Bio.PDB and numpy before importing pyParaTools
-try:
-	import Bio.PDB
-except:
-	raise Exception("Failed to import BioPython")
-try:
-	import numpy
-except:
-	raise Exception("Failed to import Numpy")
 
 from	pyParaTools.ParaParser	import *
 from	pyParaTools.CalcPara	import *
@@ -27,10 +16,9 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'RDC - pyParaTools'
-		self.version = '2013.10.18'
+		self.version = '2015.06.23'
 		self.info = 'This plugin uses PyParaTools (see http://comp-bio.anu.edu.au/mscook/PPT/) to calculate paragmagnetic residual dipolar couplings resulting from a paramagnetic atom in a PDB.'
 		self.type = 'TABL'
-		self.respawn = 100
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-Dax',	type=float,	help='Axial component of diffusion tensor',				required=True)
@@ -41,32 +29,23 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-B0',		type=float,	help='Field strength (Gauss)',	default=16.44)
 		self.parser.add_argument('-temp',	type=float,	help='Temperature (K)',			default=298.0)
 
-	def setup(self, pdbs, dir, options, threads):
-		self.pdbs	= pdbs
-		self.dir	= dir
-		self.args	= self.parser.parse_args( makeStringFromOptions(options).split() )
-		self.threads	= threads
-		self.counter	= 0
-		self.state	= 0 # not busy
-		self.currentPDB = ''
+	def setup(self, parent, options, outputpath):
+		self.outputpath	= outputpath
+		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
 
-		self.template = askopenfilename(title='Select experimental RDC table template in CYANA format:')
+		self.template = tkFileDialog.askopenfilename(title='Select experimental RDC table template in CYANA format:',parent=parent)
 		if(self.template == ''):
-			raise Exception( "Must select an experimental RDC table" )
+			return False
 		if not os.access(self.template, os.R_OK):
-			raise Exception( "Could not read specified RDC table")
+			raise mesPluginError("Could not read specified RDC table")
+		return True
 
-	def calculator(self):
-		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
-			return
-		self.state +=1
-
-		pdb = os.path.abspath( self.pdbs[self.counter] )
+	def calculate(self, pdb):
 		base = os.path.basename(pdb)
-		name = os.path.splitext( os.path.basename(pdb) )[0]
+		name = os.path.splitext(base)[0]
 
 		if not os.access(pdb, os.R_OK):
-			raise Exception( "Could not read \"%s\"" % (pdb) )
+			return True,(pdb,"Failure reading.")
 
 		config = [
 			'',
@@ -90,8 +69,6 @@ class plugin(guiCalcPlugin):
 		calc.RDC(rdc, 'ZYZ')
 
 		analysis = ExplorePara()
-		analysis.buildNumbatTBL(rdc, "%s%s%s.rdc" % (self.dir,os.sep,name))
+		analysis.buildNumbatTBL(rdc, "%s%s%s.rdc" % (os.path.join(self.outputpath,name)))
 
-		self.state -=1
-		self.counter +=1
-		return self.counter
+		return False,(pdb,None)

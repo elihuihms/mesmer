@@ -1,10 +1,10 @@
 import os
 import argparse
-import shutil
+import tkFileDialog
 
 from subprocess				import Popen,PIPE
-from tkFileDialog			import askopenfilename
 
+from lib.exceptions			import *
 from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
 
@@ -13,10 +13,9 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'FRET'
-		self.version = '2013.10.18'
+		self.version = '2015.06.23'
 		self.info = 'This plugin predicts fluorescence lifetime data from a PDB containing two labeling sites.'
 		self.type = 'CURV'
-		self.respawn = 100
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-TDi',	type=float,	help='Intrinsic donor lifetime', required=True)
@@ -28,49 +27,38 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-SkipChain', action='store_true', help='Skip acceptor fluorophores in the same chain as the donor.')
 		self.parser.add_argument('-SkipModel', action='store_true', help='Skip acceptor fluorophores in the same model as the donor.')
 
-	def setup(self, pdbs, dir, options, threads):
-		self.pdbs	= pdbs
-		self.dir	= dir
+	def setup(self, parent, options, outputpath):
 		self.options	= options
-		self.threads	= threads
-		self.counter	= 0
-		self.state	= 0 # not busy
-		self.currentPDB = ''
-
+		self.outputpath	= outputpath
+		
 		self.prog = os.path.join(os.path.dirname(__file__),'gui_c_fret_lib','pdb_fret_sim.py')
 		if not os.access(self.prog, os.X_OK):
-			raise Exception( "Could not execute pdb_fret_sim.py" )
+			raise mesPluginError("Could not execute pdb_fret_sim.py")
 
-		self.irf = askopenfilename(title='Select instrument response function (IRF) file:')
+		self.irf = tkFileDialog.askopenfilename(title='Select instrument response function (IRF) file:',parent=parent)
 		if(self.irf == ''):
-			raise Exception( "Must select an IRF file" )
+			return False
 		if not os.access(self.irf, os.R_OK):
-			raise Exception( "Could not read specified IRF file")
+			raise mesPluginError("Could not read specified IRF file")
+		return True
 
-	def calculator(self):
-		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
-			return
-		self.state +=1
-
-		pdb = os.path.abspath( self.pdbs[self.counter] )
+	def calculate(self, pdb):
 		base = os.path.basename(pdb)
-		name = os.path.splitext( os.path.basename(pdb) )[0]
-		out = "%s%s%s.dat" % (self.dir,os.sep,name)
+		name = os.path.splitext(base)[0]
+		out = "%s%s%s.dat" % (self.outputpath,os.sep,name)
 
 		if not os.access(pdb, os.R_OK):
-			raise Exception( "Could not read \"%s\"" % (pdb) )
+			return True,(pdb,"Failure reading.")
 
 		cmd = [self.prog]
 		cmd.extend( makeStringFromOptions(self.options).split() )
 		cmd.extend( ['-TAi','1.0','-irf',self.irf,'-pdb',pdb,'-out',out] )
-		pipe = Popen(cmd, cwd=self.dir, stdout=PIPE)
+		pipe = Popen(cmd, cwd=self.outputpath, stdout=PIPE)
 		pipe.wait()
 
 		if( pipe.returncode != 0 ):
-			raise Exception( "Lifetime calculation failed for \"%s\". %s" % (pdb,pipe.stdout.read()) )
+			return True(pdb,"Lifetime calculation failed: %s." % (pipe.stdout.read()) )
 		if not os.access(out, os.R_OK):
-			raise Exception( "Lifetime calculation failed for \"%s\". %s" % (pdb,pipe.stdout.read()) )
+			return True,(pdb,"Lifetime calculation failed: %s" % (pipe.stdout.read()) )
 
-		self.state -=1
-		self.counter +=1
-		return self.counter
+		return False,(pdb,None)

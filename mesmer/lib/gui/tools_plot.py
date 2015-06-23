@@ -57,6 +57,7 @@ def plotRestraint( w ):
 				if w.optWindow.returncode != 0:
 					return
 
+			#@TODO@ check for returned plugin status instead of just exception handling
 			try:
 				if( p.parser ):
 					p.plot( path, w.pluginOptions[ p.name ] )

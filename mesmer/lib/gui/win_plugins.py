@@ -15,14 +15,14 @@ from tools_plugin			import getPluginPrefs,setPluginPrefs
 class PluginWindow(tk.Frame):
 	def __init__(self, master=None):
 		self.master = master
-		self.master.geometry('450x360+100+100')
 		self.master.title('Plugin Manager')
+		
 		self.master.resizable(width=False, height=False)
 		self.master.protocol('WM_DELETE_WINDOW', self.close)
 
-		tk.Frame.__init__(self,master,width=450,height=360)
-		self.grid()
-		self.grid_propagate(0)
+		tk.Frame.__init__(self,master)
+		self.pack(expand=True,fill='both',padx=6,pady=6)
+		self.pack_propagate(True)
 
 		self.loadPrefs()
 		self.createWidgets()
@@ -134,8 +134,8 @@ class PluginWindow(tk.Frame):
 		self.plugin_list_versions.append( tk.Label(container, text=version, state=state, width=20) )
 		self.plugin_list_versions[-1].grid(column=3,row=row, sticky=tk.E)
 
-		self.master.geometry('450x%i' % (360+self.rowcount*20))
-		self.config(width=450,height=(360+self.rowcount*20))
+#		self.master.geometry('450x%i' % (360+self.rowcount*20))
+#		self.config(width=450,height=(360+self.rowcount*20))
 		self.rowcount += 1
 
 	def togglePluginRow( self, index, enable ):
@@ -244,7 +244,7 @@ class PluginWindow(tk.Frame):
 				if getPluginPrefs( self.prefs, module.name )['path'] == None: setPluginPrefs( self.prefs, id, path=module.path )
 			else:
 				self.plugin_names.append(None)
-				self.plugin_list_info.append( error )
+				self.plugin_list_info.append( msg )
 				self.createPluginRow( self.f_mesmerplugins, True, id, '', '' )
 
 		for (id,ok,msg,module) in load_plugins( self.prefs['mesmer_base_dir'], 'mesmer', dry_run=True, args=parse_arguments('') ):

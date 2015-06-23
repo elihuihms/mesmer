@@ -1,0 +1,123 @@
+
+MESMER v. 0.9.0 
+(c)2012-2014 Elihu Ihms
+Arguments:
+	force	:	False
+	scratch	:	None
+	boots	:	200
+	Pmin	:	1.0
+	seed	:	1
+	Smin	:	0.0
+	Rn	:	30
+	Ralgorithm	:	6
+	size	:	3
+	ensembles	:	1000
+	Gmutate	:	1.0
+	Gmax	:	3
+	Pbest	:	True
+	Rprecision	:	0.01
+	Gsource	:	0.1
+	Pstate	:	True
+	resume	:	None
+	uniform	:	False
+	Pextra	:	True
+	Fmin	:	0.0
+	Pstats	:	True
+	target	:	['/Users/elihuihms/Dropbox/steelsnowflake/MESMER/mesmer.current/tests/data/test_cam_1.target']
+	name	:	cam_mesmer_1
+	Pcorr	:	1.0
+	Rforce	:	False
+	plugin	:	None
+	components	:	[['/Users/elihuihms/Dropbox/steelsnowflake/MESMER/mesmer.current/tests/data/cam_components']]
+	Popt	:	True
+	threads	:	3
+	dir	:	/Users/elihuihms/Dropbox/steelsnowflake/MESMER/mesmer.current/tests/out/cam_mesmer_1
+	Gcross	:	0.8
+
+INFO: Reading target file "/Users/elihuihms/Dropbox/steelsnowflake/MESMER/mesmer.current/tests/data/test_cam_1.target"
+INFO: Target file "/Users/elihuihms/Dropbox/steelsnowflake/MESMER/mesmer.current/tests/data/test_cam_1.target" lines 3-67 - plugin "default_CURV" created 1.0x weighted "SAXS" restraint.
+INFO: Target file "/Users/elihuihms/Dropbox/steelsnowflake/MESMER/mesmer.current/tests/data/test_cam_1.target" lines 70-107 - plugin "default_LIST" created 1.0x weighted "TABL1" restraint.
+INFO: Target file "/Users/elihuihms/Dropbox/steelsnowflake/MESMER/mesmer.current/tests/data/test_cam_1.target" lines 110-140 - plugin "default_LIST" created 1.0x weighted "TABL2" restraint.
+INFO: Target file "/Users/elihuihms/Dropbox/steelsnowflake/MESMER/mesmer.current/tests/data/test_cam_1.target" lines 143-259 - plugin "default_LIST" created 1.0x weighted "TABL3" restraint.
+INFO: Target file "/Users/elihuihms/Dropbox/steelsnowflake/MESMER/mesmer.current/tests/data/test_cam_1.target" lines 262-436 - plugin "default_LIST" created 1.0x weighted "TABL4" restraint.
+INFO: Found 100 component files.
+
+Algorithm starting on 2015-06-23 16:54:14.401413.
+
+Generation 0
+
+	Current time: 2015-06-23 16:55:48.083745
+	Parent survival percentage: 53%, 962 unique ensembles
+
+		Best Score	|	Average		|	Stdev
+		------------------------------------------------------------
+		1.811e+00	|	1.969e+01	|	9.308e+00
+	SAXS	1.040e+00	|	1.678e+01	|	9.014e+00
+	TABL1	4.781e-01	|	1.242e+00	|	3.924e-01
+	TABL2	2.746e-01	|	1.306e+00	|	4.626e-01
+	TABL3	8.582e-03	|	2.232e-01	|	1.337e-01
+	TABL4	1.026e-02	|	1.468e-01	|	7.240e-02
+
+	test_cam_1
+		0.003 +/- 0.000	00023cam
+		0.003 +/- 0.000	00020cam
+		0.994 +/- 0.000	00050cam
+
+Generation 1
+
+	Current time: 2015-06-23 16:56:49.614013
+	Parent survival percentage: 56%, 942 unique ensembles
+
+		Best Score	|	Average		|	Stdev
+		------------------------------------------------------------
+		1.789e+00	|	1.275e+01	|	5.645e+00
+	SAXS	1.006e+00	|	9.981e+00	|	5.212e+00
+	TABL1	4.793e-01	|	1.216e+00	|	4.295e-01
+	TABL2	2.862e-01	|	1.204e+00	|	4.599e-01
+	TABL3	7.172e-03	|	2.083e-01	|	1.140e-01
+	TABL4	1.016e-02	|	1.445e-01	|	7.174e-02
+
+	test_cam_1
+		1.001 +/- 0.000	00050cam
+		0.018 +/- 0.000	00064cam
+		-0.018 +/- 0.000	00039cam
+
+Generation 2
+
+	Current time: 2015-06-23 16:58:00.587306
+	Parent survival percentage: 58%, 919 unique ensembles
+
+		Best Score	|	Average		|	Stdev
+		------------------------------------------------------------
+		1.774e+00	|	8.526e+00	|	4.111e+00
+	SAXS	1.009e+00	|	6.099e+00	|	3.569e+00
+	TABL1	4.735e-01	|	1.063e+00	|	4.001e-01
+	TABL2	2.728e-01	|	1.042e+00	|	4.567e-01
+	TABL3	8.134e-03	|	1.902e-01	|	1.007e-01
+	TABL4	1.102e-02	|	1.316e-01	|	6.887e-02
+
+	test_cam_1
+		0.031 +/- 0.000	00036cam
+		0.987 +/- 0.000	00050cam
+		-0.018 +/- 0.000	00027cam
+
+Generation 3
+
+	Current time: 2015-06-23 16:59:01.915421
+	Parent survival percentage: 60%, 879 unique ensembles
+
+		Best Score	|	Average		|	Stdev
+		------------------------------------------------------------
+		1.774e+00	|	5.473e+00	|	2.443e+00
+	SAXS	1.009e+00	|	3.457e+00	|	1.893e+00
+	TABL1	4.735e-01	|	8.849e-01	|	3.453e-01
+	TABL2	2.728e-01	|	8.466e-01	|	4.289e-01
+	TABL3	8.134e-03	|	1.682e-01	|	1.087e-01
+	TABL4	1.102e-02	|	1.162e-01	|	7.285e-02
+
+	test_cam_1
+		0.031 +/- 0.000	00036cam
+		0.987 +/- 0.000	00050cam
+		-0.018 +/- 0.000	00027cam
+
+Generation counter has reached Gmax, exiting.

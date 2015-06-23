@@ -1,112 +1,69 @@
 import os
 import argparse
-import shutil
-import sys
+import tkFileDialog
+import Bio.PDB
 
-from tkFileDialog			import askopenfilename
-
+from lib.exceptions			import *
 from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
-
-# preflight Bio.PDB and numpy before importing pyParaTools
-try:
-	import Bio.PDB
-except:
-	raise Exception("Failed to import BioPython")
-try:
-	import numpy
-except:
-	raise Exception("Failed to import Numpy")
 
 from	pyParaTools.ParaParser	import *
 from	pyParaTools.CalcPara	import *
 from	pyParaTools.ExplorePara	import *
-
-def get_atom_coords(file,chainID=None,resNum=None,atomName='CA'):
-
-	f = open(file, 'r')
-
-	ret = []
-
-	line = f.readline()
-	while( line ):
-
-		if (line[0:4] != 'ATOM') and (line[0:6] != 'HETATM'):
-			line = f.readline()
-			continue
-
-		if (line[21]==chainID) or (chainID==None):
-			if (int(line[22:26])==int(resNum)) or (resNum==None):
-				if( line[12:16].strip() == atomName ):
-					ret.append( (float(line[30:38]),float(line[38:46]),float(line[46:54])) )
-
-		line = f.readline()
-	f.close()
-
-	return ret
 
 class plugin(guiCalcPlugin):
 
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'PCS - pyParaTools'
-		self.version = '2013.10.18'
+		self.version = '2015.06.23'
 		self.info = 'This plugin uses PyParaTools (see http://comp-bio.anu.edu.au/mscook/PPT/) to calculate pseudocontact shifts from a paramagnetic atom in a PDB.'
 		self.type = 'TABL'
-		self.respawn = 100
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-chainID',			help='Chain ID for paramagnetic center')
 		self.parser.add_argument('-resNum',				help='Residue number of paramagnetic center')
 		self.parser.add_argument('-atom',				help='Paramagnetic center atom name')
-		self.parser.add_argument('-Dax',	type=float,	help='Axial component of paramagnetic tensor',				required=True)
+		self.parser.add_argument('-Dax',	type=float,	help='Axial component of paramagnetic tensor',			required=True)
 		self.parser.add_argument('-Drh',	type=float,	help='Rhomboidal component of paramagnetic tensor',		required=True)
 		self.parser.add_argument('-Alpha',	type=float,	help='Alpha component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-Beta',	type=float,	help='Beta component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-Gamma',	type=float,	help='Gamma component of alignment tensor Euler angle',	required=True)
 
-	def setup(self, pdbs, dir, options, threads):
-		self.pdbs	= pdbs
-		self.dir	= dir
-		self.args	= self.parser.parse_args( makeStringFromOptions(options).split() )
-		self.threads	= threads
-		self.counter	= 0
-		self.state	= 0 # not busy
-		self.currentPDB = ''
+	def setup(self, parent, options, outputpath):
+		self.outputpath	= outputpath
+		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
 
-		self.template = askopenfilename(title='Select experimental PCS table template in CYANA format:')
+		self.template = tkFileDialog.askopenfilename(title='Select experimental PCS table template in CYANA format:',parent=parent)
 		if(self.template == ''):
-			raise Exception( "Must select an experimental PCS table" )
+			return False
 		if not os.access(self.template, os.R_OK):
-			raise Exception( "Could not read specified PCS table")
+			raise mesPluginError("Could not read specified PCS table")
+		return True
 
-	def calculator(self):
-		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
-			return
-		self.state +=1
-
-		pdb = os.path.abspath( self.pdbs[self.counter] )
+	def calculate(self, pdb):
 		base = os.path.basename(pdb)
-		name = os.path.splitext( os.path.basename(pdb) )[0]
+		name = os.path.splitext(base)[0]
+			
+		try:
+			parser	= Bio.PDB.PDBParser(QUIET=True)
+			model	= parser.get_structure('',pdb)[0]
+		except Exception as e:
+			return True,(pdb,"Could not parse PDB file: %s"%(e))
 
-		if not os.access(pdb, os.R_OK):
-			raise Exception( "Could not read \"%s\"" % (pdb) )
-
-		coords = get_atom_coords( pdb, self.args.chainID, self.args.resNum, self.args.atom )
-
-		if len(coords) < 1:
-			raise Exception('Error',"Could not find a paramagnetic center using \"%s\":%i:%s" % (self.args.chainID,self.args.resNum,self.args.atom) )
-		if len(coords) > 1:
-			raise Exception('Error',"%i potential paramagnetic centers found using \"%s\":%i:%s" % (len(coords),self.args.chainID,self.args.resNum,self.args.atom) )
-
+		try:
+			coord	= model[ self.args.chainID ][ self.args.resNum ][ self.args.atom ].get_coord()
+		except (IndexError,KeyError):
+			return True,(pdb,"Could not find specified atom in PDB.") 
+			
 		config = [
 			'',
 			'pcs',
 			pdb,
 			self.template,
-			coords[0][0],
-			coords[0][1],
-			coords[0][2],
+			coord[0],
+			coord[1],
+			coord[2],
 			self.args.Dax,
 			self.args.Drh,
 			self.args.Alpha,
@@ -121,8 +78,6 @@ class plugin(guiCalcPlugin):
 		calc.PCS(pcs, 'ZYZ')
 
 		analysis = ExplorePara()
-		analysis.buildNumbatTBL(pcs, "%s%s%s.pcs" % (self.dir,os.sep,name))
+		analysis.buildNumbatTBL(pcs, "%s%s%s.pcs" % (os.path.join(self.outputpath,name)))
 
-		self.state -=1
-		self.counter +=1
-		return self.counter
+		return False,(pdb,None)

@@ -1,6 +1,5 @@
 import os
 import shutil
-import tempfile
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
@@ -13,6 +12,9 @@ from .. plugin_functions		import *
 from win_options				import *
 from win_status					import *
 from tools_plugin				import *
+from tools_multiprocessing		import ObjectParallelizer
+
+_PDB_calculator_timer = 500 # in ms
 
 def makeComponentsFromWindow( w ):
 	paths = w.componentPDBsList.get(0,tk.END)
@@ -67,21 +69,6 @@ NAME	$0
 	tkMessageBox.showinfo("Success","%i component files were successfully written" % (len(names.keys())))
 	return True
 
-def pluginCalculator( w, plugin, pdbs, dir ):
-#	try:
-	counter = plugin.calculator()
-#	except Exception as e:
-#		tkMessageBox.showerror("Error","Plugin \"%s\" reported an error.\n\n%s" % (plugin.name,e) )
-#		return
-
-	if( counter < len(pdbs) ):
-		w.CalcProgress.set("Progress: %i/%i" % (counter+1,len(pdbs)) )
-		w.CurrentPDB.set( os.path.basename( pdbs[counter] ) )
-		w.AfterID = w.after( plugin.respawn, pluginCalculator, *(w,plugin,pdbs,dir) )
-	else:
-		plugin.close()
-		w.master.destroy()
-
 def calcDataFromWindow( w, pdbs, pluginName ):
 
 	# find the plugin matching the provided name
@@ -116,39 +103,59 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	# save the modified preferences/options with a handy generator	
 	setPluginPrefs( w.prefs, plugin.name, options={o['dest']:o['value'] for o in options} )
 
-	dir = tkFileDialog.asksaveasfilename(title='Folder to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.type) )
-	if(dir == ''):
+	path = tkFileDialog.asksaveasfilename(title='Folder to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.type) )
+	if(path == ''):
 		return
-	if(os.path.exists(dir)):
-		shutil.rmtree(dir)
+	if(os.path.exists(path)):
+		shutil.rmtree(path)
 	try:
-		os.mkdir(dir)
+		os.mkdir(path)
 	except:
-		tkMessageBox.showerror("Error","Could not create folder \"%s\"" % dir)
+		tkMessageBox.showerror("Error","Could not create folder \"%s\"" % path)
 		return
-
+	
 	try:
-		plugin.setup( pdbs, dir, options, w.prefs['cpu_count'] )
+		ok = plugin.setup( w, options, path )
 	except Exception as e:
 		tkMessageBox.showerror("Error","Plugin reported a problem: %s" % (e))
+		return		
+	if not ok:
 		return
 
 	# update the parent window row
 	for i in range(w.rowCounter):
 		if( w.widgetRowTypes[i].get() == plugin.type and w.widgetRowFolders[i].get() == '' ):
-			w.widgetRowFolders[i].set( dir )
+			w.widgetRowFolders[i].set( path )
 			break
 
+	# initialize the calculator
+	w.Calculator = ObjectParallelizer(plugin,'calculate',threads=w.prefs['cpu_count'])
+	w.Calculator.put(pdbs)
+	w.counter = 0
+	
 	# open the status window
 	w.newWindow = tk.Toplevel(w.master)
-	w.statWindow = StatusWindow(w.newWindow,plugin.cancel,plugin.name)
+	w.statWindow = StatusWindow(w.newWindow,w.Calculator.abort,plugin.name)
 	w.newWindow.focus_set()
 	w.newWindow.grab_set()
-
-	# set the timed callback function
-	w.optWindow.AfterID = w.after( plugin.respawn, pluginCalculator, *(w.statWindow,plugin,pdbs,dir) )
+	
+	w.Calculator.AfterID = w.after( _PDB_calculator_timer, calculatorStatus, w, pdbs )
 
 	return w.newWindow
+		
+def calculatorStatus( w, pdbs ):
+	for error,(pdb,info) in w.Calculator.get():
+		w.counter += 1
+		if error:
+			w.Calculator.abort()
+			tkMessageBox.showerror("Error","Encountered an error while processing PDB \"%s\":\n\n%s" % (pdb,info),parent=w)
+			w.statWindow.close()
+			return	
 
-
-
+	if( w.counter == len(pdbs) ):
+		w.Calculator.stop()
+		w.statWindow.master.destroy()
+	else:
+		w.statWindow.CalcProgress.set("Progress: %i/%i" % (w.counter+1,len(pdbs)) )
+		w.statWindow.CurrentPDB.set( os.path.basename( pdbs[w.counter] ) )
+		w.AfterID = w.after( _PDB_calculator_timer, calculatorStatus, w, pdbs )

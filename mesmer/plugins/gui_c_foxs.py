@@ -14,10 +14,9 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'SAXS - FoXS'
-		self.version = '2014.03.03'
+		self.version = '2015.06.23'
 		self.info = 'This plugin uses the Integrative Modeling Platform (see http://salilab.org/imp) to predict a SAXS profile from a PDB.'
 		self.type = 'SAXS'
-		self.respawn = 20
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-qmin',	type=float,	default=0.0,	help='Minimum scattering angle')
@@ -25,30 +24,16 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-qnum',	type=int,	default=100,	help='Total points in the scattering profile')
 		self.parser.add_argument('-water',	action='store_true',	default=True,	help='Use hydration layer')
 
-	def setup(self, pdbs, dir, options, threads):
+	def setup(self, parent, options, outputpath):
 		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
-		self.pdbs		= pdbs
-		self.dir		= dir
-		self.options	= options
-		self.threads	= threads
-		self.counter	= 0
-		self.state		= 0 # not busy
-		self.currentPDB = ''
+		self.outputpath	= outputpath
 		
 		# initialize some IMP objects
 		self.IMP_model	= IMP.kernel.Model()
 		self.IMP_sas	= IMP.saxs.SolventAccessibleSurface()
+		return True
 
-
-	def calculator(self):
-		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
-			return
-		self.state +=1
-
-		pdb = os.path.abspath( self.pdbs[self.counter] )
-		if not os.path.exists(pdb):
-			raise Exception( "Could not find \"%s\"" % (pdb) )
-
+	def calculate(self, pdb):
 		mp = IMP.atom.read_pdb( pdb, self.IMP_model, IMP.atom.NonWaterNonHydrogenPDBSelector(), True, True )
 		
 		particles = IMP.atom.get_by_type(mp, IMP.atom.ATOM_TYPE )
@@ -63,9 +48,7 @@ class plugin(guiCalcPlugin):
 		else:
 			profile.calculate_profile( particles )
 		
-		out = "%s%s%s.dat" % (self.dir, os.sep, os.path.splitext(os.path.basename(pdb))[0])
+		out = "%s%s%s.dat" % (self.outputpath, os.sep, os.path.splitext(os.path.basename(pdb))[0])
 		profile.write_SAXS_file( out, self.args.qmax )
 		
-		self.state -=1
-		self.counter +=1
-		return self.counter
+		return False,(pdb,None)

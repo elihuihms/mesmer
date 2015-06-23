@@ -16,14 +16,14 @@ from utility_functions	import *
 
 def print_generation_state( args, counter, ensemble_stats, restraint_stats ):
 	"""
-	Prints the status of the current generation via print_msg()
+	Print the status of the current generation via print_msg()
+
+	Args:
+		args (argparse namespace): MESMER argument parameters
+		ensemble_stats (dict): A complex dictionary containing ensemble statistics. See get_best_ensembles() for more info.
+		restraint_stats (dict): A complex dictionary containing restraint statistics. See get_restraint_stats() for more info.
 
 	Returns: None
-
-	Arguments:
-	args		- MESMER argument parameters
-	ensemble_stats	- A complex dictionary containing ensemble statistics. See get_best_ensembles() for more info.
-	restraint_stats	- A complex dictionary containing restraint statistics. See get_restraint_stats() for more info.
 	"""
 
 	print_msg( "" )
@@ -78,13 +78,13 @@ def print_generation_state( args, counter, ensemble_stats, restraint_stats ):
 
 def print_ensemble_state( args, ratio_stats ):
 	"""
-	Prints the components of an ensemble via print_msg()
+	Print the components of an ensemble via print_msg()
 
+	Args:
+		args (argparse namespace): MESMER argument parameters
+		ratio_stats (dict): A dictionary keyed by component names containing a three-component tuple: best weight, average weight, and (optionally) weight stdev
+	
 	Returns: None
-
-	Arguments:
-	args 		- MESMER argument parameters
-	ratio_stats	- A dictionary keyed by component names containing a three-component tuple: best weight, average weight, and (optionally) weight stdev
 	"""
 
 	for name in ratio_stats:
@@ -102,16 +102,18 @@ def print_ensemble_state( args, ratio_stats ):
 
 def print_plugin_state( args, counter, plugins, targets, ensembles):
 	"""
-	Calls the ensemble_state function for each plugin
+	Call the ensemble_state function for each plugin
+	
+	@TODO@ This function isn't really used at the moment
 
+	Args:
+		args (argparse namespace): MESMER argument parameters
+		counter (int): Generation counter used to build output path
+		plugins	(list): List of mesPlugins
+		targets	(list): List of mesTargets
+		ensembles (list): List of mesEnsembles
+		
 	Returns: always True. Errors from plugins are reported via print_msg()
-
-	Arguments:
-	args		- MESMER argument parameters
-	counter		- Generation counter used to build output path
-	plugins		- List of plugins
-	targets		- List of mesTargets
-	ensembles	- List of mesEnsembles
 	"""
 
 	output = []
@@ -128,7 +130,7 @@ def print_plugin_state( args, counter, plugins, targets, ensembles):
 
 					try:
 						messages = p.ensemble_state(r, t.plugin_data[r.type], all_ensemble_data, path)
-					except MESMERPluginError as e:
+					except mesPluginError as e:
 						print_msg("Plugin \"%s\" returned an error: %s" % e.msg)
 
 					break
@@ -139,12 +141,12 @@ def write_component_stats( args, counter, ensembles ):
 	"""
 	Write component correlations from the provided ensembles to file
 
+	Args:
+		args (argparse namespace): MESMER argument parameters
+		counter (int): Generation counter (used to build file path)
+		ensembles (list): List of mesEnsembles
+	
 	Returns: True on success, False on failure
-
-	Arguments:
-	args		- MESMER argument parameters
-	counter		- Generation counter (used to build file path)
-	ensembles	- List of mesEnsembles
 	"""
 
 	(names,relative,absolute) = get_component_correlations( args, ensembles )
@@ -193,12 +195,12 @@ def write_ensemble_stats( args, counter, targets, ensembles ):
 	"""
 	Write statistics from the ensemble component ratios to file
 
-	Returns: True on success, False on failure
+	Args:
+		args (argparse namespace): MESMER argument parameters
+		targets	(list): List of mesTargets
+		ensembles (list): List of mesEnsembles
 
-	Arguments:
-	args		- MESMER argument parameters
-	targets		- List of mesTargets
-	ensembles	- List of mesEnsembles
+	Returns: True on success, False on failure
 	"""
 
 	stats = get_ratio_stats( targets, ensembles )
@@ -244,13 +246,13 @@ def write_optimization_state( args, counter, targets, ensembles ):
 	"""
 	Writes the optimizations state for each ensemble to a file
 
-	Returns: True on success, False on failure (also prints an error message to stdout)
+	Args:
+		args (argparse namespace): MESMER argument parameters
+		counter (int):Generation counter used to build the file output path
+		targets (list): List of mesTargets
+		ensembles (list): List of mesEnsembles
 
-	Arguments:
-	args		- MESMER argument parameters
-	counter		- Generation counter used to build the file output path
-	targets		- List of mesTargets
-	ensembles	- List of mesEnsembles
+	Returns: True on success, False on failure (also prints an error message to stdout)
 	"""
 
 	for t in targets:
@@ -279,13 +281,13 @@ def write_ensemble_state( args, counter, targets, ensembles ):
 	"""
 	Write the current state of ensembles (component makeup, per-target ratios and fitnesses) to the MESMER results directory
 
-	Returns True on success, or False on failure (e.g. couldn't write to file)
-
-	Arguments:
-	args		- MESMER argument parameters
-	counter		- the current generation number
-	targets		- list of mesTargets
-	ensembles	- list of mesEnsembles for which to write status
+	Args:
+		args (argparse namespace): MESMER argument parameters
+		counter (int): The current generation number
+		targets (list): List of mesTargets
+		ensembles (list): List of mesEnsembles for which to write status
+		
+	Returns: True on success, or False on failure (e.g. couldn't write to file) @TODO@: Maybe raise an exception instead?
 	"""
 
 	for t in targets:

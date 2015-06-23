@@ -5,7 +5,9 @@ from exceptions			import *
 from utility_functions	import print_msg,get_input_blocks
 
 class mesRestraint:
-
+	"""
+	A basic object for holding information about a restraint
+	"""
 	def __init__(self, scale, type):
 		self.scale = scale
 		self.type = type
@@ -36,11 +38,11 @@ class mesTarget:
 		"""
 		Load the targets's restraints from a specified file using plugins
 
-		Returns True on success, or False on Failure, errors are communicated via the print_msg function
+		Args:
+			file (string): Path to a MESMER target file, see general_functions.get_input_blocks() for more information
+			plugins (list): List of mesPlugin modules for interpretation of data and creation of mesRestraint objects
 
-		Arguments:
-			file	- A path to a MESMER target file, see general_functions.get_input_blocks() for more information
-			plugins	- A list of plugin modules for interpretation of data and creation of mesRestraint objects
+		Returns: True on success, or False on Failure, errors are communicated via the print_msg function
 		"""
 
 		# get an array of data blocks from the provided target
@@ -106,18 +108,19 @@ class mesTarget:
 		"""
 		Create a bootstrap estimate clone of self
 
+		Args:
+			plugins (list): A list of mesPlugin modules
+			ensemble: The ensemble used to create the estimate
+
 		Returns: a mesTarget clone with bootstrapped estimates of all restraints
 
-		Arguments:
-		plugins		- A list of MESMER plugin modules
-		ensemble	- The ensemble used to create the estimate
+		@TODO@ Error handling
 		"""
 
 		dupe = copy.deepcopy(self)
 
 		for r in dupe.restraints:
 			for p in plugins:
-
 				if(r.type in p.type):
 					p.load_bootstrap( r, r, ensemble.plugin_data[dupe.name][r.type], dupe.plugin_data[r.type] )
 

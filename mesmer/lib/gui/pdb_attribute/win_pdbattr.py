@@ -8,7 +8,7 @@ import tkFileDialog
 import tkFont
 
 from ... setup_functions import open_user_prefs
-from .. tools_multiprocessing import Parallelizer
+from .. tools_multiprocessing import FunctionParallelizer
 from tools_pdbattr import *
 
 import tools_rmsd
@@ -404,27 +404,27 @@ class PDBAttributeWindow(tk.Frame):
 		if self.calc_RMSD_Button.cget('default') == tk.ACTIVE:
 			args = tools_rmsd.setup(self)
 			if args != None:
-				self.Calculator = Parallelizer( function=tools_rmsd.calculate, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = FunctionParallelizer( function=tools_rmsd.calculate, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "RMSD_to_%s"%(os.path.basename(os.path.splitext(self.calc_RMSD_PDBPath.get())[0]))
 		elif self.calc_Rg_Button.cget('default') == tk.ACTIVE:
 			args = tools_geom.setup_rg(self)
 			if args != None:
-				self.Calculator = Parallelizer( function=tools_geom.calculate_rg, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = FunctionParallelizer( function=tools_geom.calculate_rg, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "Rg"
 		elif self.calc_Distance_Button.cget('default') == tk.ACTIVE:
 			args = tools_geom.setup_distance(self)
 			if args != None:
-				self.Calculator = Parallelizer( function=tools_geom.calculate_distance, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = FunctionParallelizer( function=tools_geom.calculate_distance, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "%s%i%s-%s%i%s"%tuple(args[0]+args[1])
 		elif self.calc_Angle_Button.cget('default') == tk.ACTIVE:
 			args = tools_geom.setup_angle(self)
 			if args != None:
-				self.Calculator = Parallelizer( function=tools_geom.calculate_angle, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = FunctionParallelizer( function=tools_geom.calculate_angle, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "%s%i%s-%s%i%s-%s%i%s"%tuple(args[0]+args[1]+args[2])
 		elif self.calc_Dihedral_Button.cget('default') == tk.ACTIVE:
 			args = tools_geom.setup_dihedral(self)
 			if args != None:
-				self.Calculator = Parallelizer( function=tools_geom.calculate_dihedral, args=args, threads=self.prefs['cpu_count'])
+				self.Calculator = FunctionParallelizer( function=tools_geom.calculate_dihedral, args=args, threads=self.prefs['cpu_count'])
 				self.calculatorTitle = "%s%i%s-%s%i%s-%s%i%s-%s%i%s"%tuple(args[0]+args[1]+args[2]+args[3])
 
 		if args != None:

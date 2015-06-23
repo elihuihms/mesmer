@@ -1,4 +1,5 @@
 import Tkinter as tk
+import tkMessageBox
 
 class StatusWindow(tk.Frame):
 	def __init__(self, master, cancelFunc, type=''):
@@ -15,8 +16,9 @@ class StatusWindow(tk.Frame):
 		self.createWidgets()
 
 	def cancelCalc(self):
-		self.cancelFunc()
-		self.close()
+		if tkMessageBox.askyesno("Stop","Stop processing?",parent=self):
+			self.cancelFunc()
+			self.close()
 
 	def close(self):
 		self.master.destroy()

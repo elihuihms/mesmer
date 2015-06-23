@@ -12,6 +12,8 @@ from lib.gui.tools_plugin	import makeStringFromOptions
 class plugin(guiCalcPlugin):
 
 	def __init__(self):
+		assert 1 = 2 # plugin is broken, need to fix and update
+		
 		guiCalcPlugin.__init__(self)
 		self.name = 'RDC - PALES'
 		self.version = '2014.12.21'

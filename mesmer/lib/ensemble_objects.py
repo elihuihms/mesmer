@@ -12,10 +12,10 @@ class mesEnsemble:
 		"""
 		Initialize the object's properties to sane starting values
 
-		Arguments:
-		plugins - The plugin modules
-		targets	- The targets this ensemble will be evaluated against
-		size	- The size (number of components) in the ensembles
+		Args:
+			plugins (list) The currently available mesPlugin modules
+			targets (list):	The mesTargets this ensemble will be evaluated against
+			size (int):	The size (number of components) in the ensembles
 		"""
 
 		self.size = size
@@ -76,13 +76,13 @@ class mesEnsemble:
 		"""
 		Mutates the current ensemble by randomly exchanging conformers with either the total population or those present in other existing ensembles
 
-		Returns nothing.
+		Args:
+			component_names (list):	List of all components to be used in the case of extra-ensemble mutation
+			ensembles (list): A list of all mesEnsembles to be used in the case of intra-ensemble mutation
+			Gmutate (float): The probability each component in the ensemble will be mutated
+			Gsource	(float): The source of the mutated component (i.e. the greater component pool or components from the current ensemble pool)
 
-		Arguments:
-		components	- A list of all components to be used in the case of extra-ensemble mutation
-		ensembles	- A list of all ensembles to be used in the case of intra-ensemble mutation
-		Gmutate		- A float determining the probability each component in the ensemble will be mutated
-		Gsource		- A float determining the source of the mutated component
+		Returns: None
 		"""
 
 		for i in range( self.size ):
@@ -107,14 +107,13 @@ class mesEnsemble:
 
 	def cross( self, partner, Ex=0.5 ):
 		"""
-		Crosses the current ensemble with another, resulting in a mutual exchange of components.
+		Cross the current ensemble with another, resulting in a mutual exchange of components.
 
-		Returns nothing.
+		Args:
+			partner (mesEnsemble): The partner ensemble with which to exchange components
+			Ex (float): The probabilistic fraction of components to exchange (defaults to 0.5, meaning that on average 1/2 of components will be exchanged)
 
-		Arguments:
-		partner	- The partner ensemble with which to exchange components
-		Ex		- The fraction of components to exchange (defaults to 0.5, meaning that on average 1/2 of components will be exchanged)
-
+		Returns: None
 		"""
 
 		# perform 50% probabilistic exchanges between the partners
@@ -137,8 +136,10 @@ class mesEnsemble:
 		"""
 		Normalizes the ensemble's component ratios for a given target, returns nothing.
 
-		Arguments:
-		target	- mesTarget, the target for whose weights we are normalizing
+		Args:
+			target (mesTarget): The target for whose weights we are normalizing
+			
+		Returns: None
 		"""
 
 		total = sum(self.ratios[target_name])
@@ -155,13 +156,16 @@ class mesEnsemble:
 		Calculate the fitness of the ensemble for a given target and component ratios
 		Saves the calculated fitness back to the object as well
 
-		Returns the sum of all restraint/attribute discrepancies
+		Args:
+			components (list): List of mesComponents, i.e. the component database
+			plugins (list):	List of the plugin modules used to calculate the target-solution discrepancy
+			target (mesTarget):	The restraint-containing target to evaluate fitness against
+			ratios (list): The weighting vector used to determine each component's contribute to the solution
 
-		Arguments:
-		components	- The component database
-		plugins		- The plugin modules used to calculate the target-solution discrepancy
-		target		- The restraint-containing mesTarget to evaluate fitness against
-		ratios		- The weighting vector used to determine each component's contribute to the solution
+		Returns:
+			float: The weighted sum of all restraint/attribute discrepancies
+			
+		@TODO@ More robust exception/error collection
 		"""
 
 		# always keep our component ratios normalized

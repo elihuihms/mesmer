@@ -1,5 +1,5 @@
 """
-	Creates a MESMER restraint from a 2D dataset
+Creates a MESMER restraint from a continuous 2D dataset (i.e. X/Y)
 """
 
 import argparse
@@ -96,17 +96,6 @@ class plugin( mesPluginDB ):
 		return
 
 	def ensemble_state( self, restraint, target_data, ensembles, file_path):
-		"""
-		Prints the status of the plugin for the current generation and target
-
-		Returns a list of Error_state,output
-
-		Arguments:
-		target_data		- list of data the plugin has saved for the target
-		ensembles		- list of data the plugin has saved for every ensemble in the run, ordered by overall fitness
-		filePath		- an optional file path the plugin can save data to
-		"""
-
 		try:
 			f = open( file_path, 'w' )
 		except IOError:
@@ -143,17 +132,6 @@ class plugin( mesPluginDB ):
 	#
 
 	def load_restraint( self, restraint, block, target_data ):
-		"""
-		Initializes the provided restraint with information from the target file
-
-		Returns a two-element list containing the exit status (True for success, or False on failure) and a string describing the error (if any).
-
-		Arguments:
-		target_data	- The plugin's data storage variable for the target
-		block		- The block dict provided by MESMER (see the mesRestraint docstring for more information)
-		restraint	- The empty restraint object to be filled
-		"""
-
 		messages = []
 
 		try:
@@ -223,17 +201,6 @@ class plugin( mesPluginDB ):
 		return messages
 
 	def load_attribute( self, attribute, block, ensemble_data ):
-		"""
-		Initializes the provided attribute with information from a component file
-
-		Returns a two-element list containing the exit status (True for success, or False on failure) and a string describing the error (if any).
-
-		Arguments:
-		ensemble_data	- The plugin's data storage variable for this ensemble
-		block			- The block dict provided by MESMER
-		attribute		- The empty attribute object to be filled
-		"""
-
 		messages = []
 
 		try:
@@ -268,16 +235,6 @@ class plugin( mesPluginDB ):
 		return messages
 
 	def load_bootstrap( self, bootstrap, restraint, ensemble_data, target_data ):
-		"""
-		Generates a bootstrap restraint using the provided ensemble data
-
-		Arguments:
-		bootstrap		- mesRestraint, the restraint to fill with the bootstrap sample
-		restraint		- mesRestraint, the restraint serving as the template for the sample
-		ensemble_data	- The plugin's data storage variable for this ensemble
-		target_data		- The plugin's data storage variable for the target
-		"""
-
 		bootstrap.data['x'] = restraint.data['x']
 		bootstrap.data['y'] = tools.make_interpolated_bootstrap_sample( restraint.data['x'], restraint.data['y'], ensemble_data['x'], ensemble_data['y'] )
 		bootstrap.data['d'] = restraint.data['d']
@@ -285,18 +242,6 @@ class plugin( mesPluginDB ):
 		return []
 
 	def calc_fitness( self, restraint, target_data, ensemble_data, attributes, ratios ):
-		"""
-		Calculates the fitness of a set of attributes against a given restraint
-
-		Returns a fitness score, which is actually the reduced chi-squared goodness-of-fit value between the restraint SAXS profile and the weighted-sum component SAXS profiles (attributes)
-
-		Arguments:
-		ensemble_data	- The plugin's data storage variable for the ensemble
-		restraint		- The restraint object to be fitted against
-		attrbutes		- A list of attributes to be averaged together and compared to the restraint
-		ratios			- The relative weighting (ratio) of each attribute
-		"""
-
 		assert(len(attributes) == len(ratios))
 
 		# average the attribute data - this is slow due to the lookup penalty each time. Optimize?

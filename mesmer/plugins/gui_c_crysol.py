@@ -1,8 +1,6 @@
 import os
 import argparse
-import shutil
-
-from subprocess				import Popen,PIPE
+import subprocess
 
 from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
@@ -16,7 +14,6 @@ class plugin(guiCalcPlugin):
 		self.info = 'This plugin uses the external program CRYSOL (see http://www.embl-hamburg.de/biosaxs/manuals/crysol.html) to predict a SAXS profile from a PDB. CRYSOL arguments and descriptions (C) the ATSAS team.'
 		self.type = 'SAXS'
 		self.path = 'crysol'
-		self.respawn = 100
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		#self.parser.add_argument('-lm',		default='',	help='Maximum order of harmonics (default 15)')
@@ -27,57 +24,50 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-dro',	type=float,	default=0.03,	help='Contrast of hydration shell (default 0.03 e/A**3)')
 		self.parser.add_argument('-eh',		action='store_true', 		help='Account for explicit hydrogens')
 
-	def setup(self, pdbs, dir, options, threads):
-		self.pdbs	= pdbs
-		self.dir	= dir
+	def setup(self, parent, options, outputdir):
 		self.options	= options
-		self.threads	= threads
-		self.counter	= 0
-		self.state	= 0 # not busy
-		self.currentPDB = ''
+		self.outputdir	= outputdir
+		return True
 
-	def calculator(self):
-		if(self.state >= self.threads):	#semaphore to check if we're still busy processing
-			return
-		self.state +=1
-
-		pdb = os.path.abspath( self.pdbs[self.counter] )
+	def calculate(self, pdb):
 		base = os.path.basename(pdb)
-		name = os.path.splitext( os.path.basename(pdb) )[0]
+		name = os.path.splitext( base )[0]
 
 		if not os.path.exists(pdb):
-			raise Exception( "Could not find \"%s\"" % (pdb) )
+			return True,(pdb,"Could not read file.")
 
 		cmd = [self.path]
 		cmd.extend( makeStringFromOptions(self.options).split() )
 		cmd.append( pdb )
 				
 		try:
-			pipe = Popen(cmd, cwd=self.dir, stdout=PIPE)
-			pipe.wait()
+			retcode = subprocess.call(cmd, cwd=self.outputdir)
 		except OSError as e:
 			if(e.errno == os.errno.ENOENT):
-				raise Exception("Could not find \"crysol\" program. Perhaps it isn't installed, or the path to it is wrong?")
+				return True,(pdb,"Could not find \"crysol\" program. Perhaps it isn't installed, or the path to it is wrong?")
 			else:
-				raise e
+				return True,(pdb,"Error calling \"crysol\" program: %s"%(e))
 
-		tmp = "%s%s%s00.int" % (self.dir,os.sep,name)
+		if retcode != 0:
+			return True,(pdb,"Error calling crysol. Returncode: %i"%(i))
+
+		tmp = "%s%s%s00.int" % (self.outputdir,os.sep,name)
 		if not os.path.exists(tmp):
-			raise Exception( "Failed to calculate SAXS profile for \"%s\". CRYSOL output: %s" % (pdb,pipe.stdout.read()) )
+			return True,(pdb,"Failed to calculate SAXS profile %s. CRYSOL output: %s" % (tmp,pipe.stdout.read()))
 
 		try:
-			lines = open( tmp ).readlines()[1:-1]
-			f = open( "%s%s%s.dat" % (self.dir,os.sep,name), 'w' )
-			for l in lines:
+			f = open( "%s%s%s.dat" % (self.outputdir,os.sep,name), 'w' )
+			for l in open( tmp ).readlines()[1:-1]:
 				f.write( "%s\n" % ("\t".join( l.split()[0:2] ) ) )
 			f.close()
 		except:
-			raise Exception( "Could not clean up CRYSOL profile \"%s\"" % (tmp) )
+			return True,(pdb,"Could not clean up CRYSOL profile \"%s\""%(tmp))
 
-		os.remove("%s%s%s00.log" % (self.dir,os.sep,name) )
-		os.remove("%s%s%s00.alm" % (self.dir,os.sep,name) )
-		os.remove("%s%s%s00.int" % (self.dir,os.sep,name) )
+		try:
+			os.remove("%s%s%s00.log" % (self.outputdir,os.sep,name) )
+			os.remove("%s%s%s00.int" % (self.outputdir,os.sep,name) )
+			os.remove("%s%s%s00.alm" % (self.outputdir,os.sep,name) )
+		except:
+			pass
 
-		self.state -=1
-		self.counter +=1
-		return self.counter
+		return False,(pdb,None)
