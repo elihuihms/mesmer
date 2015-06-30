@@ -1,16 +1,24 @@
 import os
+import glob
+import shutil
 import argparse
 import subprocess
+import tempfile
+
+from threading import Timer
 
 from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
+
+_CRYSOL_TIMER = 10000 # time to wait for crysol to finish calculating (in ms)
+_CRYSOL_RETRY = 5 # crysol occasionally fails for unknown reasons, try again
 
 class plugin(guiCalcPlugin):
 
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'SAXS - Crysol'
-		self.version = '2013.09.13'
+		self.version = '2015.06.30'
 		self.info = 'This plugin uses the external program CRYSOL (see http://www.embl-hamburg.de/biosaxs/manuals/crysol.html) to predict a SAXS profile from a PDB. CRYSOL arguments and descriptions (C) the ATSAS team.'
 		self.type = 'SAXS'
 		self.path = 'crysol'
@@ -25,11 +33,17 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-eh',		action='store_true', 		help='Account for explicit hydrogens')
 
 	def setup(self, parent, options, outputdir):
+		#@TODO@ version checking/verification of CRYSOL
 		self.options	= options
 		self.outputdir	= outputdir
+		self.tempdir	= tempfile.mkdtemp()
 		return True
-
-	def calculate(self, pdb):
+		
+	def close(self, abort):
+		shutil.rmtree( self.tempdir )
+		return True
+		
+	def calculate(self, pdb, repeat=0):
 		base = os.path.basename(pdb)
 		name = os.path.splitext( base )[0]
 
@@ -39,35 +53,42 @@ class plugin(guiCalcPlugin):
 		cmd = [self.path]
 		cmd.extend( makeStringFromOptions(self.options).split() )
 		cmd.append( pdb )
-				
+		
 		try:
-			retcode = subprocess.call(cmd, cwd=self.outputdir)
-		except OSError as e:
+			sub = subprocess.Popen(cmd, cwd=self.tempdir)
+			
+			# timer to make sure crysol call does not hang
+			kill_proc = lambda p: p.kill()
+			timer = Timer(_CRYSOL_TIMER/1000, kill_proc, [sub])
+			timer.start()
+			sub.wait()
+			timer.cancel()
+
+		except Exception as e:
 			if(e.errno == os.errno.ENOENT):
 				return True,(pdb,"Could not find \"crysol\" program. Perhaps it isn't installed, or the path to it is wrong?")
 			else:
-				return True,(pdb,"Error calling \"crysol\" program: %s"%(e))
+				return True,(pdb,"Error calling \"crysol\" program (%s): %s" %(e,err))
+		
+		# crysol sometimes fucks up and increments
+		tmp = glob.glob( os.path.join(self.tempdir,"%s??.int"%name) )
+		if len(tmp) == 0:
+			if repeat == _CRYSOL_RETRY:
+				return True,(pdb,"Failed to calculate SAXS profile after %i tries.\n\nCRYSOL output: %s\n\nCRYSOL error:%s" % (_CRYSOL_RETRY,out,err))
+			else:
+				return self.calculate(pdb, repeat+1)
 
-		if retcode != 0:
-			return True,(pdb,"Error calling crysol. Returncode: %i"%(i))
-
-		tmp = "%s%s%s00.int" % (self.outputdir,os.sep,name)
-		if not os.path.exists(tmp):
-			return True,(pdb,"Failed to calculate SAXS profile %s. CRYSOL output: %s" % (tmp,pipe.stdout.read()))
-
+		out = os.path.join(self.outputdir,"%s.dat"%name)
 		try:
-			f = open( "%s%s%s.dat" % (self.outputdir,os.sep,name), 'w' )
-			for l in open( tmp ).readlines()[1:-1]:
-				f.write( "%s\n" % ("\t".join( l.split()[0:2] ) ) )
-			f.close()
-		except:
-			return True,(pdb,"Could not clean up CRYSOL profile \"%s\""%(tmp))
+			fpi,fpo = open(tmp[0]),open(out,'w')		
+			for l in fpi.readlines()[1:-1]:
+				fpo.write( "%s\n" % ("\t".join( l.split()[0:2] ) ) )
+			fpi.close()
+			fpo.close()
+		except Exception as e:
+			return True,(pdb,"Could not clean up CRYSOL profile: %s"%(e))
 
-		try:
-			os.remove("%s%s%s00.log" % (self.outputdir,os.sep,name) )
-			os.remove("%s%s%s00.int" % (self.outputdir,os.sep,name) )
-			os.remove("%s%s%s00.alm" % (self.outputdir,os.sep,name) )
-		except:
-			pass
-
+		if not os.path.exists( out ):
+			return True,(pdb,"Failed to extract SAXS profile after %i tries." % (_CRYSOL_RETRY))
+			
 		return False,(pdb,None)

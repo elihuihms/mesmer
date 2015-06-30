@@ -45,10 +45,18 @@ def rescue_attribute_table(w,fp):
 		tkMessageBox.showerror("Error","Error saving attribute table: %s"%(e),parent=w)
 	else:
 		out.close()
-	
+			
 def insert_attribute_column(w,child_fp,col_title):
-	"""
-	Append or insert into the existing attribute table the new name,value pairs from the temp attribute table
+	"""Append or insert into the existing attribute table the new name,value pairs from the temp attribute table
+	
+	Note: on an error, notifies the user via dialog box and gives the option to save the temporary attribute table elsewhere.
+	
+	Args:
+		w (PDBAttributeWindow): window calling the function
+		child_fp (file pointer): Open file pointer to the temp attribute table
+		col_title (string): Name of the column to insert
+		
+	Returns: None 
 	"""
 	
 	parent_file_path = w.attributeFilePath.get()

@@ -12,7 +12,9 @@ class ExplorePara:
     A class to explore, analysze and visualize paramagnetic datasets
     """
 
-    def paraSummary(self ,ParsedObj, ParsedObjL=[]):
+    def paraSummary(self ,ParsedObj, ParsedObjL=None):
+        if ParsedObjL == None:
+            ParsedObjL = []
         ParsedObjL.insert(0,ParsedObj)
         # These are needed when averaging - more than one para object
         aname_l = []

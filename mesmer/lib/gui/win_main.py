@@ -25,6 +25,7 @@ class MainWindow(tk.Frame):
 		self.master = master
 		self.master.geometry('500x300+200+200')
 		self.master.resizable(width=False, height=False)
+		self.master.protocol('WM_DELETE_WINDOW', self.close)
 		self.master.title('MESMER')
 
 		tk.Frame.__init__(self,master,width=500,height=300)
@@ -80,7 +81,7 @@ class MainWindow(tk.Frame):
 		self.actionMenu = tk.Menu(self.topMenu)
 		
 		if sys.platform == 'darwin':
-			self.fileMenu.add_command(label='Quit', accelerator="Command-Q", command=self.close)
+#			self.fileMenu.add_command(label='Quit', accelerator="Command-Q", command=self.close)
 			self.actionMenu.add_command(label='Make Target...', accelerator="Command-T", command=self.makeTarget)
 			self.actionMenu.add_command(label='Make Components...', accelerator="Command-K", command=self.makeComponents)
 			self.actionMenu.add_command(label='Setup Run...', accelerator="Command-R", command=self.setupMESMER)

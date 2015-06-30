@@ -7,7 +7,8 @@ import tkFont
 from multiprocessing import Queue
 
 from ... setup_functions import open_user_prefs
-from .. tools_multiprocessing import ObjectParallelizer
+from .. tools_multiprocessing import PluginParallelizer
+from .. tools_TkTooltip import ToolTip
 
 import mcpdb_generator
 import mcpdb_objects
@@ -22,7 +23,7 @@ class PDBBuildWindow(tk.Frame):
 		self.master.title('PDB Generator')
 
 		self.master.resizable(width=False, height=False)
-		self.master.protocol('WM_DELETE_WINDOW', self.cancelWindow)
+		self.master.protocol('WM_DELETE_WINDOW', self.close)
 
 		tk.Frame.__init__(self,master)
 		self.pack(expand=True,fill='both',padx=6,pady=6)
@@ -37,7 +38,7 @@ class PDBBuildWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 		
-	def cancelWindow(self):
+	def close(self):
 		if self.Generators == []:
 			self.master.destroy()
 			return
@@ -76,6 +77,7 @@ class PDBBuildWindow(tk.Frame):
 		
 		self.addRigidGroupButton = tk.Button(self,text='Add Rigid Group',command=lambda: self.createWidgetRow(),state=tk.DISABLED)
 		self.addRigidGroupButton.grid(row=3,column=0,sticky=tk.E+tk.W)
+		self.addRigidGroupButtonTT = ToolTip(self.addRigidGroupButton,follow_mouse=0,text='Create a new group of residues to hold rigid relative to one another.')
 
 		self.f_options = tk.LabelFrame(self,text='Options')
 		self.f_options.grid(row=4,sticky=tk.E+tk.W)
@@ -83,13 +85,15 @@ class PDBBuildWindow(tk.Frame):
 		self.pdbPrefix = tk.StringVar()
 		self.pdbPrefixLabel = tk.Label(self.f_options,text="Output prefix:")
 		self.pdbPrefixLabel.grid(row=0,column=0,sticky=tk.W)
+		self.pdbPrefixLabelTT = ToolTip(self.addRigidGroupButton,follow_mouse=0,text='Define the prefix to be appended to all generated PDBs.')
 		self.pdbPrefixEntry = tk.Entry(self.f_options,textvariable=self.pdbPrefix)
 		self.pdbPrefixEntry.grid(row=0,column=1,sticky=tk.W)
-		
+
 		self.pdbNumber = tk.IntVar()
 		self.pdbNumber.set( 10 )
 		self.pdbNumberLabel = tk.Label(self.f_options,text="Number of PDBs:")
 		self.pdbNumberLabel.grid(row=1,column=0,sticky=tk.W)
+		self.pdbNumberLabelTT = ToolTip(self.pdbNumberLabel,follow_mouse=0,text='The number of PDBs to be generated.')
 		self.pdbNumberEntry = tk.Entry(self.f_options,textvariable=self.pdbNumber)
 		self.pdbNumberEntry.grid(row=1,column=1,sticky=tk.W)
 
@@ -97,14 +101,17 @@ class PDBBuildWindow(tk.Frame):
 		self.fixFirstGroup.set(1)
 		self.fixFirstGroupCheckbox = tk.Checkbutton(self.f_options,text='Fix first rigid group',variable=self.fixFirstGroup)
 		self.fixFirstGroupCheckbox.grid(row=2,column=0,columnspan=2,sticky=tk.W)
+		self.fixFirstGroupCheckboxTT = ToolTip(self.fixFirstGroupCheckbox,follow_mouse=0,text='If checked, the first rigid group will be fixed in space. Otherwise, the final orientation of the entire complex will be randomly tumbled.')
 
 		self.useRamachandran = tk.IntVar()
 		self.useRamachandran.set(0)
 		self.useRamachandranCheckbox = tk.Checkbutton(self.f_options,text='Use Ramachandran linkers',variable=self.useRamachandran)
 		self.useRamachandranCheckbox.grid(row=3,column=0,columnspan=2,sticky=tk.W)
-		
+		self.useRamachandranCheckboxTT = ToolTip(self.useRamachandranCheckbox,follow_mouse=0,text='If checked, use Phi and Psi angles for the backbone taken from a ramachandran probability map.')
+
 		self.clashToleranceLabel = tk.Label(self.f_options,text="CA-CA tolerance: ")
 		self.clashToleranceLabel.grid(row=4,column=0,sticky=tk.E)
+		self.clashToleranceLabelTT = ToolTip(self.clashToleranceLabel,follow_mouse=0,text='Used to remove steric clashes. Ensures that any generated PDB will not have any CA atoms within this cutoff of any other CA atoms.')
 		self.clashTolerance = tk.DoubleVar()
 		self.clashTolerance.set(3.0)
 		self.clashToleranceEntry = tk.Entry(self.f_options,textvariable=self.clashTolerance,width=3)
@@ -115,8 +122,10 @@ class PDBBuildWindow(tk.Frame):
 
 		self.generateButton = tk.Button(self.f_footer,text='Generate PDBs...',default=tk.ACTIVE,command=self.startGenerators,state=tk.DISABLED)
 		self.generateButton.grid(column=1,row=5,sticky=tk.W,pady=4)
-		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
+		self.generateButtonTT = ToolTip(self.generateButton,follow_mouse=0,text='Start generating PDBs.')
+		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
 		self.cancelButton.grid(column=2,row=5,sticky=tk.E,pady=4)
+		self.cancelButtonTT = ToolTip(self.cancelButton,follow_mouse=0,text='Stop PDB generation, and close the window.')
 		
 	def createWidgetRow(self,initial=False):		
 		self.groupFrames.append( tk.LabelFrame(self.f_groups,text="Rigid Group %i"%(self.groupCounter+1)) )
@@ -127,6 +136,7 @@ class PDBBuildWindow(tk.Frame):
 			label.grid(row=i,column=0,sticky=tk.E)
 		
 		self.groupChainLabels.append( [] )
+		self.groupChainLabelTTs.append( [] )
 		self.groupChainStarts.append( [] )
 		self.groupChainStartEntries.append( [] )
 		self.groupChainEnds.append( [] )
@@ -135,7 +145,8 @@ class PDBBuildWindow(tk.Frame):
 		for i,chain in enumerate(self.pdbChains):
 			self.groupChainLabels[-1].append( tk.Label(self.groupFrames[-1],text=chain ) )
 			self.groupChainLabels[-1][-1].grid(column=i+1,row=0)
-			
+			self.groupChainLabelTTs.append( ToolTip(self.groupChainLabels[-1][-1],follow_mouse=0,text='Section of polypeptide to keep fixed in space with respect to the other polypeptide segments in this Rigid Group.') )
+
 			self.groupChainStarts[-1].append( tk.StringVar() )
 			self.groupChainStartEntries[-1].append( tk.Entry(self.groupFrames[-1],width=3,textvariable=self.groupChainStarts[-1][-1]) )
 			self.groupChainStartEntries[-1][-1].grid(column=i+1,row=1)
@@ -266,10 +277,19 @@ class PDBBuildWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Problem with group definitions: %s' % (msg),parent=self)
 			return
 		
-		path = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
+#		path = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
+		path = tkFileDialog.asksaveasfilename(title='Choose a directory to save generated PDBs into:',parent=self)
 		if path == '':
 			return
-		
+	
+		if(os.path.exists(path)):
+			shutil.rmtree(path)
+		try:
+			os.mkdir(path)
+		except:
+			tkMessageBox.showerror("Error","Could not create folder \"%s\"" % path,parent=self)
+		return
+	
 		self.in_Queue,self.out_Queue = Queue(),Queue()
 
 		notified = False

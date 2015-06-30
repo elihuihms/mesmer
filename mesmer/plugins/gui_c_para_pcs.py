@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import tkFileDialog
 import Bio.PDB
@@ -7,9 +8,9 @@ from lib.exceptions			import *
 from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
 
-from	pyParaTools.ParaParser	import *
-from	pyParaTools.CalcPara	import *
-from	pyParaTools.ExplorePara	import *
+from	pyParaTools.ParaParser	import PCSParser
+from	pyParaTools.CalcPara	import CalcPara
+from	pyParaTools.ExplorePara	import ExplorePara
 
 class plugin(guiCalcPlugin):
 
@@ -22,7 +23,7 @@ class plugin(guiCalcPlugin):
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-chainID',			help='Chain ID for paramagnetic center')
-		self.parser.add_argument('-resNum',				help='Residue number of paramagnetic center')
+		self.parser.add_argument('-resNum',	type=int,	help='Residue number of paramagnetic center')
 		self.parser.add_argument('-atom',				help='Paramagnetic center atom name')
 		self.parser.add_argument('-Dax',	type=float,	help='Axial component of paramagnetic tensor',			required=True)
 		self.parser.add_argument('-Drh',	type=float,	help='Rhomboidal component of paramagnetic tensor',		required=True)
@@ -34,7 +35,7 @@ class plugin(guiCalcPlugin):
 		self.outputpath	= outputpath
 		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
 
-		self.template = tkFileDialog.askopenfilename(title='Select experimental PCS table template in CYANA format:',parent=parent)
+		self.template = tkFileDialog.askopenfilename(message='Select experimental PCS table template in CYANA format:',parent=parent)
 		if(self.template == ''):
 			return False
 		if not os.access(self.template, os.R_OK):
@@ -44,7 +45,6 @@ class plugin(guiCalcPlugin):
 	def calculate(self, pdb):
 		base = os.path.basename(pdb)
 		name = os.path.splitext(base)[0]
-			
 		try:
 			parser	= Bio.PDB.PDBParser(QUIET=True)
 			model	= parser.get_structure('',pdb)[0]
@@ -52,10 +52,10 @@ class plugin(guiCalcPlugin):
 			return True,(pdb,"Could not parse PDB file: %s"%(e))
 
 		try:
-			coord	= model[ self.args.chainID ][ self.args.resNum ][ self.args.atom ].get_coord()
+			coord	= model[ self.args.chainID ][ int(self.args.resNum) ][ self.args.atom ].get_coord()
 		except (IndexError,KeyError):
 			return True,(pdb,"Could not find specified atom in PDB.") 
-			
+
 		config = [
 			'',
 			'pcs',
@@ -73,11 +73,12 @@ class plugin(guiCalcPlugin):
 
 		pcs = PCSParser( config )
 		pcs.doParse()
-
+		
+		# Massive memory leak in CalcPara somewhere
 		calc = CalcPara()
 		calc.PCS(pcs, 'ZYZ')
 
 		analysis = ExplorePara()
-		analysis.buildNumbatTBL(pcs, "%s%s%s.pcs" % (os.path.join(self.outputpath,name)))
-
+		analysis.buildNumbatTBL(pcs, "%s.pcs" % (os.path.join(self.outputpath,name)))
+		
 		return False,(pdb,None)

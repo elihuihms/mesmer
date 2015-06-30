@@ -9,14 +9,18 @@ import tkFont
 
 from ... setup_functions import open_user_prefs
 from .. tools_multiprocessing import FunctionParallelizer
+from .. tools_TkTooltip import ToolTip
 from tools_pdbattr import *
 
 import tools_rmsd
 import tools_geom
 
-_PDB_calculator_timer = 500 # in ms
+_PDB_calculator_timer = 500 # in ms, time between updating the calculation status text
 
 class PDBAttributeWindow(tk.Frame):
+	"""Window for calculating attributes from a library of PDBs
+	Can either create a new tab-delimited attribute table, or append to an existing one"""
+	
 	def __init__(self, master=None):
 		self.master = master
 		self.master.title('PDB Attribute Calculator')
@@ -39,6 +43,7 @@ class PDBAttributeWindow(tk.Frame):
 			self.master.destroy()
 							
 	def cancelWindow(self):
+		"""Stop any calculations if they are running, and close the window"""
 		if self.Calculator == None:
 			self.master.destroy()
 			return
@@ -47,6 +52,7 @@ class PDBAttributeWindow(tk.Frame):
 			return
 
 	def createWidgets(self):
+		"""Fill the window with widgets"""
 		self.infoFont = tkFont.Font(slant=tkFont.ITALIC)
 	
 		self.pdb_frame = tk.LabelFrame(self,text='PDB Directory')
@@ -57,6 +63,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.pdbDirectoryEntry.grid(row=0,column=0,sticky=tk.W)
 		self.pdbDirectoryButton = tk.Button(self.pdb_frame,text='Set...',command=self.loadDirPDBs)
 		self.pdbDirectoryButton.grid(row=0,column=1,sticky=tk.W)
+		self.pdbDirectoryButtonTT = ToolTip(self.pdbDirectoryButton,follow_mouse=0,text='Set a directory containing PDBs to calculate attributes from.')
 		self.pdbDirectoryInfo = tk.Label(self.pdb_frame,text='Idle - No PDBs loaded.',font=self.infoFont)
 		self.pdbDirectoryInfo.grid(row=1,columnspan=2,sticky=tk.W)
 		
@@ -64,19 +71,24 @@ class PDBAttributeWindow(tk.Frame):
 		self.button_frame.grid(row=1,sticky=tk.E+tk.W)
 		self.calc_RMSD_Button = tk.Button(self.button_frame,text="RMSD",default=tk.ACTIVE)
 		self.calc_RMSD_Button.grid(row=0,column=0)
-		self.calc_RMSD_Button.bind('<ButtonRelease-1>',self.toggleActionPane)
+		self.calc_RMSD_Button.bind('<ButtonRelease-1>',self.setActionPane)
+		self.calc_RMSD_ButtonTT = ToolTip(self.calc_RMSD_Button,follow_mouse=0,text='Calculate the RMSD against a reference PDB for the selected PDBs.')
 		self.calc_Rg_Button = tk.Button(self.button_frame,text="Rg")
 		self.calc_Rg_Button.grid(row=0,column=1)
-		self.calc_Rg_Button.bind('<ButtonRelease-1>',self.toggleActionPane)
+		self.calc_Rg_Button.bind('<ButtonRelease-1>',self.setActionPane)
+		self.calc_Rg_ButtonTT = ToolTip(self.calc_Rg_Button,follow_mouse=0,text='Calculate the radius of gyration for the selected PDBs.')
 		self.calc_Distance_Button = tk.Button(self.button_frame,text="Distance")
 		self.calc_Distance_Button.grid(row=0,column=2)
-		self.calc_Distance_Button.bind('<ButtonRelease-1>',self.toggleActionPane)
+		self.calc_Distance_Button.bind('<ButtonRelease-1>',self.setActionPane)
+		self.calc_Distance_ButtonTT = ToolTip(self.calc_Distance_Button,follow_mouse=0,text='Calculate the distance between two atoms for the selected PDBs.')
 		self.calc_Angle_Button = tk.Button(self.button_frame,text="Angle")
 		self.calc_Angle_Button.grid(row=0,column=3)
-		self.calc_Angle_Button.bind('<ButtonRelease-1>',self.toggleActionPane)
+		self.calc_Angle_Button.bind('<ButtonRelease-1>',self.setActionPane)
+		self.calc_Angle_ButtonTT = ToolTip(self.calc_Angle_Button,follow_mouse=0,text='Calculate the angle between three atoms in the selected PDBs.')
 		self.calc_Dihedral_Button = tk.Button(self.button_frame,text="Dihedral")
 		self.calc_Dihedral_Button.grid(row=0,column=4)
-		self.calc_Dihedral_Button.bind('<ButtonRelease-1>',self.toggleActionPane)
+		self.calc_Dihedral_Button.bind('<ButtonRelease-1>',self.setActionPane)
+		self.calc_Dihedral_ButtonTT = ToolTip(self.calc_Dihedral_Button,follow_mouse=0,text='Calculate the dihedral angle between four atoms in the selected PDBs.')
 	
 		self.calc_RMSD_frame = tk.Frame(self.button_frame)
 		self.calc_RMSD_frame.grid(row=1,columnspan=5,sticky=tk.E+tk.W)
@@ -100,8 +112,10 @@ class PDBAttributeWindow(tk.Frame):
 		self.attributeFileEntry.grid(row=0,column=0,columnspan=2,sticky=tk.W)
 		self.attributeFileSetButton = tk.Button(self.attr_frame,text='Set...',command=lambda: self.setAttributeTable(new=False))
 		self.attributeFileSetButton.grid(row=0,column=2,sticky=tk.W)
+		self.attributeFileSetButtonTT = ToolTip(self.attributeFileSetButton,follow_mouse=0,text='Write or append attributes to an existing attribute table.')
 		self.attributeFileNewButton = tk.Button(self.attr_frame,text='New...',command=lambda: self.setAttributeTable(new=True),state=tk.DISABLED)
 		self.attributeFileNewButton.grid(row=0,column=3,sticky=tk.W)
+		self.attributeFileNewButtonTT = ToolTip(self.attributeFileNewButton,follow_mouse=0,text='Create a new attribute table from the selected PDBs.')
 		self.attributeFileInfo = tk.Label(self.attr_frame,text='Idle - No attribute list loaded.',font=self.infoFont)
 		self.attributeFileInfo.grid(row=1,columnspan=4,sticky=tk.W)
 		self.attributeFileColLabel = tk.Label(self.attr_frame,text="Save to column:")
@@ -111,15 +125,24 @@ class PDBAttributeWindow(tk.Frame):
 		self.attributeFileColMenu = tk.OptionMenu(self.attr_frame,self.attributeFileColSel,*options)
 		self.attributeFileColMenu.grid(row=2,column=1,columnspan=3,sticky=tk.W)
 		self.attributeFileColMenu.config(state=tk.DISABLED,width=25)
-		
+		self.attributeFileColMenuTT = ToolTip(self.attributeFileColMenu,follow_mouse=0,text='Select an existing column or append a new column to the selected attribute table.')
+
 		self.f_footer = tk.Frame(self)
 		self.f_footer.grid(row=4,sticky=tk.E+tk.W)
 		self.calculateButton = tk.Button(self.f_footer,text='Calculate...',state=tk.DISABLED,command=self.startCalculator)
 		self.calculateButton.grid(column=0,row=0,sticky=tk.E,pady=4)
+		self.calculateButtonTT = ToolTip(self.calculateButton,follow_mouse=0,text='Start calculating the selected attribute from the loaded PDBs.')
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
 		self.cancelButton.grid(column=1,row=0,sticky=tk.E,pady=4)
+		self.cancelButtonTT = ToolTip(self.cancelButton,follow_mouse=0,text='Cancel any existing calculations in progress, and close the window.')
+
+	def setActionPane(self,evt):
+		"""Set the attribute calculation pane based upon which attribute button was pressed
 		
-	def toggleActionPane(self,evt):
+		Args:
+			evt	(Tkinter event): Contains the pressed button
+			
+		Returns: None"""
 		self.calc_RMSD_Button.configure(default=tk.NORMAL)
 		self.calc_Rg_Button.configure(default=tk.NORMAL)
 		self.calc_Distance_Button.configure(default=tk.NORMAL)
@@ -147,6 +170,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.updateCalculateButton()
 
 	def fillRMSDFrame(self):
+		"""Fill the RMSD attribute calculation frame with widgets"""
 		self.calc_RMSD_Label = tk.Label(self.calc_RMSD_frame,text="Reference PDB:")
 		self.calc_RMSD_Label.grid(row=0,columnspan=2,sticky=tk.W)
 		self.calc_RMSD_PDBPath = tk.StringVar()
@@ -154,6 +178,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_RMSD_PDBEntry.grid(row=1,column=0,sticky=tk.W)
 		self.calc_RMSD_PDBButton = tk.Button(self.calc_RMSD_frame,text="Set...",command=self.setRMSDReference)
 		self.calc_RMSD_PDBButton.grid(row=1,column=1,sticky=tk.W)
+		self.calc_RMSD_PDBButtonTT = ToolTip(self.calc_RMSD_PDBButton,follow_mouse=0,text='Set the reference PDB to calculate RMSD values against.')
 		
 		self.calc_RMSD_SuperimposeSelFrame = tk.LabelFrame(self.calc_RMSD_frame,text="Residues to superimpose:")
 		self.calc_RMSD_SuperimposeSelFrame.grid(row=2,columnspan=2,sticky=tk.E+tk.W,padx=10,pady=5)
@@ -163,12 +188,15 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_RMSD_SuperimposeSel.set(0)
 		self.calc_RMSD_SuperimposeRadioFrame = tk.Frame(self.calc_RMSD_SuperimposeSelFrame)
 		self.calc_RMSD_SuperimposeRadioFrame.grid(columnspan=2,sticky=tk.W)
-		self.calc_RMSD_SuperimposeRadio0 = tk.Radiobutton(self.calc_RMSD_SuperimposeRadioFrame, variable=self.calc_RMSD_SuperimposeSel, text="All residues", value=0, command=self.toggle_RMSD_SuperimposeSel)
+		self.calc_RMSD_SuperimposeRadio0 = tk.Radiobutton(self.calc_RMSD_SuperimposeRadioFrame, variable=self.calc_RMSD_SuperimposeSel, text="All residues", value=0, command=self.set_RMSD_SuperimposeSel)
 		self.calc_RMSD_SuperimposeRadio0.grid(row=0,column=0,sticky=tk.W)
-		self.calc_RMSD_SuperimposeRadio1 = tk.Radiobutton(self.calc_RMSD_SuperimposeRadioFrame, variable=self.calc_RMSD_SuperimposeSel, text="Some residues", value=1, command=self.toggle_RMSD_SuperimposeSel)
+		self.calc_RMSD_SuperimposeRadio0TT = ToolTip(self.calc_RMSD_SuperimposeRadio0,follow_mouse=0,text='Try to superimpose all residues in the reference and each of the selected PDBs.')
+		self.calc_RMSD_SuperimposeRadio1 = tk.Radiobutton(self.calc_RMSD_SuperimposeRadioFrame, variable=self.calc_RMSD_SuperimposeSel, text="Some residues", value=1, command=self.set_RMSD_SuperimposeSel)
 		self.calc_RMSD_SuperimposeRadio1.grid(row=0,column=1,sticky=tk.W)
-		self.calc_RMSD_SuperimposeRadio2 = tk.Radiobutton(self.calc_RMSD_SuperimposeRadioFrame, variable=self.calc_RMSD_SuperimposeSel, text="No residues", value=2, command=self.toggle_RMSD_SuperimposeSel)
+		self.calc_RMSD_SuperimposeRadio1TT = ToolTip(self.calc_RMSD_SuperimposeRadio1,follow_mouse=0,text='Try to superimpose a selected subset of residues in the reference and each of the selected PDBs.')
+		self.calc_RMSD_SuperimposeRadio2 = tk.Radiobutton(self.calc_RMSD_SuperimposeRadioFrame, variable=self.calc_RMSD_SuperimposeSel, text="No residues", value=2, command=self.set_RMSD_SuperimposeSel)
 		self.calc_RMSD_SuperimposeRadio2.grid(row=0,column=2,sticky=tk.W)
+		self.calc_RMSD_SuperimposeRadio2TT = ToolTip(self.calc_RMSD_SuperimposeRadio2,follow_mouse=0,text='Do not try and superimpose the reference and each of the selected PDBs before calculating RMSD.')
 	
 		self.calc_RMSD_SuperimposeChainLabel = tk.Label(self.calc_RMSD_SuperimposeSelFrame,text="Chain:")
 		self.calc_RMSD_SuperimposeResStartLabel = tk.Label(self.calc_RMSD_SuperimposeSelFrame,text="Starting residue:")
@@ -188,10 +216,12 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_RMSD_CalcSel.set(0)
 		self.calc_RMSD_CalcRadioFrame = tk.Frame(self.calc_RMSD_CalcSelFrame)
 		self.calc_RMSD_CalcRadioFrame.grid(columnspan=2,sticky=tk.W)
-		self.calc_RMSD_CalcRadio0 = tk.Radiobutton(self.calc_RMSD_CalcRadioFrame, variable=self.calc_RMSD_CalcSel, text="All residues", value=0, command=self.toggle_RMSD_CalcSel)
+		self.calc_RMSD_CalcRadio0 = tk.Radiobutton(self.calc_RMSD_CalcRadioFrame, variable=self.calc_RMSD_CalcSel, text="All residues", value=0, command=self.set_RMSD_CalcSel)
 		self.calc_RMSD_CalcRadio0.grid(row=0,column=0,sticky=tk.W)
-		self.calc_RMSD_CalcRadio1 = tk.Radiobutton(self.calc_RMSD_CalcRadioFrame, variable=self.calc_RMSD_CalcSel, text="Some residues", value=1, command=self.toggle_RMSD_CalcSel)
+		self.calc_RMSD_CalcRadio0TT = ToolTip(self.calc_RMSD_CalcRadio0,follow_mouse=0,text='Use all residues in the reference and selected PDBs for the RMSD calculation.')
+		self.calc_RMSD_CalcRadio1 = tk.Radiobutton(self.calc_RMSD_CalcRadioFrame, variable=self.calc_RMSD_CalcSel, text="Some residues", value=1, command=self.set_RMSD_CalcSel)
 		self.calc_RMSD_CalcRadio1.grid(row=0,column=1,sticky=tk.W)
+		self.calc_RMSD_CalcRadio1TT = ToolTip(self.calc_RMSD_CalcRadio1,follow_mouse=0,text='Use a subset of residues in the reference and selected PDBs for the RMSD calculation.')
 		
 		self.calc_RMSD_CalcChainLabel = tk.Label(self.calc_RMSD_CalcSelFrame,text="Chain:")
 		self.calc_RMSD_CalcChain = tk.StringVar()
@@ -203,7 +233,8 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_RMSD_CalcResEnd = tk.IntVar()
 		self.calc_RMSD_CalcResEndEntry = tk.Entry(self.calc_RMSD_CalcSelFrame,textvariable=self.calc_RMSD_CalcResEnd,width=4)
 
-	def toggle_RMSD_SuperimposeSel(self):
+	def set_RMSD_SuperimposeSel(self):
+		"""Set which widgets are shown in frame specifying which atoms to use in the RMSD superimposition"""
 		if self.calc_RMSD_SuperimposeSel.get() == 1:
 			self.calc_RMSD_SuperimposeChainLabel.grid(row=1,column=0,sticky=tk.E)
 			self.calc_RMSD_SuperimposeResStartLabel.grid(row=2,column=0,sticky=tk.E)
@@ -219,7 +250,8 @@ class PDBAttributeWindow(tk.Frame):
 			self.calc_RMSD_SuperimposeResStartEntry.grid_forget()
 			self.calc_RMSD_SuperimposeResEndEntry.grid_forget()
 	
-	def toggle_RMSD_CalcSel(self):
+	def set_RMSD_CalcSel(self):
+		"""Set which widgets are shown in the frame specifying which atoms to use in the RMSD calculation"""
 		if self.calc_RMSD_CalcSel.get() == 1:
 			self.calc_RMSD_CalcChainLabel.grid(row=1,column=0,sticky=tk.E)
 			self.calc_RMSD_CalcResStartLabel.grid(row=2,column=0,sticky=tk.E)
@@ -236,14 +268,18 @@ class PDBAttributeWindow(tk.Frame):
 			self.calc_RMSD_CalcResEndEntry.grid_forget()
 			
 	def fillRgFrame(self):
+		"""Fill the Rg calculation frame with widgets"""
 		self.calc_Rg_AtomSel = tk.IntVar()
 		self.calc_Rg_AtomSel.set(0)
 		self.calc_Rg_AtomSelRadio0 = tk.Radiobutton(self.calc_Rg_frame, variable=self.calc_Rg_AtomSel, text="Only CA atoms", value=0)
 		self.calc_Rg_AtomSelRadio0.grid(row=0,column=0,sticky=tk.W)
+		self.calc_Rg_AtomSelRadio0TT = ToolTip(self.calc_Rg_AtomSelRadio0,follow_mouse=0,text='Use only the CA atoms to calculate Rg, which is somewhat faster than using all atoms, especially for large proteins/complexes.')
 		self.calc_Rg_AtomSelRadio1 = tk.Radiobutton(self.calc_Rg_frame, variable=self.calc_Rg_AtomSel, text="All atoms", value=1)
 		self.calc_Rg_AtomSelRadio1.grid(row=0,column=1,sticky=tk.W)
+		self.calc_Rg_AtomSelRadio1TT = ToolTip(self.calc_Rg_AtomSelRadio1,follow_mouse=0,text='Use all the atoms in the PDB to calculate Rg, which can be somewhat slow, especially for large proteins/complexes.')
 		
 	def fillDistanceFrame(self):
+		"""Fill the distance calculation frame with widgets"""
 		self.calc_Distance_Chain_Label = tk.Label(self.calc_Distance_frame,text="Chain:")
 		self.calc_Distance_Chain_Label.grid(row=1,column=0,sticky=tk.E)
 		self.calc_Distance_Res_Label = tk.Label(self.calc_Distance_frame,text="Residue:")
@@ -283,6 +319,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Distance_imageLabel.grid(row=1,column=3,rowspan=3,sticky=tk.E,padx=5)
 
 	def fillAngleFrame(self):
+		"""Fill the angle calculation frame with widgets"""
 		self.calc_Angle_Chain_Label = tk.Label(self.calc_Angle_frame,text="Chain:")
 		self.calc_Angle_Chain_Label.grid(row=1,column=0,sticky=tk.E)
 		self.calc_Angle_Res_Label = tk.Label(self.calc_Angle_frame,text="Residue:")
@@ -334,6 +371,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Angle_imageLabel.grid(row=1,column=4,rowspan=3,sticky=tk.E,padx=5)
 		
 	def fillDihedralFrame(self):
+		"""Fill the dihedral calculation frame with widgets"""
 		self.calc_Dihedral_Chain_Label = tk.Label(self.calc_Dihedral_frame,text="Chain:")
 		self.calc_Dihedral_Chain_Label.grid(row=1,column=0,sticky=tk.E)
 		self.calc_Dihedral_Res_Label = tk.Label(self.calc_Dihedral_frame,text="Residue:")
@@ -401,6 +439,8 @@ class PDBAttributeWindow(tk.Frame):
 	#
 	
 	def startCalculator(self):
+		"""Depending upon which attribute calculation pane was selected last, initialize the calculator parallelization object and pass it the calculation function to use
+		Also set the tkinter callback to update the calculation status"""
 		if self.calc_RMSD_Button.cget('default') == tk.ACTIVE:
 			args = tools_rmsd.setup(self)
 			if args != None:
@@ -434,6 +474,7 @@ class PDBAttributeWindow(tk.Frame):
 			self.calculatorCounter = 0
 	
 	def updateCalculator(self):
+		"""Update the calculation status, and re-set the tkinter callback for the next update"""
 		for error,data in self.Calculator.get():
 			if error:
 				tkMessageBox.showerror("Error","Error on PDB %s:\n\nReason:\n%s"%(data[0],data[1]),parent=self)
@@ -453,6 +494,12 @@ class PDBAttributeWindow(tk.Frame):
 			self.calculatorAfter = self.after( _PDB_calculator_timer, self.updateCalculator )
 		
 	def stopCalculator(self,abort=False):
+		"""Stop the window's calculator.
+		
+		Args:
+			abort (bool): Force the calculator to stop (ungracefully?)
+		
+		Returns: None"""
 		if self.Calculator != None:
 			self.calculatorFile.close()
 			if abort:
@@ -464,6 +511,15 @@ class PDBAttributeWindow(tk.Frame):
 			self.Calculator = None
 							
 	def _reset_menu_options(self,optionmenu,optionvar,options,index=None):
+		"""Reset a tkinter OptionMenu and associated variable
+		
+		Args:
+			optionmenu (tkinter OptionMenu): The menu to set with new options
+			optionvar (tkinter variable): The variable associated with the optionmenu
+			options (list): A list of options to load into the new menu
+			index (int): Which index to set as the currently-selected item, defaults to None
+		
+		Returns: None"""
 		optionmenu["menu"].delete(0, "end")
 		for string in options:
 			optionmenu["menu"].add_command(label=string, command=lambda value=string: optionvar.set(value))
@@ -471,10 +527,18 @@ class PDBAttributeWindow(tk.Frame):
 			optionvar.set(options[index])
 			
 	def updateAttributeInfo(self,text):
+		"""Update the window's status text
+		
+		Args:
+			text (string): The text to display
+			
+		Returns: None"""
 		self.attributeFileInfo.config(text=text)
 		self.update_idletasks()
 			
 	def updateCalculateButton(self):
+		"""Set the calculation button to enabled or disabled if there's a valid list of PDBs present, and the attribute table is loaded
+		If the RMSD attribute calculation button is active, make sure there's a valid reference PDB too"""
 		if len(self.pdbList) > 0 and self.attributeFilePath.get() != '':
 			if self.calc_RMSD_Button.cget('default') == tk.ACTIVE and self.calc_RMSD_PDBPath.get() == '':
 				self.calculateButton.config(state=tk.DISABLED)
@@ -484,6 +548,7 @@ class PDBAttributeWindow(tk.Frame):
 			self.calculateButton.config(state=tk.DISABLED)
 			
 	def loadDirPDBs(self,path=''):
+		"""Set the directory containing PDBs."""
 		if path == '':
 			path = tkFileDialog.askdirectory(title="Choose a directory containing PDBs:",parent=self)
 		if path == '':
@@ -510,6 +575,14 @@ class PDBAttributeWindow(tk.Frame):
 		self.updateCalculateButton()
 
 	def setAttributeTable(self,new=False,path=''):
+		"""Loads either an existing attribute table, or creates a new one.
+		
+		Args:
+			new (bool): Create a new table?
+			path (string): Path to an existing attribute table to load. If not provided, prompts the user.
+			
+		Returns: None"""
+		# @TODO@ Check loaded PDBs against selected table?
 		if path == '':
 			if new:
 				path = tkFileDialog.asksaveasfilename(title='Create new attribute table:',filetypes=[('Attr',"*.attr"),('Text',"*.txt"),('Table',"*.tbl")],initialfile="pdb_attributes.txt",parent=self)
@@ -572,6 +645,12 @@ class PDBAttributeWindow(tk.Frame):
 		self.updateCalculateButton()
 			
 	def setRMSDReference(self,tmp=''):
+		"""Sets the RMSD reference PDB.
+		
+		Args:
+			tmp (string): Path to an existing PDB. If not provided, prompts the user.
+		
+		Returns: None"""
 		if tmp == '':
 			tmp = tkFileDialog.askopenfilename(title='PDB coordinate file to use as a reference:',parent=self,filetypes=[('PDB',"*.pdb")])
 		if tmp == '':

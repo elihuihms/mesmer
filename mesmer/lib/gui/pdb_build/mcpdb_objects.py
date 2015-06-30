@@ -3,12 +3,16 @@ from numpy import array,dot,sin,cos
 import random
 
 class TransformationGroup():
-	def __init__(self,residues,children=[]):
+	def __init__(self,residues,children=None):
 		self._rigid_residues	= residues
 		self._linker_residues	= []
 		self.linker_length		= len(self._linker_residues)
 		self._morph_direction	= 0
-		self._children			= children
+		
+		if children == None:
+			self._children		= []
+		else:
+			self._children			= children
 					
 	def add_residues(self,residues):
 		self._rigid_residues.extend(residues)

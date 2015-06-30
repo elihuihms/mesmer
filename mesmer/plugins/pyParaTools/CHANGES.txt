@@ -45,3 +45,9 @@ CalcPara.py
 	2. Added Dax and Drh conversion to VV units on lines 127-128.
 
 	3. Commented out average calculation on lines 150-153. CalcPara.RDC() will always return an empty list.
+	
+	4. Fixed source of massive memory leak due to http://stackoverflow.com/questions/1132941/least-astonishment-in-python-the-mutable-default-argument, in the default ParsedObjL argument assignments of the PCS, PRE, and RDC methods
+
+ExplorePara.py
+
+	1. Fixed source of massive memory leak due to http://stackoverflow.com/questions/1132941/least-astonishment-in-python-the-mutable-default-argument, in the default ParsedObjL argument assignment

@@ -290,7 +290,7 @@ class ComponentsWindow(tk.Frame):
 		self.clearComponentsButtonTT	= ToolTip(self.clearComponentsButton,	follow_mouse=0, text='Remove all pdbs')
 		self.addRowButtonTT			 	= ToolTip(self.addRowButton,			follow_mouse=0, text='Add an attribute type for the components')
 		self.delRowButtonTT			 	= ToolTip(self.delRowButton,			follow_mouse=0, text='Remove the selected attribute type')
-		self.calcDataMenuTT			 	= ToolTip(self.calcDataMenu,			follow_mouse=0, text='Calculate a type of attribute from the component PDBs')
+		self.calcDataMenuTT			 	= ToolTip(self.calcDataMenu,			follow_mouse=0, text='Calculate the selected attribute from the component PDBs')
 		self.openButtonTT			 	= ToolTip(self.openButton,				follow_mouse=0, text='Select a target to use as a template for the component attribute types')
 		self.saveButtonTT			 	= ToolTip(self.saveButton,				follow_mouse=0, text='Compile the components and save to a new component directory')
 		self.cancelButtonTT			 	= ToolTip(self.cancelButton,			follow_mouse=0, text='Close this window without saving')

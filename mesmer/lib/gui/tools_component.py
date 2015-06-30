@@ -12,7 +12,7 @@ from .. plugin_functions		import *
 from win_options				import *
 from win_status					import *
 from tools_plugin				import *
-from tools_multiprocessing		import ObjectParallelizer
+from tools_multiprocessing		import PluginParallelizer
 
 _PDB_calculator_timer = 500 # in ms
 
@@ -91,6 +91,8 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	for o in options:
 		if o['dest'] in saved_options and saved_options[o['dest']] != None: o['value'] = saved_options[o['dest']]
 
+
+	# open the options window to set plugin variables
 	w.newWindow = tk.Toplevel(w.master)
 	w.optWindow = OptionsWindow(w.newWindow,options)
 	w.newWindow.transient(w)
@@ -103,7 +105,8 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	# save the modified preferences/options with a handy generator	
 	setPluginPrefs( w.prefs, plugin.name, options={o['dest']:o['value'] for o in options} )
 
-	path = tkFileDialog.asksaveasfilename(title='Folder to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.type) )
+#	path = tkFileDialog.askdirectory(title="Directory to save calculated data to:",parent=w)
+	path = tkFileDialog.asksaveasfilename(title='Directory to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.type) )
 	if(path == ''):
 		return
 	if(os.path.exists(path)):
@@ -111,13 +114,13 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	try:
 		os.mkdir(path)
 	except:
-		tkMessageBox.showerror("Error","Could not create folder \"%s\"" % path)
+		tkMessageBox.showerror("Error","Could not create folder \"%s\"" % path,parent=w)
 		return
 	
 	try:
 		ok = plugin.setup( w, options, path )
 	except Exception as e:
-		tkMessageBox.showerror("Error","Plugin reported a problem: %s" % (e))
+		tkMessageBox.showerror("Error","Plugin reported a problem: %s" % (e),parent=w)
 		return		
 	if not ok:
 		return
@@ -129,7 +132,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 			break
 
 	# initialize the calculator
-	w.Calculator = ObjectParallelizer(plugin,'calculate',threads=w.prefs['cpu_count'])
+	w.Calculator = PluginParallelizer(plugin,threads=w.prefs['cpu_count'])
 	w.Calculator.put(pdbs)
 	w.counter = 0
 	

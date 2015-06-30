@@ -13,7 +13,7 @@ class CalcPara:
        given a set of parameters"""
 
 
-    def PCS(self, ParsedObj, convention, ParsedObjL=[]):
+    def PCS(self, ParsedObj, convention, ParsedObjL=None):
         """
         Calculate the PCS for a given set of spins/parameters in a given
         convention
@@ -25,6 +25,10 @@ class CalcPara:
                            calculating the PCS on many ParaParser objects
         @type  ParsedObjL: list
         """
+        
+        if ParsedObjL == None:
+            ParsedObjL = []            
+            
         ParsedObjL.insert(0,ParsedObj)
         average = []
         for i in range(0, len(ParsedObjL)):
@@ -64,7 +68,7 @@ class CalcPara:
         return average
 
 
-    def PRE(self, ParsedObj, ParsedObjL=[]):
+    def PRE(self, ParsedObj, ParsedObjL=None):
         """
         Calculate the PRE for a given set of spins/parameters
         @param ParsedObj:  A container of parsed dataset/structure/params
@@ -72,6 +76,10 @@ class CalcPara:
         @param ParsedObjL: [OPTIONAL] A list of ParsedObj
         @type  ParsedObjL: list
         """
+
+        if ParsedObjL == None:
+            ParsedObjL = []            
+
         ParsedObjL.insert(0,ParsedObj)
         average = []
         for i in range(0, len(ParsedObjL)):
@@ -92,7 +100,7 @@ class CalcPara:
 
 
     def RDC(self, ParsedObj, convention, exp_type='HN', Nmgr_type=1,
-                ParsedObjL=[]):
+                ParsedObjL=None):
         """
         Calculate the RDCs for a given set of spins/parameters in a given
         convention
@@ -107,6 +115,10 @@ class CalcPara:
         @param ParsedObjL: [OPTIONAL] A list of ParsedObj
         @type  ParsedObjL: list
         """
+        
+        if ParsedObjL == None:
+            ParsedObjL = []            
+
         ParsedObjL.insert(0,ParsedObj)
         average = []
         for i in range(0, len(ParsedObjL)):

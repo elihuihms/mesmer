@@ -21,7 +21,7 @@ def calculate_rg(pdb,CA_only):
 		
 	N = len(coords)
 	CoM = sum(coords) / N
-	return False,(pdb,std([c-CoM for c in coords])/(sum(masses)/N))
+	return False,(pdb,std([c-CoM for c in coords])/(sum(masses)/N)) #@TODO@ - check this
 
 def calculate_distance(pdb,A,B):
 	try:

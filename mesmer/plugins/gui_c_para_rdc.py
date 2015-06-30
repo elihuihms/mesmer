@@ -33,7 +33,7 @@ class plugin(guiCalcPlugin):
 		self.outputpath	= outputpath
 		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
 
-		self.template = tkFileDialog.askopenfilename(title='Select experimental RDC table template in CYANA format:',parent=parent)
+		self.template = tkFileDialog.askopenfilename(message='Select experimental RDC table template in CYANA format:',parent=parent)
 		if(self.template == ''):
 			return False
 		if not os.access(self.template, os.R_OK):
@@ -69,6 +69,6 @@ class plugin(guiCalcPlugin):
 		calc.RDC(rdc, 'ZYZ')
 
 		analysis = ExplorePara()
-		analysis.buildNumbatTBL(rdc, "%s%s%s.rdc" % (os.path.join(self.outputpath,name)))
+		analysis.buildNumbatTBL(rdc, "%s.rdc" % (os.path.join(self.outputpath,name)))
 
 		return False,(pdb,None)
