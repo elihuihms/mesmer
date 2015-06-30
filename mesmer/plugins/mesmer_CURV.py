@@ -1,7 +1,6 @@
 """
 Creates a MESMER restraint from a continuous 2D dataset (i.e. X/Y)
 """
-
 import argparse
 import math
 import scipy
@@ -30,16 +29,14 @@ class plugin( mesPluginDB ):
 			)
 
 		self.target_parser = argparse.ArgumentParser(prog=self.name)
-		self.target_parser.add_argument('-file',		metavar='FILE', 		help='Read an external file containing the experimental data')
-		self.target_parser.add_argument('-scale',		action='store_true',	help='Allow scaling of the calculated curve to improve fitting')
-		self.target_parser.add_argument('-offset',		action='store_true',	help='Allow the application of an offset to improve fitting')
-		self.target_parser.add_argument('-saxs_offset', type=float,				help='Improve fits to SAXS curves at higher specified scattering angles by applying an additional offset.')
-		self.target_parser.add_argument('-plot',		action='store_true',	help='Create a plot window at each generation showing fit to data (requires matplotlib)')
-		self.target_parser.add_argument('-fitness',		default='Chisq',	choices=['Chisq','SSE','Pearson','Poisson','Vr'],
-																				help='Method used to calculate goodness-of-fit. Note that Chisq and Vr require a third column containing dY data')
+		self.target_parser.add_argument('-scale',	action='store_true',	help='Allow scaling of the calculated curve to improve fitting')
+		self.target_parser.add_argument('-offset',	action='store_true',	help='Allow the application of an offset to improve fitting')
+		self.target_parser.add_argument('-fitness',	metavar='Goodness of fit metric',	required=True,	default='Chisq',	choices=['Chisq','SSE','Pearson','Poisson','Vr'],	help='Method used to calculate goodness-of-fit. Note that Chisq and Vr require a third column containing dY data')
 
-		self.component_parser = argparse.ArgumentParser(prog=self.name)
-		self.component_parser.add_argument('-file',		metavar='FILE',			help='Read an external file containing the predicted data')
+		cli = self.target_parser.add_argument_group("CLI-only arguments")
+		cli.add_argument('-saxs_offset', type=float,			help='Improve fits to SAXS curves at higher specified scattering angles by applying an additional offset.')
+		cli.add_argument('-plot',		action='store_true',	help='Create a plot window at each generation showing fit to data (requires matplotlib)')
+		cli.add_argument('-file',								help='Read an external file containing the predicted data')
 
 		self._plot_handles = {}
 

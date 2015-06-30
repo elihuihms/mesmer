@@ -50,7 +50,14 @@ def setPluginPrefs( shelf, name, **kwargs ):
 		raise
 		
 def convertParserToOptions( parser ):
-	options,savetypes = [],('help','option_strings','choices','type','dest','default','choices','required','nargs')
+	"""Convert an argparse argument parser to a descriptive dict
+	
+	Args:
+		parser (argparse.ArgumentParser): Parser to construct dict from
+	
+	Returns: dict representation of parser"""
+	
+	options,savetypes = [],('help','option_strings','choices','type','dest','default','choices','required','nargs','metavar')
 	for action in [a.__dict__ for a in parser.__dict__['_actions']]:
 		if action['dest'] == 'help':
 			continue
@@ -59,6 +66,7 @@ def convertParserToOptions( parser ):
 			options[ -1 ][ key ] = action[ key ]
 		options[ -1 ]['value'] = ''
 		options[ -1 ]['group'] = action['container'].title
+
 	return options
 	
 def setOptionsFromBlock( options, block ):

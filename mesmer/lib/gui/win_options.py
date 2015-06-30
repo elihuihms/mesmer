@@ -3,6 +3,9 @@ import argparse
 
 from tools_TkTooltip import ToolTip
 
+# Argument groups to not show in the window
+_HIDE_ARGUMENT_GROUPS = ('CLI-only arguments','CLI arguments')
+
 class OptionsWindow(tk.Frame):
 	def __init__(self, master, options):
 		self.master = master
@@ -13,7 +16,7 @@ class OptionsWindow(tk.Frame):
 		self.master.bind("<Return>", self.saveWindow)
 
 		self.options = options
-
+		
 		tk.Frame.__init__(self,master)
 
 		self.grid()
@@ -22,6 +25,8 @@ class OptionsWindow(tk.Frame):
 
 	def saveWindow(self, evt=None):
 		for i,option in enumerate(self.options):
+			if option['group'] in _HIDE_ARGUMENT_GROUPS:
+				break
 			try:
 				option['value'] = self.optionValues[i].get()
 			except ValueError:
@@ -49,6 +54,9 @@ class OptionsWindow(tk.Frame):
 		self.optionGroups[''] = tk.Frame(self.container,border=0)
 		self.optionGroups[''].grid(column=0,row=0,columnspan=2,sticky=tk.W)
 		for option in self.options:
+			if option['group'] in _HIDE_ARGUMENT_GROUPS:
+				break
+
 			if option['group'] == 'optional arguments':
 				option['group'] = ''
 			if option['group'] not in self.optionGroups:
@@ -56,9 +64,15 @@ class OptionsWindow(tk.Frame):
 				self.optionGroups[option['group']].grid(column=0,row=len(self.optionGroups),columnspan=2,sticky=tk.W)
 				
 		for option in self.options:
+			if option['group'] in _HIDE_ARGUMENT_GROUPS:
+				break
+
 			container = self.optionGroups[option['group']]
 			row = len(container.winfo_children())/2
-			self.optionLabels.append( tk.Label(container,text=option['dest']) )
+			if option['metavar'] == None:
+				self.optionLabels.append( tk.Label(container,text=option['dest']) )
+			else:
+				self.optionLabels.append( tk.Label(container,text=option['metavar']) )
 			self.optionLabels[-1].grid(column=0,row=row,sticky=tk.W)
 			self.optionToolTips.append( ToolTip(self.optionLabels[-1],follow_mouse=0,text=option['help']) )
 

@@ -117,7 +117,17 @@ class TargetWindow(tk.Frame):
 			for i in xrange(len(self.widgetRowTypes)):
 				if self.widgetRowTypes[i].get() != '':
 					self.widgetRowFileButtons[i].config(state=tk.NORMAL)
-					self.widgetRowOptButtons[i].config(state=tk.NORMAL)
+					
+					# disable the options button if there are no options to set!
+					type = self.widgetRowTypes[i].get()
+					for (j,t) in enumerate(self.plugin_types):
+						if(type in t):
+							break
+					
+					if len(self.widgetRowOptions[i][j]) > 0:
+						self.widgetRowOptButtons[i].config(state=tk.NORMAL)
+					else:
+						self.widgetRowOptButtons[i].config(state=tk.DISABLED)				
 					
 	def attachDataFile(self,evt):
 		tmp = tkFileDialog.askopenfilename(title='Select experimental datafile:',parent=self)

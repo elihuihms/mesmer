@@ -129,6 +129,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	for i in range(w.rowCounter):
 		if( w.widgetRowTypes[i].get() == plugin.type and w.widgetRowFolders[i].get() == '' ):
 			w.widgetRowFolders[i].set( path )
+			w.widgetRowFolderEntries[i].xview_moveto(1.0)
 			break
 
 	# initialize the calculator

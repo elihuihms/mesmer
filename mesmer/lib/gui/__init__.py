@@ -20,7 +20,6 @@ __all__ = [
 	'win_setup',
 	'win_status',
 	'win_target',
-	'win_target_options'
 	]
 	
 __version__ = '0.2.0'
