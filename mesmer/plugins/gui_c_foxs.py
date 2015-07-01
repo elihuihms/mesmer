@@ -19,10 +19,10 @@ class plugin(guiCalcPlugin):
 		self.type = 'SAXS'
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
-		self.parser.add_argument('-qmin',	type=float,	default=0.0,	help='Minimum scattering angle')
-		self.parser.add_argument('-qmax',	type=float,	default=0.5,	help='Maximum scattering angle')
-		self.parser.add_argument('-qnum',	type=int,	default=100,	help='Total points in the scattering profile')
-		self.parser.add_argument('-water',	action='store_true',	default=True,	help='Use hydration layer')
+		self.parser.add_argument('-qmin',	metavar='Min q',	type=float,	default=0.0,	help='Minimum scattering angle')
+		self.parser.add_argument('-qmax',	metavar='Max q',	type=float,	default=0.5,	help='Maximum scattering angle')
+		self.parser.add_argument('-qnum',	metavar="q Points",	type=int,	default=100,	help='Total points in the scattering profile')
+		self.parser.add_argument('-water',	action='store_true',	default=True,			help='Use hydration layer')
 
 	def setup(self, parent, options, outputpath):
 		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )

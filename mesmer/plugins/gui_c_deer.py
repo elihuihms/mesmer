@@ -26,7 +26,7 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-chainBID',			default=None,	required=False,	help='Chain ID for second labeled residue')
 		self.parser.add_argument('-resBNum',			default='',		required=True,	help='Residue number for second labeled residue')
 		self.parser.add_argument('-distW',	type=float,	default=5.75,	required=True,	help='Probe isolinker distribution  width (angstrom)')
-		#self.parser.add_argument('-linkR',	type=float, default=4.04,	required=True,	help='Probe isolinker length (angstrom)')
+#		self.parser.add_argument('-linkR',	type=float, default=4.04,	required=True,	help='Probe isolinker length (angstrom)')
 
 	def setup(self, parent, options, outputdir):
 		self.outputdir	= outputdir

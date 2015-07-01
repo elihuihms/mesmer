@@ -91,7 +91,6 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	for o in options:
 		if o['dest'] in saved_options and saved_options[o['dest']] != None: o['value'] = saved_options[o['dest']]
 
-
 	# open the options window to set plugin variables
 	w.newWindow = tk.Toplevel(w.master)
 	w.optWindow = OptionsWindow(w.newWindow,options)

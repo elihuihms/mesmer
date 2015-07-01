@@ -27,7 +27,7 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-Beta',	type=float,	help='Beta component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-Gamma',	type=float,	help='Gamma component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-B0',		type=float,	help='Field strength (Gauss)',	default=16.44)
-		self.parser.add_argument('-temp',	type=float,	help='Temperature (K)',			default=298.0)
+		self.parser.add_argument('-temp',	metavar='Temperature',	type=float,	help='Temperature (K)',			default=298.0)
 
 	def setup(self, parent, options, outputpath):
 		self.outputpath	= outputpath

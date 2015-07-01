@@ -24,13 +24,13 @@ class plugin(guiCalcPlugin):
 		self.path = 'crysol'
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
-		#self.parser.add_argument('-lm',		default='',	help='Maximum order of harmonics (default 15)')
-		#self.parser.add_argument('-fb',		default='',	help='Order of fibonacci grid(default 17)')
-		self.parser.add_argument('-sm',		type=float,	default=0.5,	help='Maximum scattering vector')
-		self.parser.add_argument('-ns',		type=int,	default=128,	help='# points in the computed curve')
-		self.parser.add_argument('-dns',	type=float,	default=0.334,	help='Solvent density (default 0.334 e/A**3)')
-		self.parser.add_argument('-dro',	type=float,	default=0.03,	help='Contrast of hydration shell (default 0.03 e/A**3)')
-		self.parser.add_argument('-eh',		action='store_true', 		help='Account for explicit hydrogens')
+		self.parser.add_argument('-sm',		metavar="Maximum q",		type=float,	default=0.5,	help='Maximum scattering vector')
+		self.parser.add_argument('-ns',		metavar="q Points",			type=int,	default=128,	help='# points in the computed curve')
+		self.parser.add_argument('-dns',	metavar="Solvent density",	type=float,	default=0.334,	help='Solvent density (default 0.334 e/A**3)')
+		self.parser.add_argument('-dro',	metavar="Shell contrast",	type=float,	default=0.03,	help='Contrast of hydration shell (default 0.03 e/A**3)')
+#		self.parser.add_argument('-lm',		default='',	help='Maximum order of harmonics (default 15)')
+#		self.parser.add_argument('-fb',		default='',	help='Order of fibonacci grid(default 17)')
+#		self.parser.add_argument('-eh',		action='store_true', 		help='Account for explicit hydrogens')
 
 	def setup(self, parent, options, outputdir):
 		#@TODO@ version checking/verification of CRYSOL

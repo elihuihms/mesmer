@@ -4,7 +4,10 @@ import argparse
 from tools_TkTooltip import ToolTip
 
 # Argument groups to not show in the window
-_HIDE_ARGUMENT_GROUPS = ('CLI-only arguments','CLI arguments')
+_OPTION_HIDE_ARGUMENT_GROUPS = ('CLI-only arguments','CLI arguments')
+
+# Empty argument values
+_OPTION_EMPTY_VALUES = ('',None,'None')
 
 class OptionsWindow(tk.Frame):
 	def __init__(self, master, options):
@@ -25,7 +28,7 @@ class OptionsWindow(tk.Frame):
 
 	def saveWindow(self, evt=None):
 		for i,option in enumerate(self.options):
-			if option['group'] in _HIDE_ARGUMENT_GROUPS:
+			if option['group'] in _OPTION_HIDE_ARGUMENT_GROUPS:
 				break
 			try:
 				option['value'] = self.optionValues[i].get()
@@ -54,7 +57,7 @@ class OptionsWindow(tk.Frame):
 		self.optionGroups[''] = tk.Frame(self.container,border=0)
 		self.optionGroups[''].grid(column=0,row=0,columnspan=2,sticky=tk.W)
 		for option in self.options:
-			if option['group'] in _HIDE_ARGUMENT_GROUPS:
+			if option['group'] in _OPTION_HIDE_ARGUMENT_GROUPS:
 				break
 
 			if option['group'] == 'optional arguments':
@@ -64,13 +67,15 @@ class OptionsWindow(tk.Frame):
 				self.optionGroups[option['group']].grid(column=0,row=len(self.optionGroups),columnspan=2,sticky=tk.W)
 				
 		for option in self.options:
-			if option['group'] in _HIDE_ARGUMENT_GROUPS:
+			if option['group'] in _OPTION_HIDE_ARGUMENT_GROUPS:
 				break
+			if option['value'] in _OPTION_EMPTY_VALUES:
+				option['value'] = option['default']
 
 			container = self.optionGroups[option['group']]
 			row = len(container.winfo_children())/2
 			if option['metavar'] == None:
-				self.optionLabels.append( tk.Label(container,text=option['dest']) )
+				self.optionLabels.append( tk.Label(container,text=option['dest'][0].upper()+option['dest'][1:]) )
 			else:
 				self.optionLabels.append( tk.Label(container,text=option['metavar']) )
 			self.optionLabels[-1].grid(column=0,row=row,sticky=tk.W)

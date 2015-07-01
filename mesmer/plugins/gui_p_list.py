@@ -12,15 +12,15 @@ class plugin(guiPlotPlugin):
 	def __init__(self):
 		guiPlotPlugin.__init__(self)
 		self.name = 'LIST/TABL Plotter'
-		self.version = '2014.01.15'
+		self.version = '2015.06.30'
 		self.info = "This plugin generates a correlation plot between two discretely sampled datasets."
 		self.type = (
 			'LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9',
 			'TABL','TABL0','TABL1','TABL2','TABL3','TABL4','TABL5','TABL6','TABL7','TABL8','TABL9')
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
-		self.parser.add_argument('-xCol',	default=1,		type=int,	help='The column containing the desired component attribute')
-		self.parser.add_argument('-yCol',	default=2,		type=int,	help='The column to use as y-axis data')
+		self.parser.add_argument('-xCol',	metavar='X column',	default=1,	type=int,	help='The column containing the desired component attribute')
+		self.parser.add_argument('-yCol',	metavar='Y column',	default=2,	type=int,	help='The column to use as y-axis data')
 
 		# check the script local to the installation first, otherwise use what's in the system's path
 		self.exe = os.path.join(os.path.dirname(os.path.dirname(__file__)),'utilities','make_list_plot.py')
