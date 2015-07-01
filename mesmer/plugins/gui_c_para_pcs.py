@@ -35,7 +35,7 @@ class plugin(guiCalcPlugin):
 		self.outputpath	= outputpath
 		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
 
-		self.template = tkFileDialog.askopenfilename(message='Select experimental PCS table template in CYANA format:',parent=parent)
+		self.template = tkFileDialog.askopenfilename(title='Select experimental PCS table template in CYANA format:',parent=parent)
 		if(self.template == ''):
 			return False
 		if not os.access(self.template, os.R_OK):
@@ -74,7 +74,6 @@ class plugin(guiCalcPlugin):
 		pcs = PCSParser( config )
 		pcs.doParse()
 		
-		# Massive memory leak in CalcPara somewhere
 		calc = CalcPara()
 		calc.PCS(pcs, 'ZYZ')
 

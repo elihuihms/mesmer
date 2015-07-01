@@ -186,17 +186,21 @@ class PluginWindow(tk.Frame):
 			self.pluginExecutableLabel.configure(state=tk.NORMAL)
 			self.pluginExecutableEntry.configure(state=tk.NORMAL)
 			self.pluginExecutableButton.configure(state=tk.NORMAL)
-
 		
-	def disablePlugin(self):
-		index = int(self.pluginListIndex.get())
+	def disablePlugin(self,id=None):
+		if id == None:
+			index = int(self.pluginListIndex.get())
+			id = self.plugin_ids[index]
+		else:
+			index = None
 		tmp = self.prefs['disabled_plugins']
-		tmp.append(self.plugin_ids[index])
+		tmp.append(id)
 		self.prefs['disabled_plugins'] = list(set(tmp))
 		self.prefs.sync()
-		self.plugin_states[index] = 0
-		self.togglePluginRow( index, False )
-		self.setWidgetState()
+		if index != None:
+			self.plugin_states[index] = 0
+			self.togglePluginRow( index, False )
+			self.setWidgetState()
 
 	def enablePlugin(self):
 		index = int(self.pluginListIndex.get())
@@ -243,6 +247,7 @@ class PluginWindow(tk.Frame):
 				self.createPluginRow( container, False, id, datatype, module.version )
 				if getPluginPrefs( self.prefs, module.name )['path'] == None: setPluginPrefs( self.prefs, id, path=module.path )
 			else:
+				self.disablePlugin(id)
 				self.plugin_names.append(None)
 				self.plugin_list_info.append( msg )
 				self.createPluginRow( self.f_mesmerplugins, True, id, '', '' )

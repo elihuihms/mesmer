@@ -1,4 +1,5 @@
 import os
+import shutil
 import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
@@ -30,7 +31,7 @@ class PDBBuildWindow(tk.Frame):
 		self.pack_propagate(True)
 		self.createWidgets()
 		
-		self.Generators = []
+		self.Generator = None
 		
 		try:
 			self.prefs = open_user_prefs(mode='r')
@@ -39,11 +40,11 @@ class PDBBuildWindow(tk.Frame):
 			self.master.destroy()
 		
 	def close(self):
-		if self.Generators == []:
+		if self.Generator == None:
 			self.master.destroy()
 			return
 		elif tkMessageBox.askquestion("Cancel", "Stop generating structures?", icon='warning',parent=self) == 'yes':
-			self.stopGenerators(abort=True)
+			self.stopGenerator(abort=True)
 			return
 
 	def createWidgets(self):
@@ -69,6 +70,7 @@ class PDBBuildWindow(tk.Frame):
 		self.groupFrames = []
 		self.groupLabels = []
 		self.groupChainLabels = []
+		self.groupChainLabelTTs = []
 		self.groupChainStarts = []
 		self.groupChainStartEntries = []
 		self.groupChainEnds = []
@@ -120,7 +122,7 @@ class PDBBuildWindow(tk.Frame):
 		self.f_footer = tk.Frame(self,borderwidth=0)
 		self.f_footer.grid(row=5)
 
-		self.generateButton = tk.Button(self.f_footer,text='Generate PDBs...',default=tk.ACTIVE,command=self.startGenerators,state=tk.DISABLED)
+		self.generateButton = tk.Button(self.f_footer,text='Generate PDBs...',default=tk.ACTIVE,command=self.startGenerator,state=tk.DISABLED)
 		self.generateButton.grid(column=1,row=5,sticky=tk.W,pady=4)
 		self.generateButtonTT = ToolTip(self.generateButton,follow_mouse=0,text='Start generating PDBs.')
 		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
@@ -258,7 +260,7 @@ class PDBBuildWindow(tk.Frame):
 		self.addRigidGroupButton.config(state=tk.NORMAL)
 		self.generateButton.config(state=tk.NORMAL)
 	
-	def startGenerators(self):
+	def startGenerator(self):
 		groups = []
 		for i in xrange(self.groupCounter):
 			groups.append( [] )
@@ -277,23 +279,23 @@ class PDBBuildWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Problem with group definitions: %s' % (msg),parent=self)
 			return
 		
-#		path = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
-		path = tkFileDialog.asksaveasfilename(title='Choose a directory to save generated PDBs into:',parent=self)
+		path = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
+#		path = tkFileDialog.asksaveasfilename(title='Choose a directory to save generated PDBs into:',parent=self)
 		if path == '':
 			return
-	
+		
 		if(os.path.exists(path)):
 			shutil.rmtree(path)
 		try:
 			os.mkdir(path)
 		except:
 			tkMessageBox.showerror("Error","Could not create folder \"%s\"" % path,parent=self)
-		return
+			return
 	
-		self.in_Queue,self.out_Queue = Queue(),Queue()
-
 		notified = False
 		self.updatePDBInfo(None,"Scanning existing directory...")
+
+		indices = []
 		for i in range(self.pdbNumber.get()):
 			if os.path.exists(os.path.join(path,self.pdbPrefix.get()+(_PDB_generator_format%(i)))):
 				if not notified:
@@ -302,56 +304,48 @@ class PDBBuildWindow(tk.Frame):
 						return
 					notified = True
 			else:
-				self.in_Queue.put(i)
-				
+				indices.append(i)
+		
 		self.updatePDBInfo("Generating PDBs:","Initializing generators...")
-		self.Generators = []
-		for i in xrange(self.prefs['cpu_count']):
-			self.Generators.append(
-				mcpdb_generator.PDBGenerator(
-					self.in_Queue,self.out_Queue,
-					self.pdb,
-					groups,
-					outputdir = path,
-					prefix = self.pdbPrefix.get(),
-					format = _PDB_generator_format,
-					fix_first = (self.fixFirstGroup.get() == 1),
-					use_rama = (self.useRamachandran.get() == 1),
-					eval_kwargs={'clash_radius':self.clashTolerance.get()},
-					seed = i * 100
-				)
-			)
-			self.Generators[i].start()
+		self.plugin = mcpdb_generator.PDBGenerator()
+		self.plugin.setup(
+			self.pdb,
+			groups,
+			outputdir = path,
+			prefix = self.pdbPrefix.get(),
+			format = _PDB_generator_format,
+			fix_first = (self.fixFirstGroup.get() == 1),
+			use_rama = (self.useRamachandran.get() == 1),
+			eval_kwargs={'clash_radius':self.clashTolerance.get()})
+
+		self.Generator = PluginParallelizer(self.plugin,threads=self.prefs['cpu_count'])
+		self.Generator.put(indices)
+		self.counter = 0
 
 		self.updatePDBInfo(None,"Generating structures...")
-		self.generatorAfter = self.after( _PDB_generator_timer, self.updateGenerators )
+		self.Generator.afterID = self.after( _PDB_generator_timer, self.updateGenerator )
 
-	def updateGenerators(self):
-		indices = []
-		while not self.out_Queue.empty():
-			indices.append( self.out_Queue.get() )
-		indices.sort(reverse=True)		
-
-		if len(indices) > 0:
-			self.updatePDBInfo(None,"Generated structure %i"%(indices[0]+1))
+	def updateGenerator(self):
+		for index in self.Generator.get():
+			self.counter += 1
 		
-		if self.pdbNumber.get()-1 in indices:
-			self.stopGenerators()
+		if self.counter == self.pdbNumber.get():
+			self.stopGenerator()
 			return
-					
-		self.generatorAfter = self.after( _PDB_generator_timer, self.updateGenerators )
+		
+		self.updatePDBInfo(None,"Generated structure %i"%self.counter)
+		self.Generator.afterID = self.after( _PDB_generator_timer, self.updateGenerator )
 	
-	def stopGenerators(self,abort=False):
-		if self.Generators != []:
+	def stopGenerator(self,abort=False):
+		if self.Generator != None:
 			if abort:
-				self.after_cancel(self.generatorAfter)
-				for g in self.Generators:
-					g.terminate()
+				try:
+					self.after_cancel(self.Generator.afterID)
+				except AttributeError:
+					pass
+				self.Generator.abort()
 				self.updatePDBInfo("Aborted.","")
 			else:
-				for g in self.Generators:
-					self.in_Queue.put(None)
-				for g in self.Generators:
-					g.join()
+				self.Generator.stop()
 				self.updatePDBInfo("Done.","")
-			self.Generators = []
+			self.Generator = None

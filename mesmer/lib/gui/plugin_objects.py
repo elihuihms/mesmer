@@ -69,11 +69,17 @@ class guiCalcPlugin(Process):
 			
 		Returns: None
 		"""
+		
 		self.__dict__.update(parent.__dict__)
+		try:
+			del self.parser
+		except AttributeError:
+			pass
+		
 		self.iQ,self.oQ = in_queue,out_queue
 		
 	def run(self):
-		"""Start consuming PDBs from the input queue by calling the calculate() method repeatedly."""
+		"""Start consuming PDBs from the input queue by calling the calculate() method."""
 		for d in iter(self.iQ.get, None):
 			self.oQ.put( self.calculate(d) )
 
@@ -108,7 +114,7 @@ class guiCalcPlugin(Process):
 		"""
 		return True
 
-class guiPlotPlugin():
+class guiPlotPlugin(object):
 	"""A class primitive for MESMER GUI plugins for generating figures depicting experimental data and MESMER's fits
 		
 	Attributes:

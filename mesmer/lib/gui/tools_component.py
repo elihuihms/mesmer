@@ -104,8 +104,8 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	# save the modified preferences/options with a handy generator	
 	setPluginPrefs( w.prefs, plugin.name, options={o['dest']:o['value'] for o in options} )
 
-#	path = tkFileDialog.askdirectory(title="Directory to save calculated data to:",parent=w)
-	path = tkFileDialog.asksaveasfilename(title='Directory to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.type) )
+	path = tkFileDialog.askdirectory(title="Directory to save calculated data to:",parent=w)
+#	path = tkFileDialog.asksaveasfilename(title='Directory to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.type) )
 	if(path == ''):
 		return
 	if(os.path.exists(path)):

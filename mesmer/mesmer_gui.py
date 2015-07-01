@@ -20,7 +20,7 @@
 import os
 import sys
 
-def run():
+if( __name__ == "__main__" ):
 	try:
 		import Tkinter as tk
 		import tkMessageBox
@@ -33,7 +33,7 @@ def run():
 		sys.exit()
 		
 	try:
-		from lib.gui.win_main		import MainWindow
+		from lib.gui.win_main import MainWindow
 	except ImportError as e:
 		tkMessageBox.showerror("Error","Error loading MESMER: %s" % (e))
 		sys.exit()
@@ -42,9 +42,6 @@ def run():
 	if sys.platform == 'darwin':
 		os.system('''/usr/bin/osascript -e 'tell app "Finder" to set frontmost of process "Python" to true' ''')
 	
-	app = MainWindow(root)
+	app = MainWindow(root)	
 	app.mainloop()
-
-if( __name__ == "__main__" ):
-	run()
 
