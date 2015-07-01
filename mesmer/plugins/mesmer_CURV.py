@@ -1,6 +1,5 @@
-"""
-Creates a MESMER restraint from a continuous 2D dataset (i.e. X/Y)
-"""
+"""Creates a MESMER restraint from a continuous 2D dataset (i.e. X/Y)"""
+
 import argparse
 import math
 import scipy
@@ -37,6 +36,9 @@ class plugin( mesPluginDB ):
 		cli.add_argument('-saxs_offset', type=float,			help='Improve fits to SAXS curves at higher specified scattering angles by applying an additional offset.')
 		cli.add_argument('-plot',		action='store_true',	help='Create a plot window at each generation showing fit to data (requires matplotlib)')
 		cli.add_argument('-file',								help='Read an external file containing the predicted data')
+
+		self.component_parser = argparse.ArgumentParser(prog=self.name)
+		self.component_parser.add_argument('-file',	action='store',	help='An external whitespace-delimited file containing LIST parameters.')
 
 		self._plot_handles = {}
 
@@ -135,7 +137,7 @@ class plugin( mesPluginDB ):
 			args = self.target_parser.parse_args(block['header'].split()[2:])
 		except argparse.ArgumentError, exc:
 			raise mesPluginError("Argument error: %s" % exc.message())
-
+		
 		if(args.file == None):
 			try:
 				values = scipy.genfromtxt( StringIO( ''.join(block['content'])), unpack=True )

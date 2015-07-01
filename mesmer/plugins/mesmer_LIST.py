@@ -1,6 +1,4 @@
-"""
-Creates a MESMER restraint from a general list of data (NOEs, Pseudocontact shifts, etc.)
-"""
+"""Creates a MESMER restraint from a general list of data (NOEs, Pseudocontact shifts, etc.)"""
 
 import argparse
 import sys
@@ -33,7 +31,7 @@ class plugin( mesPluginDB ):
 		cli = self.target_parser.add_argument_group("CLI-only arguments")
 		cli.add_argument('-file', 	action='store',			help='An external whitespace-delimited file containing LIST parameters.')
 		cli.add_argument('-plot', 	action='store_true',	help='Create a plot window at each generation showing fit to data')
-																				
+
 		self.component_parser = argparse.ArgumentParser(prog=self.name)
 		self.component_parser.add_argument('-file',	action='store',	help='An external whitespace-delimited file containing LIST parameters.')
 

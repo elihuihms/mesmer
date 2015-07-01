@@ -1,5 +1,4 @@
-"""
-MESMER plugin for component stoichiometry
+"""MESMER plugin for component stoichiometry
 
 Target file arguments:
 -component <name> <# of component>

@@ -36,7 +36,7 @@ def makeCorrelationPlot( w ):
 
 def plotRestraint( w ):
 	for p in w.plot_plugins:
-		if (w.currentSelection[2] == p.type):
+		if (w.currentSelection[2] in p.type):
 			path = (os.path.join(w.activeDir.get(), 'restraints_%s_%s_%05i.out' % (w.currentSelection[1],w.currentSelection[2],w.currentSelection[0])))
 
 			if( not os.access( path, os.R_OK ) ):

@@ -9,17 +9,7 @@ from exceptions				import *
 from utility_functions		import *
 
 def parse_arguments(str=None):
-	"""
-	Parses the command-line parameters (or those provided in a configuration file)
-	"""
-
-	# default behavior of argparse is to split on newlines in  argument list files
-	# this allows for both the argument and value to be on the same line
-	def convert_arg_line_to_args(self, arg_line):
-		for arg in arg_line.split():
-			if not arg.strip():
-				continue
-			yield arg
+	"""Parses the command-line parameters (or those provided in a configuration file)"""
 
 	class mesParser(argparse.ArgumentParser):
 		def error(self, message):
@@ -27,8 +17,15 @@ def parse_arguments(str=None):
 #			self.print_usage()
 			sys.exit(1)
 
+		# default behavior of argparse is to split on newlines in  argument list files
+		# this allows for both the argument and value to be on the same line
+		def convert_arg_line_to_args(self, arg_line):
+			for arg in arg_line.split():
+				if not arg.strip():
+					continue
+				yield arg
+
 	# argument groups are just used for more attractive formatting when help is invoked
-	argparse.ArgumentParser.convert_arg_line_to_args = convert_arg_line_to_args
 	parser = mesParser(fromfile_prefix_chars='@')
 
 	group0 = parser.add_argument_group('Target and component files')
