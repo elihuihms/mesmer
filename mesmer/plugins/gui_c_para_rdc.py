@@ -28,15 +28,13 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-Gamma',	type=float,	help='Gamma component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-B0',		type=float,	help='Field strength (Gauss)',	default=16.44)
 		self.parser.add_argument('-temp',	metavar='Temperature',	type=float,	help='Temperature (K)',			default=298.0)
+		self.parser.add_argument('-template', metavar='FILE', help="Experimental RDC data template, in CYANA format", required=True)
 
 	def setup(self, parent, options, outputpath):
 		self.outputpath	= outputpath
 		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
 
-		self.template = tkFileDialog.askopenfilename(message='Select experimental RDC table template in CYANA format:',parent=parent)
-		if(self.template == ''):
-			return False
-		if not os.access(self.template, os.R_OK):
+		if not os.access(self.args.template, os.R_OK):
 			raise mesPluginError("Could not read specified RDC table")
 		return True
 
@@ -51,7 +49,7 @@ class plugin(guiCalcPlugin):
 			'',
 			'rdc',
 			pdb,
-			self.template,
+			self.args.template,
 			self.args.Dax,
 			self.args.Drh,
 			self.args.Alpha,

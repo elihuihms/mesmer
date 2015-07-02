@@ -1,3 +1,6 @@
+import sys
+import tkFileDialog
+
 from multiprocessing import cpu_count
 
 def tryProgramCall( program ):
@@ -10,6 +13,14 @@ def tryProgramCall( program ):
 
 	return True
 
+def askOpenFilename(parent,title='',message='',**kwargs):
+	if sys.platform == 'darwin':
+		return tkFileDialog.askopenfilename(parent=parent,title=title,message=message,**kwargs)
+	elif sys.platform == 'win32':
+		return tkFileDialog.askopenfilename(parent=parent,title=message,**kwargs)
+	else:
+		return tkFileDialog.askopenfilename(parent=parent,title=title,message=message,**kwargs)
+		
 def revealDirectory( dir ):
 	from subprocess import call
 	from sys import platform

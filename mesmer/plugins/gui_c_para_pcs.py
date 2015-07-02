@@ -1,5 +1,4 @@
 import os
-import sys
 import argparse
 import tkFileDialog
 import Bio.PDB
@@ -17,7 +16,7 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'PCS - pyParaTools'
-		self.version = '2015.06.23'
+		self.version = '2015.07.01'
 		self.info = 'This plugin uses PyParaTools (see http://comp-bio.anu.edu.au/mscook/PPT/) to calculate pseudocontact shifts from a paramagnetic atom in a PDB.'
 		self.type = 'TABL'
 
@@ -30,15 +29,13 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-Alpha',	type=float,	help='Alpha component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-Beta',	type=float,	help='Beta component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-Gamma',	type=float,	help='Gamma component of alignment tensor Euler angle',	required=True)
+		self.parser.add_argument('-template', metavar='FILE', help="Experimental PCS data template, in CYANA format", required=True)
 
 	def setup(self, parent, options, outputpath):
 		self.outputpath	= outputpath
 		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
 
-		self.template = tkFileDialog.askopenfilename(title='Select experimental PCS table template in CYANA format:',parent=parent)
-		if(self.template == ''):
-			return False
-		if not os.access(self.template, os.R_OK):
+		if not os.access(self.args.template, os.R_OK):
 			raise mesPluginError("Could not read specified PCS table")
 		return True
 
@@ -60,7 +57,7 @@ class plugin(guiCalcPlugin):
 			'',
 			'pcs',
 			pdb,
-			self.template,
+			self.args.template,
 			coord[0],
 			coord[1],
 			coord[2],
