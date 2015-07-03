@@ -29,6 +29,7 @@ class PDBBuildWindow(tk.Frame):
 		tk.Frame.__init__(self,master)
 		self.pack(expand=True,fill='both',padx=6,pady=6)
 		self.pack_propagate(True)
+		
 		self.createWidgets()
 		
 		self.Generator = None

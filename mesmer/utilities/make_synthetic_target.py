@@ -25,10 +25,12 @@ def run():
 	args.dbm = False
 	args.plugin = ''
 
-	# god help you if there's errors here - no checking!
-	plugins = load_plugins(os.path.dirname(__file__), 'mesmer', args=args )
-	targets = load_targets( args, plugins )
-	components = load_components( args, plugins, targets )
+	plugins = []
+	for id,ok,msg,module in load_plugins(os.path.dirname(__file__), 'mesmer', args=args ):
+		if ok: plugins.append(module)
+	
+	targets		= load_targets( args, plugins )
+	components	= load_components( args, plugins, targets )
 
 	if(None in components):
 		exit()

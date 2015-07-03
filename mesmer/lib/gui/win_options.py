@@ -30,8 +30,9 @@ class OptionsWindow(tk.Frame):
 		self.options = options
 		
 		tk.Frame.__init__(self,master)
-
-		self.grid()
+		self.pack(expand=True,fill='both',padx=6,pady=6)
+		self.pack_propagate(True)
+		
 		self.createWidgets()
 		self.returncode = 0
 
@@ -48,7 +49,6 @@ class OptionsWindow(tk.Frame):
 				
 			if option['value'] in _OPTION_EMPTY_VALUES:
 				option['value'] == None
-		print self.options
 			
 		self.returncode = 0
 		self.close()
@@ -100,35 +100,33 @@ class OptionsWindow(tk.Frame):
 		
 		rowcounter = 0	
 		for option in self.options:
-			container = self.optionGroups[option['group']]
-
 			if option['group'] in _OPTION_HIDE_ARGUMENT_GROUPS:
 				break
-
 			if option['value'] in _OPTION_EMPTY_VALUES:
 				option['value'] = option['default']
-	
-			if option['metavar'] == None:
-				self.optionLabels.append( tk.Label(container,text=option['dest'][0].upper()+option['dest'][1:]) )
-				option['metavar'] = ''
-			elif option['metavar'] in _OPTION_FILE_METAVARS:
-				self.optionLabels.append( tk.Label(container,text=option['dest'][0].upper()+option['dest'][1:]+" file:") )
-				self.optionValues.append( tk.StringVar() )
-				self.optionValues[-1].set( option['value'] )
+
+			container = self.optionGroups[option['group']]			
+
+			# what do we show for the entry label?	
+			if option['metavar'] in _OPTION_FILE_METAVARS:
+				text = option['dest'][0].upper()+option['dest'][1:]+" file:"
 			elif option['metavar'] in _OPTION_DIR_METAVARS:
-				self.optionLabels.append( tk.Label(container,text=option['dest'][0].upper()+option['dest'][1:]+" folder:") )
-				self.optionValues.append( tk.StringVar() )
-				self.optionValues[-1].set( option['value'] )
+				text = option['dest'][0].upper()+option['dest'][1:]+" folder:"
+			elif option['metavar'] == None:
+				text = option['dest'][0].upper()+option['dest'][1:]
 			else:
-				self.optionLabels.append( tk.Label(container,text=option['metavar']) )
-				
+				text = option['metavar']
+	
+			self.optionLabels.append( tk.Label(container,text=text) )
 			self.optionLabels[-1].grid(column=0,row=rowcounter,sticky=tk.W)
 			self.optionToolTips.append( ToolTip(self.optionLabels[-1],follow_mouse=0,text=option['help']) )
 
+			# file input are handled a bit differently
 			if option['metavar'] in _OPTION_FILE_METAVARS:
 				rowcounter+=1
-				base = os.path.basename(str(option['value']))
-				self.optionEntries.append( tk.Button(container,text=base,justify=tk.LEFT) )
+				self.optionValues.append( tk.StringVar() )
+				self.optionValues[-1].set( option['value'] )
+				self.optionEntries.append( tk.Button(container,text=os.path.basename(str(option['value'])),justify=tk.LEFT) )
 				self.optionEntries[-1].bind('<ButtonRelease-1>',self.updateFileButton)
 				self.optionEntries[-1].grid(column=0,columnspan=2,row=rowcounter,sticky=tk.W+tk.E)
 				rowcounter+=1
@@ -136,8 +134,9 @@ class OptionsWindow(tk.Frame):
 
 			elif option['metavar'] in _OPTION_DIR_METAVARS:
 				rowcounter+=1
-				base = os.path.basename(os.path.normpath(str(option['value'])))
-				self.optionEntries.append( tk.Button(container,text=base,justify=tk.LEFT) )
+				self.optionValues.append( tk.StringVar() )
+				self.optionValues[-1].set( option['value'] )
+				self.optionEntries.append( tk.Button(container,text=os.path.basename(os.path.normpath(str(option['value']))),justify=tk.LEFT) )
 				self.optionEntries[-1].bind('<ButtonRelease-1>',self.updateDirButton)
 				self.optionEntries[-1].grid(column=0,columnspan=2,row=rowcounter,sticky=tk.W+tk.E)
 				rowcounter+=1

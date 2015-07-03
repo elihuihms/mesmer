@@ -41,11 +41,12 @@ def run():
 	args = parse_arguments()
 
 	# attempt to load available plugin modules
-	try:
-		plugins = load_plugins(os.path.dirname(__file__), 'mesmer', args=args )
-	except mesPluginError as e:
-		print e.msg
-		sys.exit(10)
+	plugins = []
+	for id,ok,msg,module in load_plugins(os.path.dirname(__file__), 'mesmer', args=args ):
+		if ok:
+			plugins.append( module )
+		else:
+			print_msg("WARNING: Plugin \"%s\" failed to load: (%s).")			
 
 	# did the user request information about a plugin?
 	for p in plugins:

@@ -26,7 +26,7 @@ class plugin( mesPluginDB ):
 		self.target_parser = argparse.ArgumentParser(prog=self.name)
 		self.target_parser.add_argument('-rCol', 	metavar='Restraint Column', action='store',	type=int,	required=True,	help='The column of data to use as the restraint')
 		self.target_parser.add_argument('-dCol',	metavar='Uncertainty Column', action='store', type=int,					help='The column of data to use as an uncertainty or interval column for some goodness-of-fit metrics')
-		self.target_parser.add_argument('-fitness',	metavar='Goodness of fit metric',	default='Chisq',	choices=['Chisq','SSE','Harmonic','Quality','Rsquare'], required=True, help='Method used to calculate goodness-of-fit')
+		self.target_parser.add_argument('-fitness',	metavar='Goodness of fit',	default='Chisq',	choices=['Chisq','SSE','Harmonic','Quality','Rsquare'], required=True, help='Method used to calculate goodness-of-fit')
 		
 		cli = self.target_parser.add_argument_group("CLI-only arguments")
 		cli.add_argument('-file', 	action='store',			help='An external whitespace-delimited file containing LIST parameters.')

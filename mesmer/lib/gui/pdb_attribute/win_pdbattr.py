@@ -636,9 +636,11 @@ class PDBAttributeWindow(tk.Frame):
 		self.attributeFileColMenu.config(state=tk.NORMAL)
 
 		if new:
-			self.updateAttributeInfo("Created new attribute table with %i records."%(pdbcounter))
+			self.updateAttributeInfo("Created new table with %i records."%(pdbcounter))
+		elif len(self.attributeFileColumns)-1 == 1:
+			self.updateAttributeInfo("Loaded table with %i records, 1 attribute."%(rows))		
 		else:
-			self.updateAttributeInfo("Loaded attribute table with %i records and %i column(s)."%(rows,len(self.attributeFileColumns)-1))
+			self.updateAttributeInfo("Loaded table with %i records, %i attributes."%(rows,len(self.attributeFileColumns)-1))
 
 		self.attributeFilePath.set(path)
 		self.attributeFileEntry.xview_moveto(1.0)

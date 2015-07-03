@@ -5,24 +5,29 @@ from .. exceptions			import *
 from .. plugin_functions	import load_plugins
 from .. setup_functions		import parse_arguments,set_default_prefs
 
-def tryLoadPlugins( shelf, type, args=None ):
-	try:
-		plugins = load_plugins( shelf['mesmer_base_dir'], type, dry_run=False, disabled=shelf['disabled_plugins'], args=args )
-	except mesPluginError as e:
-		tkMessageBox.showerror("Error",'Failed to load one or more plugins: %s' % (e.msg))
-		raise
+def tryLoadPlugins( shelf, type, args=None, disabled_writeback=False ):
+
+	plugins,disabled = [],shelf['disabled_plugins'][:] # (copy slicing isn't necessary if shelf is actually a shelf)
+	for id,ok,msg,module in load_plugins( shelf['mesmer_base_dir'], type, disabled=disabled, args=args ):
+		if ok:
+			plugins.append( module )
+		else:
+			disabled.append( id )
+
+	if disabled_writeback:
+		shelf['disabled_plugins'] = list(set(disabled)) # uniquify
 		
 	return plugins	
 
-def getTargetPluginOptions( prefs ):
+def getTargetPluginOptions( plugins, prefs ):
 	types, options = [], []
-	for p in tryLoadPlugins(prefs, 'mesmer', parse_arguments('')):
+	for p in plugins:
 		types.append( [] )
 		for t in p.type:
 			if( not t[0:4] in types[-1] ):
 				types[-1].append(t[0:4])
 		options.append( convertParserToOptions(p.target_parser) )
-	return (types,options)
+	return types,options
 
 def getPluginPrefs( shelf, name ):
 	try:

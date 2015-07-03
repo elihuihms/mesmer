@@ -5,7 +5,7 @@ import tkMessageBox
 import tkFileDialog
 
 from .. utility_functions 	import get_input_blocks
-from .. setup_functions		import open_user_prefs
+from .. setup_functions		import open_user_prefs,parse_arguments
 
 from tools_TkTooltip		import ToolTip
 from tools_component		import makeComponentsFromWindow,calcDataFromWindow
@@ -14,14 +14,14 @@ from tools_plugin			import getTargetPluginOptions,tryLoadPlugins
 class ComponentsWindow(tk.Frame):
 	def __init__(self, master=None):
 		self.master = master
-		self.master.geometry('540x372+100+100')
 		self.master.title('Component Builder')
+		
 		self.master.resizable(width=False, height=False)
 		self.master.protocol('WM_DELETE_WINDOW', self.close)
 
 		tk.Frame.__init__(self,master,width=540,height=372)
-		self.grid()
-		self.grid_propagate(0)
+		self.pack(expand=True,fill='both',padx=6,pady=6)
+		self.pack_propagate(True)
 
 		self.loadPrefs()
 		self.createControlVars()
@@ -41,18 +41,10 @@ class ComponentsWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
-		
-		try:
-			(self.target_plugin_types,self.target_plugin_options) = getTargetPluginOptions(self.prefs)
-		except Exception as e:
-			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
-			self.master.destroy()
 
-		try:
-			self.calc_plugins = tryLoadPlugins(self.prefs, 'gui_c')
-		except Exception as e:
-			tkMessageBox.showerror("Error",'Failure loading GUI calculator plugins.\n\nReported error:%s' % e,parent=self)
-			self.master.destroy()			
+		self.calc_plugins	= tryLoadPlugins(self.prefs, 'gui_c', disabled_writeback=True)
+		self.target_plugins	= tryLoadPlugins(self.prefs, 'mesmer', args=parse_arguments(), disabled_writeback=True)
+		self.target_plugin_types,self.target_plugin_options = getTargetPluginOptions(self.target_plugins,self.prefs)
 
 	def loadTarget(self):
 		tmp = tkMessageBox.askquestion("Load Target","Are you sure you would like to load an existing target as a template?\nThis will clear your current entries.", icon='warning',parent=self)
@@ -156,8 +148,8 @@ class ComponentsWindow(tk.Frame):
 		self.widgetRowFolders = []
 
 	def createWidgets(self):
-		self.f_filelist = tk.LabelFrame(self,text='Component PDBs')
-		self.f_filelist.grid(column=0,row=0,sticky=tk.W,ipady=4,ipadx=8,padx=8)
+		self.f_filelist = tk.LabelFrame(self,text='Component PDBs',padx=4,pady=4)
+		self.f_filelist.grid(column=0,row=0,sticky=tk.E+tk.W,ipady=4,ipadx=8,padx=8)
 
 		self.componentPDBsList = tk.Listbox(self.f_filelist,width=50,height=10,selectmode=tk.EXTENDED)
 		self.componentPDBsList.grid(column=0,row=0,rowspan=4,padx=(6,0))
@@ -180,8 +172,8 @@ class ComponentsWindow(tk.Frame):
 		self.clearComponentsButton = tk.Button(self.f_filelist,text='Clear',state=tk.DISABLED,command=self.clearComponentPDBs)
 		self.clearComponentsButton.grid(column=2,row=3,sticky=tk.NW)
 
-		self.f_container = tk.LabelFrame(self,borderwidth=2,relief='groove',text='Calculated Data')
-		self.f_container.grid(sticky=tk.W,ipady=4,ipadx=8,padx=8)
+		self.f_container = tk.LabelFrame(self,borderwidth=2,relief='groove',text='Calculated Data',padx=4,pady=4)
+		self.f_container.grid(sticky=tk.E+tk.W,ipady=4,ipadx=8,padx=8)
 
 		self.addRowButton = tk.Button(self.f_container,text='Add',command=self.createWidgetRow)
 		self.addRowButton.grid(column=0,row=0,sticky=tk.E)
@@ -249,9 +241,6 @@ class ComponentsWindow(tk.Frame):
 		self.widgetRowFolderEntriesTT.append( ToolTip(self.widgetRowFolderEntries[-1], 	follow_mouse=0, text='The path to the folder containing attribute data.') )
 		self.widgetRowFolderButtonsTT.append( ToolTip(self.widgetRowFolderButtons[-1], 	follow_mouse=0, text='Sets the path to a folder containing attribute data.') )
 
-		self.master.geometry('540x%i' % (338+self.rowCounter*30))
-		self.config(width=540,height=(338+self.rowCounter*30))
-
 		self.delRowButton.config(state=tk.NORMAL)
 
 	def destroyWidgetRows(self):
@@ -279,9 +268,6 @@ class ComponentsWindow(tk.Frame):
 
 		if(self.rowCounter==0):
 			self.delRowButton.config(state=tk.DISABLED)
-
-		self.master.geometry('540x%i' % (338+self.rowCounter*30))
-		self.config(width=540,height=(338+self.rowCounter*30))
 		
 	def createToolTips(self):
 		self.componentPDBsListTT	 	= ToolTip(self.componentPDBsList,		follow_mouse=0, text='PDBs to generate component files from')

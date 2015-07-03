@@ -5,9 +5,22 @@ import glob
 
 from exceptions import *
 
-def load_plugins( dir, type, dry_run=False, disabled=[], args=None ):
-	"""
-	Finds all MESMER plugin (plugin_*.py) files in the provided directory, and returns them
+def load_plugins( dir, type, disabled=[], args=None ):
+	"""Find all plugin (plugin_*.py) files in the provided directory, and return dict
+	
+	Returned list format tuples:
+		id (string): The ID of the plugin (obtained from filename)
+		ok (bool): Whether or not there were any exceptions raised while loading the plugin module
+		info (string): Informative text about the plugin
+		plugin (module): The actual plugin module (IF ok==True, otherwise None)
+	
+	Args:
+		dir (string): Path to MESMER directory
+		type (string): Plugin type, is used to discriminate plugin file paths
+		disabled (list): List of plugin IDs to ignore
+		args (ArgumentParser namespace): MESMER arguments
+	
+	Returns: dict of plugin tuples
 	"""
 
 	# add lib directory to the system path
@@ -29,7 +42,7 @@ def load_plugins( dir, type, dry_run=False, disabled=[], args=None ):
 	else:
 		args = [args]
 				
-	plugins = []
+	ret = []
 	for f in glob.glob( '%s%s%s_*.py' % (path,os.sep,type) ):
 
 		id, ext = os.path.splitext(os.path.basename(f))
@@ -39,34 +52,23 @@ def load_plugins( dir, type, dry_run=False, disabled=[], args=None ):
 		try:
 			file, filename, data = imp.find_module(id, [path])
 		except ImportError:
-			if dry_run:
-				plugins.append( (id, False, "Could not discover plugin at path \"%s\"." % f, None) )
-				continue
-			else:
-				raise mesPluginError("ERROR: Could not discover plugin at path \"%s\"." % f)
+			ret.append( (id, False, "Could not discover plugin at path \"%s\"." % f, None) )
+			continue
 
 		try:
 			module = imp.load_module(id, file, filename, data)
 		except:
-			if dry_run:
-				plugins.append( (id, False, "Could not import plugin module \"%s\". Reason: %s" % (id,sys.exc_info()[1]), None) )
-				continue
-			else:
-				raise mesPluginError("ERROR: Could not import plugin module \"%s\". Reason: %s" % (id,sys.exc_info()[1]))
+			ret.append( (id, False, "Could not import plugin module \"%s\". Reason: %s" % (id,sys.exc_info()[1]), None) )
+			continue
 		finally:
 			file.close()
 
-		if dry_run:
-			try:
-				plugins.append( (id, True, '', module.plugin( *args )) )
-			except:
-				plugins.append( (id, False, "Could not load plugin \"%s\". Reason: %s" % (id,sys.exc_info()[1]), None) )
+		try:
+			ret.append( (id, True, '', module.plugin( *args )) )
+		except:
+			ret.append( (id, False, "Could not load plugin \"%s\". Reason: %s" % (id,sys.exc_info()[1]), None) )
 				
-		else:
-			# following is not exception-wrapped for easier debugging
-			plugins.append( module.plugin( *args ) )
-
-	return plugins
+	return ret
 
 def unload_plugins( plugins ):
 	for p in plugins:

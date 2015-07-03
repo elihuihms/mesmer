@@ -6,24 +6,24 @@ import tkFileDialog
 import copy
 
 from .. utility_functions 	import get_input_blocks
-from .. setup_functions		import open_user_prefs
+from .. setup_functions		import open_user_prefs,parse_arguments
 
 from tools_TkTooltip		import ToolTip
-from tools_plugin			import getTargetPluginOptions,setOptionsFromBlock
+from tools_plugin			import tryLoadPlugins,getTargetPluginOptions,setOptionsFromBlock
 from tools_target			import makeTargetFromWindow
 from win_options			import OptionsWindow
 
 class TargetWindow(tk.Frame):
 	def __init__(self, master=None):
 		self.master = master
-		self.master.geometry('720x180+100+100')
 		self.master.title('Target Builder')
+
 		self.master.resizable(width=False, height=False)
 		self.master.protocol('WM_DELETE_WINDOW', self.close)
 
 		tk.Frame.__init__(self,master,width=720,height=180)
-		self.grid()
-		self.grid_propagate(0)
+		self.pack(expand=True,fill='both',padx=2,pady=2)
+		self.pack_propagate(True)
 
 		self.loadPrefs()
 
@@ -41,14 +41,12 @@ class TargetWindow(tk.Frame):
 			self.prefs = open_user_prefs(mode='w')
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
-			self.master.destroy()
+			self.master.destroy()	
 		
-		try:
-			(self.plugin_types,self.plugin_options) = getTargetPluginOptions(self.prefs)
-		except Exception as e:
-			tkMessageBox.showerror("Error",'Failure loading MESMER plugins.\n\nReported error:%s' % e,parent=self)
-			self.master.destroy()
+		self.target_plugins = tryLoadPlugins(self.prefs, 'mesmer', args=parse_arguments(), disabled_writeback=True  )
 
+		self.plugin_types,self.plugin_options = getTargetPluginOptions(self.target_plugins, self.prefs)
+		
 	def openOptionsWindow(self, evt):
 		# find the row that generated the event
 		for (i,w) in enumerate(self.widgetRowOptButtons):
@@ -61,7 +59,7 @@ class TargetWindow(tk.Frame):
 			if(type in t):
 				break
 
-		self.newWindow = tk.Toplevel(self.master)
+		self.newWindow = tk.Toplevel(self)
 		self.optWindow = OptionsWindow(self.newWindow,self.widgetRowOptions[i][j])
 		self.newWindow.focus_set()
 		self.newWindow.grab_set()
@@ -170,8 +168,8 @@ class TargetWindow(tk.Frame):
 		self.widgetRowOptions = []
 
 	def createWidgets(self):
-		self.f_header = tk.LabelFrame(self,text='General Info')
-		self.f_header.grid(row=0,sticky=tk.W,ipady=4,ipadx=8,padx=8)
+		self.f_header = tk.LabelFrame(self,text='General Info',padx=4,pady=4)
+		self.f_header.grid(row=0,sticky=tk.E+tk.W,padx=6,ipadx=6,ipady=4)
 
 		self.targetNameLabel = tk.Label(self.f_header,text='Name:')
 		self.targetNameLabel.grid(column=0,row=0,sticky=tk.E)
@@ -184,8 +182,8 @@ class TargetWindow(tk.Frame):
 		self.targetCommentsEntry = tk.Entry(self.f_header,textvariable=self.targetComments,width=36)
 		self.targetCommentsEntry.grid(column=3,row=0,sticky=tk.W)
 
-		self.f_container = tk.LabelFrame(self,borderwidth=2,relief='groove',text='Experimental Data')
-		self.f_container.grid(sticky=tk.W,ipady=4,ipadx=8,padx=8)
+		self.f_container = tk.LabelFrame(self,borderwidth=2,relief='groove',text='Experimental Data',padx=4,pady=4)
+		self.f_container.grid(sticky=tk.E+tk.W,padx=6,ipadx=6,ipady=4)
 
 		self.addRowButton = tk.Button(self.f_container,text='Add',command=self.createWidgetRow)
 		self.addRowButton.grid(column=0,row=0,sticky=tk.E)
@@ -267,9 +265,6 @@ class TargetWindow(tk.Frame):
 
 		self.delRowButton.config(state=tk.NORMAL)
 
-		self.master.geometry('720x%i' % (180+self.rowCounter*30))
-		self.config(width=720,height=(180+self.rowCounter*30))
-
 	def destroyWidgetRows(self):
 		index=0
 		while(index<self.rowCounter):
@@ -304,6 +299,3 @@ class TargetWindow(tk.Frame):
 
 		if(self.rowCounter==0):
 			self.delRowButton.config(state=tk.DISABLED)
-
-		self.master.geometry('720x%i' % (180+self.rowCounter*30))
-		self.config(width=720,height=(180+self.rowCounter*30))

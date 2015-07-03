@@ -30,7 +30,7 @@ class plugin( mesPluginDB ):
 		self.target_parser = argparse.ArgumentParser(prog=self.name)
 		self.target_parser.add_argument('-scale',	action='store_true',	help='Allow scaling of the calculated curve to improve fitting')
 		self.target_parser.add_argument('-offset',	action='store_true',	help='Allow the application of an offset to improve fitting')
-		self.target_parser.add_argument('-fitness',	metavar='Goodness of fit metric',	default='Chisq',	choices=['Chisq','SSE','Pearson','Poisson','Vr'],	required=True, help='Method used to calculate goodness-of-fit. Note that Chisq and Vr require a third column containing dY data')
+		self.target_parser.add_argument('-fitness',	metavar='Goodness of fit',	default='Chisq',	choices=['Chisq','SSE','Pearson','Poisson','Vr'],	required=True, help='Method used to calculate goodness-of-fit. Note that Chisq and Vr require a third column containing dY data')
 
 		cli = self.target_parser.add_argument_group("CLI-only arguments")
 		cli.add_argument('-saxs_offset', type=float,			help='Improve fits to SAXS curves at higher specified scattering angles by applying an additional offset.')

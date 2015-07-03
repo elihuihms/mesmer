@@ -1,7 +1,7 @@
 NAME	test_cam_1
 # 00050cam +noise
 
-SAXS	1.0	-scale -offset -saxs_offset 0.3
+SAXS	1.0	-scale -offset -saxs_offset 0.3 -fitness Chisq
 0.00E+000	634550.711189346	6365.66
 5.56E-003	637838.514464089	6341.96
 1.11E-002	629256.41023896	6271.48

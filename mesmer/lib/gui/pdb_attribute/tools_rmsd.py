@@ -29,13 +29,14 @@ def calculate(pdb,ref_atoms,ref_selector,sup_atoms,sup_selector):
 				match_atoms = [model[sup_selector[0]][i]['CA'] for i in range(sup_selector[1],sup_selector[2])]
 			except IndexError:
 				return True,(pdb,"Could not find residue %i of chain %s in PDB"%(i,chain),)
-		try:		
+
+		try:
 			superimposer = Bio.PDB.Superimposer()
-			superimposer.set_atoms(sup_atoms,match_atoms)
+			superimposer.set_atoms(sup_atoms,match_atoms) # strangely, this seems to crash w/ more than 64 atoms, but only in some environments
 			superimposer.apply( model.get_atoms() ) # move ALL of the atoms in the test model
 		except Exception as e:
 			return True,(pdb,"Failed to superimpose PDB %s"%(e))
-	
+
 	if ref_selector == None:
 		try:
 			match_coords = [res['CA'].get_coord() for res in model.get_residues()]
@@ -46,7 +47,7 @@ def calculate(pdb,ref_atoms,ref_selector,sup_atoms,sup_selector):
 			match_coords = [model[ref_selector[0]][i]['CA'].get_coord() for i in range(ref_selector[1],ref_selector[2])]
 		except IndexError:
 			return True,(pdb,"Could not find residue %i of chain %s"%(i,chain))
-	
+
 	try:
 		value = rmsd([a.get_coord() for a in ref_atoms],match_coords)
 	except AssertionError:

@@ -44,16 +44,12 @@ class AnalysisWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = open_user_prefs()
+			self.prefs = open_user_prefs(mode='w')
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 
-		try:
-			self.plot_plugins = tryLoadPlugins(self.prefs, 'gui_p' )
-		except Exception as e:
-			tkMessageBox.showerror("Error",'Failure loading GUI plot plugins.\n\nReported error:%s' % e,parent=self)
-			self.master.destroy()
+		self.plot_plugins = tryLoadPlugins(self.prefs, 'gui_p', disabled_writeback=True )
 
 	def close(self):
 		if( self.pHandle and self.pHandle.poll() == None):

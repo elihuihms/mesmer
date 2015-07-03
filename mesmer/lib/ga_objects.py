@@ -6,7 +6,6 @@ from scipy					import optimize
 from multiprocessing		import Process,Queue
 
 from exceptions				import *
-from plugin_functions		import load_plugins,unload_plugins
 
 class Optimizer:
 	def __init__(self,args,plugins,targets,components):
