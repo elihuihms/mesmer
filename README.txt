@@ -20,7 +20,7 @@ Uncompress the downloaded tarball or zip file, change into the directory, and ty
 Alternatively, you can place the MESMER directory in a location of your choosing, and add the mesmer and mesmer/utilities folder to your shell’s $PATH variable.
 
 The latest development version can be retrieved from MESMER’s Github repository:
-    $ git clone https://github.com/elihuihms/mesmer.git
+    $ git clone https://github.com/steelsnowflake/mesmer.git
 
 You should now be able to launch either the command-line version of mesmer, or the GUI:
     $ mesmer
