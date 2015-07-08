@@ -102,7 +102,9 @@ def insert_attribute_column(w,child_fp,col_title):
 	header,counter = None,0
 	for l in parent_fp:
 		counter+=1
+
 		l = l.rstrip()
+		
 		if len(l) == 0:
 			break
 
@@ -116,7 +118,7 @@ def insert_attribute_column(w,child_fp,col_title):
 				else:
 					parent_db[tmp[0]] = tmp[1:]
 				parent_up[tmp[0]] = False
-			except:
+			except IndexError,KeyError:
 				_handle_error("Error reading original attribute table, has malformed entry on line %i."%(counter))
 				return
 					

@@ -21,22 +21,6 @@ class FunctionWorker(multiprocessing.Process):
 	def run(self):		
 		for d in iter(self.iQ.get, None):
 			self.oQ.put( self.function(d,*self.args,**self.kwargs) )
-			
-#class ObjectWorker(multiprocessing.Process):
-#	def __init__(self,in_queue,out_queue,object,function_name):
-#		"""This a pretty horrible hack, it basically converts an object to a process, and then feeds elements from the input to function_name()"""
-#		super(ObjectWorker, self).__init__()
-#		self.iQ,self.oQ = in_queue,out_queue
-#		self.daemon = True
-#		
-#		self.__dict__.update(copy.deepcopy(object.__dict__))
-#		for k,v in object.__dict__.items():
-#			self.__dict__[k] = copy.deepcopy(v)
-#		self._function = getattr( object, function_name )
-#				
-#	def run(self):
-#		for d in iter(self.iQ.get, None):
-#			self.oQ.put( self._function( d ) )
 
 class Parallelizer():
 	def __init__(self,threads=None):
@@ -78,6 +62,12 @@ class Parallelizer():
 			self.in_Queue.put(None)
 		for w in self.workers:
 			w.join()
+			
+	def status(self):
+		for w in self.workers:
+			if w.returncode != 0:
+				return False
+		return True
 						
 class FunctionParallelizer(Parallelizer):
 	def __init__(self,function,args=[],kwargs={},threads=None):

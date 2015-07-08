@@ -26,7 +26,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.master.title('PDB Attribute Calculator')
 
 		self.master.resizable(width=False, height=False)
-		self.master.protocol('WM_DELETE_WINDOW', self.cancelWindow)
+		self.master.protocol('WM_DELETE_WINDOW', self.close)
 
 		tk.Frame.__init__(self,master)
 		self.pack(expand=True,fill='both',padx=6,pady=6)
@@ -42,7 +42,7 @@ class PDBAttributeWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 							
-	def cancelWindow(self):
+	def close(self):
 		"""Stop any calculations if they are running, and close the window"""
 		if self.Calculator == None:
 			self.master.destroy()
@@ -110,7 +110,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.attributeFilePath = tk.StringVar()
 		self.attributeFileEntry = tk.Entry(self.attr_frame,textvariable=self.attributeFilePath,width=25)
 		self.attributeFileEntry.grid(row=0,column=0,columnspan=2,sticky=tk.W)
-		self.attributeFileSetButton = tk.Button(self.attr_frame,text='Set...',command=lambda: self.setAttributeTable(new=False))
+		self.attributeFileSetButton = tk.Button(self.attr_frame,text='Set...',command=lambda: self.setAttributeTable(new=False),state=tk.DISABLED)
 		self.attributeFileSetButton.grid(row=0,column=2,sticky=tk.W)
 		self.attributeFileSetButtonTT = ToolTip(self.attributeFileSetButton,follow_mouse=0,text='Write or append attributes to an existing attribute table.')
 		self.attributeFileNewButton = tk.Button(self.attr_frame,text='New...',command=lambda: self.setAttributeTable(new=True),state=tk.DISABLED)
@@ -132,7 +132,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.calculateButton = tk.Button(self.f_footer,text='Calculate...',state=tk.DISABLED,command=self.startCalculator)
 		self.calculateButton.grid(column=0,row=0,sticky=tk.E,pady=4)
 		self.calculateButtonTT = ToolTip(self.calculateButton,follow_mouse=0,text='Start calculating the selected attribute from the loaded PDBs.')
-		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.cancelWindow)
+		self.cancelButton = tk.Button(self.f_footer,text='Close',command=self.close)
 		self.cancelButton.grid(column=1,row=0,sticky=tk.E,pady=4)
 		self.cancelButtonTT = ToolTip(self.cancelButton,follow_mouse=0,text='Cancel any existing calculations in progress, and close the window.')
 
@@ -486,7 +486,7 @@ class PDBAttributeWindow(tk.Frame):
 
 		if self.calculatorCounter == len(self.pdbList):
 			insert_attribute_column(self,self.calculatorFile,col_title=self.calculatorTitle)
-			self.stopCalculator()
+			self.stopCalculator() # this closes the self.calculatorFile handle
 			self.setAttributeTable(new=False,path=self.attributeFilePath.get())
 			self.updateAttributeInfo("Done.")
 		else:
@@ -570,7 +570,8 @@ class PDBAttributeWindow(tk.Frame):
 		self.update_idletasks()
 		self.pdbDirectoryPath.set(path)
 		self.pdbDirectoryEntry.xview_moveto(1.0)
-						
+		
+		self.attributeFileSetButton.config(state=tk.NORMAL)
 		self.attributeFileNewButton.config(state=tk.NORMAL)
 		self.updateCalculateButton()
 

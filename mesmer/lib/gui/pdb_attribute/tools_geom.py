@@ -1,6 +1,6 @@
 import Bio.PDB
 
-from numpy import std
+from numpy import sqrt,dot
 
 def calculate_rg(pdb,CA_only):
 	try:
@@ -11,17 +11,14 @@ def calculate_rg(pdb,CA_only):
 
 	try:
 		if CA_only:
-			coords = [r['CA'].get_coord() for r in model.get_residues()]
-			masses = [1.0]*len(coords)
+			atoms = [r['CA'] for r in model.get_residues()]
 		else:
-			coords = [a.get_coord()*a.mass for a in model.get_atoms() if a.mass != float('NaN')]
-			masses = [a.mass for a in model.get_atoms() if a.mass != float('NaN')]
+			atoms = [a for a in model.get_atoms() if a.mass != float('NaN')]
 	except Exception as e:
 		return True,(pdb,"Error reading atoms from PDB: %s"%(e))
 		
-	N = len(coords)
-	CoM = sum(coords) / N
-	return False,(pdb,std([c-CoM for c in coords])/(sum(masses)/N)) #@TODO@ - check this
+	CoM = sum([a.coord for a in atoms]) / len(atoms)
+	return False,(pdb,sqrt(sum([a.mass*sqrt(dot(a.coord-CoM, a.coord-CoM))**2 for a in atoms])/sum([a.mass for a in atoms])))
 
 def calculate_distance(pdb,A,B):
 	try:

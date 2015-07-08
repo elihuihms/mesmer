@@ -63,7 +63,7 @@ class AnalysisWindow(tk.Frame):
 		self.master.destroy()
 
 	def abortCurrentRun(self):
-		result = tkMessageBox.askyesno('Cancel Run',"Are you sure you want to cancel a run in progress?",parent=self)
+		result = tkMessageBox.askyesno('Cancel Run',"Are you sure you want to stop a run in progress?",parent=self)
 		if(result):
 			self.pHandle.kill()
 			self.abortButton.config(state=tk.DISABLED)
@@ -245,7 +245,7 @@ class AnalysisWindow(tk.Frame):
 
 		self.openLogButton = tk.Button(self.f_footer,text='Open Log',width=8,state=tk.DISABLED,command=lambda: openLogWindow(self,self.path))
 		self.openLogButton.grid(column=0,row=0,pady=(4,0))
-		self.cancelButton = tk.Button(self.f_footer,text='Cancel',width=8,command=self.close)
+		self.cancelButton = tk.Button(self.f_footer,text='Close',width=8,command=self.close)
 		self.cancelButton.grid(column=1,row=0,pady=(4,0))
 
 	def createToolTips(self):

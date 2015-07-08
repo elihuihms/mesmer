@@ -7,6 +7,8 @@ import tkFileDialog
 
 from subprocess		import Popen,PIPE
 
+from .. ga_functions_output import _MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
+
 from tools_plugin	import convertParserToOptions,makeListFromOptions
 from win_options	import OptionsWindow
 
@@ -65,13 +67,13 @@ def makePDBs( w ):
 
 	# does the user want to get just the best ensemble, or components from all ensembles?
 	if w.pluginOptions['pdbOutput']['best']['value'] == 1:
-		path = os.path.join(w.activeDir.get(), 'ensembles_%s_%05i.tbl' % (w.currentSelection[1],w.currentSelection[0]) )
+		path = os.path.join(w.activeDir.get(), _MESMER_ENSEMBLES_FILE_FORMAT%(w.currentSelection[1],w.currentSelection[0]) )
 		if( not os.access( path, os.R_OK ) ):
 			tkMessageBox.showerror("Error","Could not read ensemble table \"%s\"" % path,parent=w)
 			return
 		cmd.extend( ['-ensembles',path] )
 	else:
-		path = os.path.join(w.activeDir.get(), 'component_statistics_%s_%05i.tbl' % (w.currentSelection[1],w.currentSelection[0]) )
+		path = os.path.join(w.activeDir.get(), _MESMER_STATISTICS_FILE_FORMAT%(w.currentSelection[1],w.currentSelection[0]) )
 		if( not os.access( path, os.R_OK ) ):
 			tkMessageBox.showerror("Error","Could not read component statistics table \"%s\"" % path,parent=w)
 			return

@@ -214,7 +214,7 @@ class TargetWindow(tk.Frame):
 		self.openButton.grid(column=0,row=0,sticky=tk.N+tk.S+tk.E,pady=8)
 		self.saveButton = tk.Button(self.f_footer,text='Save Target...',default=tk.ACTIVE,command=lambda: makeTargetFromWindow(self))
 		self.saveButton.grid(column=1,row=0,sticky=tk.N+tk.S+tk.W,pady=8)
-		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
+		self.cancelButton = tk.Button(self.f_footer,text='Close',command=self.close)
 		self.cancelButton.grid(column=2,row=0,sticky=tk.N+tk.S+tk.E,pady=8,padx=20)
 
 	def createWidgetRow(self):

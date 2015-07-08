@@ -75,7 +75,6 @@ class Worker(Process):
 	
 				# delta function for fitness algorithm to pass to minimization function
 				def wrapper( ratios ):
-#					map(fabs,ratios) # force ratios to be positive
 					return sum(e.get_fitness( self.components, self.plugins, t, ratios ).itervalues())
 	
 				if(e.optimized[t.name]):

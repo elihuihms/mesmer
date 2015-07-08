@@ -21,7 +21,7 @@ class LogWindow(tk.Frame):
 		self.rowconfigure(0,weight=1)
 		self.createWidgets()
 
-	def cancelWindow(self):
+	def close(self):
 		self.master.destroy()
 
 	def createWidgets(self):
@@ -38,7 +38,7 @@ class LogWindow(tk.Frame):
 		self.logText.config(yscrollcommand=self.logTextScroll.set)
 		self.logTextScroll.config(command=self.logText.yview)
 
-		self.cancelButton = tk.Button(self.container,text='Close',command=self.cancelWindow)
+		self.cancelButton = tk.Button(self.container,text='Close',command=self.close)
 		self.cancelButton.grid(column=0,columnspan=2,row=1,pady=(8,0))
 
 	def updateLog( self, path ):

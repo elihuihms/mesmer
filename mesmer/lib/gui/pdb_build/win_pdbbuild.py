@@ -126,7 +126,7 @@ class PDBBuildWindow(tk.Frame):
 		self.generateButton = tk.Button(self.f_footer,text='Generate PDBs...',default=tk.ACTIVE,command=self.startGenerator,state=tk.DISABLED)
 		self.generateButton.grid(column=1,row=5,sticky=tk.W,pady=4)
 		self.generateButtonTT = ToolTip(self.generateButton,follow_mouse=0,text='Start generating PDBs.')
-		self.cancelButton = tk.Button(self.f_footer,text='Cancel',command=self.close)
+		self.cancelButton = tk.Button(self.f_footer,text='Close',command=self.close)
 		self.cancelButton.grid(column=2,row=5,sticky=tk.E,pady=4)
 		self.cancelButtonTT = ToolTip(self.cancelButton,follow_mouse=0,text='Stop PDB generation, and close the window.')
 		

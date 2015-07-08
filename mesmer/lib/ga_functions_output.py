@@ -14,6 +14,12 @@ from ga_functions_misc	import *
 from ga_functions_stats	import *
 from utility_functions	import *
 
+_MESMER_ENSEMBLES_FILE_FORMAT	= 'ensembles_%s_%05i.tbl'
+_MESMER_STATISTICS_FILE_FORMAT	= 'component_statistics_%s_%05i.tbl'
+_MESMER_CORRELATION_FILE_FORMAT	= 'component_correlations_%05i.tbl'
+_MESMER_RESTRAINTS_FILE_FORMAT	= 'restraints_%s_%s_%05i.out'
+_MESMER_OPT_STATUS_FILE_FORMAT	= 'optimization_state_%s_%05i.tbl'
+
 def print_generation_state( args, counter, ensemble_stats, restraint_stats ):
 	"""
 	Print the status of the current generation via print_msg()
@@ -102,10 +108,10 @@ def print_ensemble_state( args, ratio_stats ):
 
 def print_plugin_state( args, counter, plugins, targets, ensembles):
 	"""
-	Call the ensemble_state function for each plugin
+	Call the ensemble_state function for each plugin if the argument -Pstate is set
 	
-	@TODO@ This function isn't really used at the moment
-
+	This function is called at each generation, and gives plugins a chance to print statistics or other aggregate information
+	
 	Args:
 		args (argparse namespace): MESMER argument parameters
 		counter (int): Generation counter used to build output path
@@ -119,7 +125,7 @@ def print_plugin_state( args, counter, plugins, targets, ensembles):
 	output = []
 	for t in targets:
 		for r in t.restraints:
-			path = os.path.abspath( "%s%srestraints_%s_%s_%05i.out" % (args.dir,os.sep,t.name,r.type,counter) )
+			path = os.path.abspath( os.path.join(args.dir,_MESMER_RESTRAINTS_FILE_FORMAT%(t.name,r.type,counter)) )
 
 			for p in plugins:
 				if(r.type in p.type):
@@ -156,7 +162,7 @@ def write_component_stats( args, counter, ensembles ):
 	if(n==0):
 		return True
 
-	path = os.path.abspath( "%s%scomponent_correlations_%05i.tbl" % (args.dir,os.sep,counter) )
+	path = os.path.abspath( os.path.join(args.dir,_MESMER_CORRELATION_FILE_FORMAT%(counter)) )
 
 	try:
 		f = open( path, 'w' )
@@ -208,7 +214,7 @@ def write_ensemble_stats( args, counter, targets, ensembles ):
 	# go through each target
 	for t in stats:
 
-		path = os.path.abspath( "%s%scomponent_statistics_%s_%05i.tbl" % (args.dir,os.sep,t,counter) )
+		path = os.path.abspath( os.path.join(args.dir,_MESMER_STATISTICS_FILE_FORMAT%(t,counter)) )
 
 		try:
 			f = open( path, 'w' )
@@ -257,7 +263,7 @@ def write_optimization_state( args, counter, targets, ensembles ):
 
 	for t in targets:
 
-		path = os.path.abspath( "%s%soptimization_state_%s_%05i.tbl" % (args.dir,os.sep,t.name,counter) )
+		path = os.path.abspath( os.path.join(args.dir,_MESMER_OPT_STATUS_FILE_FORMAT%(t.name,counter)) )
 
 		try:
 			f = open( path, 'w' )
@@ -292,7 +298,7 @@ def write_ensemble_state( args, counter, targets, ensembles ):
 
 	for t in targets:
 
-		path = os.path.abspath( "%s%sensembles_%s_%05i.tbl" % (args.dir,os.sep,t.name,counter) )
+		path = os.path.abspath( os.path.join(args.dir,_MESMER_ENSEMBLES_FILE_FORMAT%(t.name,counter)) )
 		try:
 			f = open( path, 'w' )
 		except IOError:

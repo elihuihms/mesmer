@@ -7,13 +7,15 @@ import tkFileDialog
 
 from subprocess		import Popen,PIPE
 
+from .. ga_functions_output import _MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
+
 from tools_plugin	import convertParserToOptions,makeListFromOptions
 from tools_general	import getColumnNames
 from win_options	import OptionsWindow
 
 def makeCorrelationPlot( w ):
-	p1 = os.path.join(w.activeDir.get(), 'component_correlations_%05i.tbl' % w.currentSelection[0] )
-	p2 = os.path.join(w.activeDir.get(), 'component_statistics_%s_%05i.tbl' % (w.currentSelection[1],w.currentSelection[0]) )
+	p1 = os.path.join(w.activeDir.get(), _MESMER_CORRELATION_FILE_FORMAT%w.currentSelection[0] )
+	p2 = os.path.join(w.activeDir.get(), _MESMER_STATISTICS_FILE_FORMAT%(w.currentSelection[1],w.currentSelection[0]) )
 	
 	cmd = ['make_correlation_plot']
 	if( w.prefs['mesmer_base_dir'] != '' ):
@@ -37,7 +39,7 @@ def makeCorrelationPlot( w ):
 def plotRestraint( w ):
 	for p in w.plot_plugins:
 		if (w.currentSelection[2] in p.type):
-			path = (os.path.join(w.activeDir.get(), 'restraints_%s_%s_%05i.out' % (w.currentSelection[1],w.currentSelection[2],w.currentSelection[0])))
+			path = (os.path.join(w.activeDir.get(), _MESMER_RESTRAINTS_FILE_FORMAT%(w.currentSelection[1],w.currentSelection[2],w.currentSelection[0])))
 
 			if( not os.access( path, os.R_OK ) ):
 				tkMessageBox.showerror("Error","Could not open the restraint file \"%s\"" % path ,parent=w)
@@ -79,29 +81,29 @@ def plotAttributes( w ):
 	if(w.currentSelection[0] == None or w.currentSelection[1] == None):
 		return
 
-	p2 = os.path.join(w.activeDir.get(), 'component_statistics_%s_%05i.tbl' % (w.currentSelection[1],w.currentSelection[0]) )
+	p2 = os.path.join(w.activeDir.get(), _MESMER_STATISTICS_FILE_FORMAT%(w.currentSelection[1],w.currentSelection[0]) )
 	if( not os.access( p1, os.R_OK ) ):
 		tkMessageBox.showerror("Error","Could not read component statistics table \"%s\"" % p2,parent=w)
 		return
 
 	if( 'attributePlotter' not in w.pluginOptions ):
 		parser = argparse.ArgumentParser()
-		parser.add_argument('-nCol',	type=int,	default=0,		help='Column containing component names')
+#		parser.add_argument('-nCol',	type=int,	default=0,		help='Column containing component names')
 		if column_names == None or len(column_names) < 3:
-			parser.add_argument('-xCol',	type=int,	default=1,		help='Column to use as the plot\'s X axis')
-			parser.add_argument('-yCol',	type=int,	default=2,		help='Column to use as the plot\'s Y axis')
-			parser.add_argument('-zCol',				default='',		help='Column to use as the plot\'s Z axis. Leave blank for regular 2D scatter plot')
+			parser.add_argument('-xCol', metavar="X column",	type=int,	default=1,		help='Column to use as the plot\'s X axis')
+			parser.add_argument('-yCol', metavar="Y column",	type=int,	default=2,		help='Column to use as the plot\'s Y axis')
+			parser.add_argument('-zCol', metavar="Z column",				default='',		help='Column to use as the plot\'s Z axis. Leave blank for regular 2D scatter plot')
 		else:
-			parser.add_argument('-xCol',	default=column_names[1],	choices=column_names,	help='Attribute to use as the plot\'s X axis')
-			parser.add_argument('-yCol',	default=column_names[2],	choices=column_names,	help='Attribute to use as the plot\'s Y axis')
-			parser.add_argument('-zCol',	default='',					choices=['']+column_names,	help='Attribute to use as the plot\'s Z axis. Leave blank for regular 2D scatter plot')
+			parser.add_argument('-xCol', metavar="X column",	default=column_names[1],	choices=column_names,	help='Attribute to use as the plot\'s X axis')
+			parser.add_argument('-yCol', metavar="Y column",	default=column_names[2],	choices=column_names,	help='Attribute to use as the plot\'s Y axis')
+			parser.add_argument('-zCol', metavar="Z column",	default='',					choices=['']+column_names,	help='Attribute to use as the plot\'s Z axis. Leave blank for regular 2D scatter plot')
 
-		parser.add_argument('-axes',				default='',		help='Axes sizing (Xmin Xmax Ymin Ymax)')
-		parser.add_argument('-xLabel',				default='',		help='The label for the x-axis')
-		parser.add_argument('-yLabel',				default='',		help='The label for the y-axis')
-		parser.add_argument('-zLabel',				default='',		help='The label for the z-axis')
-		parser.add_argument('-statNorm',	action='store_true', 	help='Normalize variable color saturation for component prevalence')
-		parser.add_argument('-statSame',	action='store_true',	help='Do not use variable color saturation for component prevalence')
+		parser.add_argument('-xLabel',	metavar="X axis label",	default='',		help='The label for the x-axis')
+		parser.add_argument('-yLabel',	metavar="Y axis label",	default='',		help='The label for the y-axis')
+		parser.add_argument('-zLabel',	metavar="Z axis label",	default='',		help='The label for the z-axis')
+		parser.add_argument('-axes',	metavar="Axis scales",	default='',		help='Axes scale (Xmin Xmax Ymin Ymax)')
+		parser.add_argument('-statNorm',	action='store_true', 				help='Normalize variable color saturation for component prevalence')
+		parser.add_argument('-statSame',	action='store_true',				help='Do not use variable color saturation for component prevalence')
 		parser.add_argument('-statWeight',			type=float, default='',		help='When plotting MESMER statistics, drop components weighted lower than this amount')
 		parser.add_argument('-statPrevalence',		type=float,	default='',		help='When plotting MESMER statistics, drop components with prevalences lower than this amount')
 		parser.add_argument('-statSubsample',		type=float,	default='',		help='Randomly subsample selected conformers by a percentage.')

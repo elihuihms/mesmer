@@ -27,7 +27,7 @@ class AboutWindow(tk.Frame):
 		self.grid(column=0,row=0,sticky=tk.N+tk.W+tk.E+tk.S)
 		self.createWidgets()
 
-	def cancelWindow(self):
+	def close(self):
 		self.master.destroy()
 
 	def createWidgets(self):
@@ -62,5 +62,5 @@ www.shedreamsindigital.net
 
 		self.aboutText.grid(column=0,row=1)
 
-		self.cancelButton = tk.Button(self.container,text='Close',command=self.cancelWindow)
+		self.cancelButton = tk.Button(self.container,text='Close',command=self.close)
 		self.cancelButton.grid(column=0,columnspan=2,row=2,pady=(8,0))
