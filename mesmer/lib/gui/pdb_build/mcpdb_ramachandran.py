@@ -1,4 +1,4 @@
-import numpy as np
+import scipy
 from scipy import stats
 
 class MCPDBRamaError(Exception):
@@ -121,7 +121,7 @@ _MCPDB_RAMA_RAW = [(sum(_MCPDB_RAMA_FLAT[i]),_MCPDB_RAMA_FLAT[i]) for i in xrang
 _MCPDB_RAMA_CDFS = make_rama_CDFs(_MCPDB_RAMA_RAW)
 
 def seed( seed ):
-	np.random.seed( int(seed) )
+	scipy.random.seed( int(seed) )
 
 def get_random_Phi_Psi(radians=True,degrees=False):
 		

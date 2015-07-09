@@ -1,6 +1,6 @@
 import Bio.PDB
 
-from numpy import sqrt,dot
+from scipy import sqrt,dot
 
 def calculate_rg(pdb,CA_only):
 	try:

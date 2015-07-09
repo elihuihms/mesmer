@@ -44,7 +44,7 @@ def run():
 	group1.add_argument('-plotArgs',	nargs=2,	action='append',	default=[],	metavar='',	help='Specify arguments for matplotlib as ARG VALUE')
 	group1.add_argument('-plotProp',	nargs=2,	action='append',	default=[],	metavar='',	help='Set properties for the figure as ARG VALUE')
 	group1.add_argument('-figsize',		nargs=2,	default=[6,6],	type=int,	metavar='N',	help='Set figure size and ratio: X Y')
-	group1.add_argument('-axes',		nargs=4,	default=None,	type=float,	metavar='N',	help='The scales for the axes: xmin, xmax, ymin, ymax')
+	group1.add_argument('-axes',		nargs='+',	default=None,				metavar='N',	help='The scales for the axes: xmin, xmax, ymin, ymax')
 	group1.add_argument('-pointScale',				default=20,		type=int,	metavar='20',	help='Set scaling of the component plot points')
 	group1.add_argument('-pointColor',	nargs=4,	default=[0,0,0,0.1], type=float,	metavar='N',	help='Set color (R G B A) of componenent plot points')
 
@@ -315,7 +315,12 @@ def run():
 		ax.set_zlabel( args.zLabel )
 
 	if(args.axes):
-		ax.axis( args.axes )
+		if len(args.axes) == 4:
+			ax.axis( map(float,args.axes) )
+		elif len(args.axes) == 6:
+			ax.axis( map(float,args.axes) )
+		elif len(args.axes) == 1:
+			ax.axis( map(float,args.axes[0].split(',')) )
 
 	#t = {}
 	#for (arg,val) in args.plotProp:

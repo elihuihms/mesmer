@@ -1,5 +1,5 @@
 from Bio.PDB import *
-from numpy import array,dot,sin,cos
+from scipy import array,dot,sin,cos
 import random
 
 class TransformationGroup():

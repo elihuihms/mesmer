@@ -29,8 +29,8 @@ def makePDBs( w ):
 
 	if( 'pdbOutput' not in w.pluginOptions ):
 		parser = argparse.ArgumentParser()
-		parser.add_argument('-Pmin',	type=float,		default=5,		metavar='5%',			help='Minimum prevalence for components to be included')
-		parser.add_argument('-Wmin',	type=float,		default=0.05,	metavar='0.05',			help='Minimum weighting for components to be included')
+		parser.add_argument('-Pmin',	metavar="Minimum Prevalence",	type=float,		default=5,		help='Minimum prevalence for components to be included')
+		parser.add_argument('-Wmin',	metavar="Minimum Weighting",	type=float,		default=0.05,	help='Minimum weighting for components to be included')
 		parser.add_argument('-wAttr',	action='store_true',			default=False,			help='Write UCSF Chimera attribute files?')
 		parser.add_argument('-wPyMol',	action='store_true',			default=False,			help='Write PyMol coloration scripts?')
 		parser.add_argument('-best',	action='store_true',			default=False,			help='Save only the best ensemble?')
