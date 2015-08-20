@@ -128,21 +128,56 @@ def make_results_dir( args ):
 		db['args'] = args
 		db.close()
 	except:
-		raise mesSetupError("ERROR:\tCouldn't open MESMER results database file")
+		raise mesSetupError("ERROR:\tCouldn't open MESMER results database file.")
 
 	if(oWrite):
-		print_msg("INFO:\tOverwriting old result directory \"%s\"" % (args.dir))
+		print_msg("INFO:\tOverwriting old result directory \"%s\"." % (args.dir))
 		
 def open_user_prefs( mode='r' ):
+	from . import __version__ as base_version
+	from gui import __version__ as gui_version
+	import anydbm
+	
 	home = os.path.expanduser("~")
 	path = os.path.join( home, ".mesmer_prefs" )
-	return shelve.open( path, mode )
-
+	try:
+		shelf = shelve.open( path, mode )
+	except anydbm.error as e:
+		raise mesSetupError(str(e))
+	
+	def update_prefs( shelf ):
+		set_default_prefs( shelf )		
+		shelf.sync()
+	
+	if 'base-version' not in shelf or 'gui-version' not in shelf:
+		print_msg("INFO:\tCreating MESMER preferences file at \"%s\"."%path)
+		set_default_prefs( shelf )
+	
+	# don't use prefs from old installation
+	def vsplit(v):
+		return tuple(map(int,(v.split('.'))))
+	
+	if vsplit(shelf['base-version']) < vsplit(base_version):
+		print_msg("INFO:\tUpdating MESMER preferences file."%path)
+		set_default_prefs( shelf )
+		
+	if vsplit(shelf['gui-version']) < vsplit(gui_version):
+		print_msg("INFO:\tUpdating MESMER preferences file."%path)
+		set_default_prefs( shelf )
+	
+	return shelf
+	
 def set_default_prefs( shelf ):
-	import multiprocessing
+	from . import __version__ as base_version
+	from gui import __version__ as gui_version
+	from multiprocessing import cpu_count
+	
+	shelf['base-version'] = base_version
+	shelf['gui-version'] = gui_version
 	shelf['mesmer_base_dir'] = ''
 	shelf['mesmer_scratch'] = ''
-	shelf['cpu_count'] = multiprocessing.cpu_count()
+	shelf['cpu_count'] = cpu_count()
 	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
 	shelf['disabled_plugins'] = []
 	shelf['plugin_prefs'] = {}
+	shelf.sync()

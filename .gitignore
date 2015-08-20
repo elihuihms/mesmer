@@ -1,2 +1,4 @@
 *.pyc
 tests/out/
+build/
+dist/

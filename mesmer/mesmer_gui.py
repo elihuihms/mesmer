@@ -21,6 +21,7 @@ import os
 import sys
 
 def run():
+	
 	try:
 		import Tkinter as tk
 		import tkMessageBox
@@ -31,6 +32,17 @@ def run():
 	if( sys.version_info < (2,6) ):
 		tkMessageBox.showerror("Error","Python version must be 2.6 or greater")
 		sys.exit()
+
+	if getattr(sys, 'frozen', False):
+		from lib.setup_functions import open_user_prefs,set_default_prefs
+		
+		try:
+			shelf = open_user_prefs( mode='c' )
+			shelf['mesmer_base_dir'] = os.path.abspath(os.path.dirname(__file__))
+			shelf.close()
+		except:
+			tkMessageBox.showerror("Error","Could not update MESMER preferences file. Perhaps your user folder is read-only?")
+			sys.exit()
 		
 	try:
 		from lib.gui.win_main import MainWindow

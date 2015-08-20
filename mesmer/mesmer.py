@@ -43,11 +43,15 @@ def run():
 	# get mesmer user preferences
 	try:
 		prefs = open_user_prefs(mode='c')
-	except:
-		print "ERROR:\tCannot read or create MESMER preferences file."
+	except mesSetupError as e:
+		print "ERROR:\tCannot read or create MESMER preferences file: %s"%(e)
 		sys.exit(1)
+	
+	if prefs['mesmer_base_dir'] == '':
+		prefs['mesmer_base_dir'] = os.path.abspath(os.path.dirname(__file__))
+		prefs.sync()
 		
-	print "INFO:\tBase mesmer directory is \"%s\"."%(prefs['mesmer_base_dir'])
+	print "INFO:\tMESMER installation path is \"%s\"."%(prefs['mesmer_base_dir'])
 	
 	# obtain the parameters for the run
 	args = parse_arguments(prefs=prefs)
@@ -82,8 +86,8 @@ def run():
 
 	# print information about the MESMER environment to the log file
 	print_msg("Environment:")
-	print_msg("\tmesmer\t:\t%s"%(__version__))
-	#print_msg("\tmesmer-gui: %s"%(__gui_version__))
+	print_msg("\tmesmer-base\t:\t%s"%(__version__))
+	print_msg("\tmesmer-gui\t:\t%s"%(__gui_version__))
 	for p in plugins:
 		print_msg("\t%s\t:\t%s"%(p.name,p.version))
 

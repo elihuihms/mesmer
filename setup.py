@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+import ez_setup
+ez_setup.use_setuptools()
+
 # MESMER - Minimal Ensemble Solutions to Multiple Experimental Restraints
 # Copyright (C) 2015 SteelSnowflake Software LLC
 #
@@ -19,24 +22,25 @@
 
 import os
 import sys
+import setuptools
 
 if sys.version_info < (2, 6, 0):
     sys.stderr.write("MESMER requires Python 2.6 or newer.\n")
     sys.exit(-1)
 
-import ez_setup
-ez_setup.use_setuptools()
-
 #
 # Do actual packaging now
 #
 
-requires = [
-	'argparse',
-	'numpy',
-	'scipy',
-	'matplotlib'
-	'Bio',
+install_requires = [
+	'argparse>=1.0',
+	'matplotlib>=1.3',
+	'numpy>=1.3',
+	'scipy>=0.11',
+]
+
+extras_requires = [
+	'Bio>=1.5',
 ]
 
 classifiers = [
@@ -46,36 +50,33 @@ classifiers = [
 	'License :: OSI Approved :: GNU General Public License v2 (GPLv2)'
 ]
 
-packages = [
-	'mesmer',
-	'mesmer.lib',
-	'mesmer.lib.gui',
-	'mesmer.lib.gui.pdb_attribute',
-	'mesmer.lib.gui.pdb_build',
-	'mesmer.utilities',
-	'mesmer.plugins',
-]
+#
+# Extensions and filenames to ignore when finding package data files
+#
 
-package_data = {
-	'':
-		['LICENSE.txt'],
-	'mesmer.lib.gui':
-		['mesmer_logo.gif'],
-	'mesmer.lib.gui_pdb_attribute':
-		['image_angle.gif','image_dihedral.gif','image_distance.gif']
-}
+ignore_name = ['.DS_Store']
+ignore_exts = ['.py','.pyc']
 
-plugin_packages = [
-	'mesmer.plugins.gui_c_deer_lib',
-	'mesmer.plugins.gui_c_fret_lib',
-	'mesmer.plugins.pyParaTools'
-]
-
-plugin_data = {
-	'mesmer.plugins.pyParaTools':
-		['CHANGES.txt','LICENSE.txt']
-}
-
+packages,package_data = ['mesmer'],{'':['LICENSE.txt']}
+for dirname, dirnames, filenames in os.walk(packages[0]):
+	
+	for subdirname in dirnames:
+		if subdirname[0] == '.':
+			continue
+		packages.append(os.path.join(dirname,subdirname).replace(os.sep,'.'))
+	
+	dirname = dirname.replace(os.sep,'.')
+	for filename in filenames:
+		if filename in ignore_name:
+			continue
+	
+		if any([filename.endswith(e) for e in ignore_exts]):
+			continue
+		
+		if dirname not in package_data:
+			package_data[dirname] = []
+		package_data[dirname].append( filename )
+		
 entry_points = {
 	'console_scripts': [
 		'mesmer = mesmer.mesmer:run',
@@ -94,28 +95,25 @@ entry_points = {
 	]
 }
 
-import mesmer
-import mesmer.lib
+if __name__ == "__main__":
+	import mesmer
 
-packages.extend( plugin_packages )
-for d in plugin_data:
-	package_data[d] = plugin_data[d]
-
-setup(
-	name	= 'MESMER',
-	version	= mesmer.lib.__version__,
-	license	= mesmer.__license__,
-	author	= mesmer.__author__,
-	author_email = mesmer.__author_email__,
-	description	= mesmer.__description__,
-	long_description	= open('README.txt').read(),
-	url	= mesmer.__url__,
-	download_url = mesmer.__download_url__,
-	platforms	= 'any',
-	requires	= requires,
-	classifiers	= classifiers,
-	packages	= packages,
-	package_data	= package_data,
-	entry_points	= entry_points,
-	zip_safe	= False
-)
+	setuptools.setup(
+		name				= 'MESMER',
+		version				= mesmer.__version__,
+		license				= mesmer.__license__,
+		author				= mesmer.__author__,
+		author_email		= mesmer.__author_email__,
+		description			= mesmer.__description__,
+		long_description	= open('README.txt').read(),
+		url					= mesmer.__url__,
+		download_url		= mesmer.__download_url__,
+		platforms			= 'any',
+		install_requires	= install_requires,
+		extras_requires		= extras_requires,
+		classifiers			= classifiers,
+		packages			= packages,
+		package_data		= package_data,
+		entry_points		= entry_points,
+		zip_safe			= False
+	)

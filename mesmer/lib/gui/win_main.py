@@ -61,14 +61,13 @@ class MainWindow(tk.Frame):
 			set_default_prefs(self.prefs)
 		
 		if( self.prefs['mesmer_base_dir'] == '' and not tryProgramCall('mesmer') ):
-			self.prefs['mesmer_base_dir'] = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+			self.prefs['mesmer_base_dir'] = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 		elif( not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os.R_OK) ):
-			self.prefs['mesmer_base_dir'] = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+			self.prefs['mesmer_base_dir'] = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 		
 		if( self.prefs['mesmer_base_dir'] != '' and not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os.R_OK) ):
 			self.Ready = False
 				
-		self.prefs.sync()
 		self.prefs.close()
 
 	def createMenus(self):
