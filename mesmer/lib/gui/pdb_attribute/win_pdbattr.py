@@ -475,13 +475,13 @@ class PDBAttributeWindow(tk.Frame):
 	
 	def updateCalculator(self):
 		"""Update the calculation status, and re-set the tkinter callback for the next update"""
-		for error,data in self.Calculator.get():
-			if error:
-				tkMessageBox.showerror("Error","Error on PDB %s:\n\nReason:\n%s"%(data[0],data[1]),parent=self)
+		for ok,(pdb,info) in self.Calculator.get():
+			if ok:
+				self.calculatorFile.write("%s\t%s\n"%(os.path.basename(os.path.splitext(pdb)[0]),info))
+			else:
+				tkMessageBox.showerror("Error","Error on PDB %s:\n\nReason:\n%s"%(pdb,info),parent=self)
 				self.stopCalculator(abort=True)
 				return
-			else:
-				self.calculatorFile.write("%s\t%s\n"%(os.path.basename(os.path.splitext(data[0])[0]),data[1]))
 			self.calculatorCounter += 1
 
 		if self.calculatorCounter == len(self.pdbList):

@@ -51,4 +51,4 @@ class plugin(guiCalcPlugin):
 		out = "%s%s%s.dat" % (self.outputpath, os.sep, os.path.splitext(os.path.basename(pdb))[0])
 		profile.write_SAXS_file( out, self.args.qmax )
 		
-		return False,(pdb,None)
+		return True,(pdb,None)

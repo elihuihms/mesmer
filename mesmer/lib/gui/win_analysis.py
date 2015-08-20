@@ -8,6 +8,7 @@ import tkMessageBox
 from .. setup_functions	import open_user_prefs
 
 import tools_run # to avoid circular import of AnalysisWindow
+
 from tools_analysis		import *
 from tools_plot			import *
 from tools_pdb			import *

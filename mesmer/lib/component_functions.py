@@ -19,12 +19,12 @@ def load_components( args, plugins, targets ):
 		elif( os.path.isfile(f[0]) ):
 			files.extend( f[0] )
 		else:
-			raise mesComponentError("ERROR: Specified component or directory \"%s\" does not exist" % f[0])
+			raise mesComponentError("ERROR:\tSpecified component or directory \"%s\" does not exist" % f[0])
 
 	if(len(files) == 0):
-		raise mesComponentError("ERROR: No components specified.")
+		raise mesComponentError("ERROR:\tNo components specified.")
 
-	print_msg("INFO: Found %i component files." % (len(files)))
+	print_msg("INFO:\tFound %i component files." % (len(files)))
 	components = {}
 
 	names = [''] * len(files)
@@ -37,10 +37,10 @@ def load_components( args, plugins, targets ):
 		temp = mesComponent()
 
 		if( not temp.load(f,plugins,targets) ):
-			raise mesComponentError("\nERROR: Could not load component file \"%s\"." % (f))
+			raise mesComponentError("\nERROR:\tCould not load component file \"%s\"." % (f))
 
 		if( temp.name in names ):
-			raise mesComponentError("\nERROR: Component file \"%s\" has the same NAME as a previous component." % (f))
+			raise mesComponentError("\nERROR:\tComponent file \"%s\" has the same NAME as a previous component." % (f))
 
 		# add the component to the component database
 		components[temp.name] = temp

@@ -46,12 +46,12 @@ class plugin(guiCalcPlugin):
 			parser	= Bio.PDB.PDBParser(QUIET=True)
 			model	= parser.get_structure('',pdb)[0]
 		except Exception as e:
-			return True,(pdb,"Could not parse PDB file: %s"%(e))
+			return False,(pdb,"Could not parse PDB file: %s"%(e))
 
 		try:
 			coord	= model[ self.args.chainID ][ int(self.args.resNum) ][ self.args.atom ].get_coord()
 		except (IndexError,KeyError):
-			return True,(pdb,"Could not find specified atom in PDB.") 
+			return False,(pdb,"Could not find specified atom in PDB.") 
 
 		config = [
 			'',
@@ -77,4 +77,4 @@ class plugin(guiCalcPlugin):
 		analysis = ExplorePara()
 		analysis.buildNumbatTBL(pcs, "%s.pcs" % (os.path.join(self.outputpath,name)))
 		
-		return False,(pdb,None)
+		return True,(pdb,None)

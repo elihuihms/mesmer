@@ -15,6 +15,9 @@ def run_test( name, test, paths, args=[], silent=False ):
 	# get the cmd generator function and result file (if any)
 	(cmd,files) = test(paths, args)
 
+	# prepend the current executable
+	cmd.insert(0,sys.executable)
+
 	log_path = os.path.join(paths[2],"%s_out.txt" % (name.replace(os.sep,'')) )
 	log = open( log_path, 'w' )
 	handle = subprocess.Popen( cmd, stdout=log )

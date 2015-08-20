@@ -57,7 +57,7 @@ NAME	$0
 	try:
 		os.mkdir(tmp)
 	except OSError:
-		tkMessageBox.showerror("Error","ERROR: Couldn't create component folder.",parent=w)
+		tkMessageBox.showerror("Error","Couldn't create component folder.",parent=w)
 		return False
 
 	try:
@@ -118,8 +118,8 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	
 	try:
 		ok = plugin.setup( w, options, path )
-	except Exception as e:
-		tkMessageBox.showerror("Error","Plugin reported a problem: %s" % (e),parent=w)
+	except (Exception,mesPluginError) as e:
+		tkMessageBox.showerror("Error","%s plugin reported a problem: %s" % (plugin.name,e),parent=w)
 		return		
 	if not ok:
 		return
@@ -147,9 +147,9 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	return w.newWindow
 		
 def calculatorStatus( w, pdbs ):
-	for error,(pdb,info) in w.Calculator.get():
+	for ok,(pdb,info) in w.Calculator.get():
 		w.counter += 1
-		if error:
+		if not ok:
 			w.Calculator.abort()
 			tkMessageBox.showerror("Error","Encountered an error while processing PDB \"%s\":\n\n%s" % (pdb,info),parent=w)
 			w.statWindow.close()

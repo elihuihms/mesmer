@@ -35,15 +35,15 @@ def run():
 	args = parser.parse_args()
 
 	if( len(args.pdbs) == 0 ):
-		print "ERROR: Must specify at least one directory or tarball containing PDBs"
+		print "ERROR:\tMust specify at least one directory or tarball containing PDBs."
 		sys.exit(2)
 
 	for tmp in args.pdbs:
 		if( os.path.isfile(tmp) ):
 			if( not tarfile.is_tarfile(tmp) ):
-				print "ERROR: -pdb option \"%s\" file is not readable" % (tmp)
+				print "ERROR:\t-pdb option \"%s\" file is not readable." % (tmp)
 		elif( not os.path.isdir(tmp) ):
-			print "ERROR: -pdb option \"%s\" does not exist" % (tmp)
+			print "ERROR:\t-pdb option \"%s\" does not exist." % (tmp)
 			sys.exit(4)
 
 	# open tarballs and PDB dirs
@@ -53,7 +53,7 @@ def run():
 			try:
 				tarballs.append( tarfile.open( tmp, 'r:*') )
 			except Exception as e:
-				print "ERROR: Failure opening tar files. Reason: %s" % (e)
+				print "ERROR:\tFailure opening tar files. Reason: %s" % (e)
 				sys.exit(5)
 		else:
 			dirs.append( tmp )
@@ -69,7 +69,7 @@ def run():
 		try:
 			ensemble_stats = get_ensembles_from_state( args.ensembles, unique=True )
 		except Exception as e:
-			print "ERROR: Could not load ensemble information from state file. Reason: %s" % (e)
+			print "ERROR:\tCould not load ensemble information from state file. Reason: %s" % (e)
 			exit()
 
 		if( args.best ):
@@ -88,7 +88,7 @@ def run():
 			lines = f.readlines()[1:] # drop the header
 			f.close()
 		except Exception as e:
-			print "ERROR: Could not read -input option \"%s\": %s" % (args.stats,e)
+			print "ERROR:\tCould not read -input option \"%s\": %s" % (args.stats,e)
 			sys.exit(6)
 
 		for l in lines:
@@ -108,17 +108,17 @@ def run():
 			prevalences.append( float(fields[1]) )
 			weights.append( float(fields[3]) )
 	else:
-		print "ERROR: Must provide a component name, ensemble state or component statistics file"
+		print "ERROR:\tMust provide a component name, ensemble state or component statistics file."
 		sys.exit(1)
 
 	if(len(names)==0):
-		print "WARNING: No components found."
+		print "WARNING:\tNo components found."
 		sys.exit(0)
 
 	try:
 		write_named_pdbs( args.out, names, dirs, tarballs )
 	except ModelExtractionException as e:
-		print "ERROR: %s" % (e.msg)
+		print "ERROR:\t%s" % (e.msg)
 		sys.exit(7)
 
 	if( args.wAttr ):
@@ -131,7 +131,7 @@ def run():
 			path = "%s_weights.attr" % os.path.splitext(args.out)[0]
 			write_model_attributes( path, name, [100*w for w in weights] )
 		except Exception as e:
-			print "ERROR: Could not write attribute lists: %s" % (e)
+			print "ERROR:\tCould not write attribute lists: %s" % (e)
 
 	if( args.wPyMol ):
 		try:
@@ -143,7 +143,7 @@ def run():
 			path = "%s_weights.py" % os.path.splitext(args.out)[0]
 			write_model_script( path, name, weights )
 		except Exception as e:
-			print "ERROR: Could not write coloration script: %s" % (e)
+			print "ERROR:\tCould not write coloration script: %s" % (e)
 
 if( __name__ == "__main__" ):
 	run()

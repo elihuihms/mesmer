@@ -106,7 +106,7 @@ def set_ensemble_state( args, ensembles, components ):
 	try:
 		f = open( args.resume, 'r' )
 	except IOError:
-		print_msg( "\t\tERROR: Could not open ensemble state table \"%s\"" % file )
+		print_msg( "\t\tERROR:\tCould not open ensemble state table \"%s\"" % file )
 		return False
 
 	names = components.keys()
@@ -114,18 +114,18 @@ def set_ensemble_state( args, ensembles, components ):
 	i = 0
 	for line in f:
 		if(i>len(ensembles)):
-			print_msg( "\t\tWARNING: Stopped loading ensemble state file at table %i" % (i+1) )
+			print_msg( "\t\tWARNING:\tStopped loading ensemble state file at table %i" % (i+1) )
 			break
 
 		# read only the first target (components are the same, only weights different)
 		a = line.split()
 		if(len(a) != (2*args.size)+4):
-			print_msg( "\t\tINFO: Finished reading ensemble state table (%i ensembles loaded)" % (i+1) )
+			print_msg( "\t\tINFO:\tFinished reading ensemble state table (%i ensembles loaded)" % (i+1) )
 			break
 
 		for j in range(args.size):
 			if(not a[j +1] in names):
-				print_msg( "\t\tERROR: Component \"%s\" referenced in line %i of ensemble state table not found in loaded components" % (a[j+1],i+1) )
+				print_msg( "\t\tERROR:\tComponent \"%s\" referenced in line %i of ensemble state table not found in loaded components" % (a[j+1],i+1) )
 			else:
 				ensembles[i].component_names[j] = a[j+1]
 

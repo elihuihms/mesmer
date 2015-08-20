@@ -43,7 +43,7 @@ class plugin(guiCalcPlugin):
 		name = os.path.splitext(base)[0]
 
 		if not os.access(pdb, os.R_OK):
-			return True,(pdb,"Failure reading.")
+			return False,(pdb,"Failure reading \"%s\"."%pdb)
 
 		config = [
 			'',
@@ -69,4 +69,4 @@ class plugin(guiCalcPlugin):
 		analysis = ExplorePara()
 		analysis.buildNumbatTBL(rdc, "%s.rdc" % (os.path.join(self.outputpath,name)))
 
-		return False,(pdb,None)
+		return True,(pdb,None)

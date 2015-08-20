@@ -52,8 +52,9 @@ class ConfigWindow(tk.LabelFrame):
 		
 	def resetPrefs(self):
 		self.prefs = open_user_prefs( mode='c' )
-		set_default_prefs( self.prefs )
-		self.setVars()
+		set_default_prefs( self.prefs )		
+		self.mesmerPath.set( os.getcwd() )
+		self.savePrefs()
 
 	def setVars(self):
 		if(self.prefs.has_key('mesmer_base_dir')):
@@ -83,7 +84,7 @@ class ConfigWindow(tk.LabelFrame):
 		ok = True
 		if(self.mesmerPath.get() == ''):
 			if(not tryProgramCall('mesmer')):
-				tkMessageBox.showwarning("Warning","The MESMER executables are not available.",parent=self)
+				tkMessageBox.showwarning("Warning","The MESMER executables are not available at the specified installation path.\nTry resetting the MESMER preferences?",parent=self)
 				ok = False
 		elif(not os.access(os.path.join(self.mesmerPath.get(),'mesmer.py'), os.R_OK)):
 			tkMessageBox.showwarning("Warning","MESMER executables are not installed in this directory.",parent=self)

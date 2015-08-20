@@ -34,8 +34,11 @@ class Parallelizer():
 	def start(self):
 		# Awful bug: tkFileDialog rewrites sys.frozen to dll
 		# This causes multiprocessing.threading in Windows to barf due to malformed interpreter i.e. "Unknown Option --")
-		# FORCE it back for now until I figure out a saner way to do this
+		# @TODO@ FORCE it back for now until I figure out a saner way to do this
+		
 		if getattr(sys,'frozen',False) == 'dll':
+			sys.frozen = False
+		if getattr(sys,'frozen',False) == 'console_exe':
 			sys.frozen = False
 		
 		for w in self.workers:

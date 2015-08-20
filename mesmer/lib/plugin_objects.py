@@ -58,36 +58,33 @@ class mesPluginBasic:
 		"""
 		self.__dict__ = d
 
-	def close( self ):
-		pass
-
-	def info( self ):
-		"""Print some information about the plugin to stdout
-		
-		@TODO@ would be better as a __str__ or __repr__
-		
+	def __str__( self ):
+		"""Provide some information about the plugin
+				
 		Args: None
-		Returns: None
+		Returns: String describing the plugin
 		"""
 		
-		print "HELP for plugin: \"%s\"" % self.name
-		print "\tVersion: %s" % self.version
-		print "\tValid data types:"
+		ret = "Help for plugin: \"%s\"" % self.name
+		ret+= "\tVersion: %s" % self.version
+		ret+= "\tValid data types:"
 		for t in self.type:
-			print "\t\t%s" % t
-		print ""
-		print "Target file argument help:"
+			ret+= "\t\t%s" % t
+		ret+= ""
+		ret+= "Target file argument help:"
 		try:
-			self.target_parser.print_help()
+			ret+= self.target_parser.format_help()
 		except:
 			raise mesPluginError("Could not display target argument help for parser \"%s\"" % self.name)
-		print ""
-		print "Component file argument help:"
+		ret+= ""
+		ret+= "Component file argument help:"
 		try:
-			self.component_parser.print_help()
+			ret+= self.component_parser.format_help()
 		except:
 			raise mesPluginError("Could not display component argument help for parser \"%s\"" % self.name)
-
+		
+		return ret
+		
 	# base type stubs to be overwritten
 
 	def ensemble_state( self, restraint, target_data, ensembles, file_path):
@@ -172,6 +169,9 @@ class mesPluginBasic:
 			float: The numeric fitness score.
 		"""
 		return None
+
+	def close( self ):
+		pass
 
 class mesPluginDB( mesPluginBasic ):
 	"""An extended data-handling MESMER plugin that provides access to a persistent database"""

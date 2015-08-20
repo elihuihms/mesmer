@@ -6,12 +6,13 @@ __all__ = [
 	'utilities'
 ]
 
-import lib as mesmer_base
+import lib			as lib
+import mesmer_gui	as gui
 
-__version__ = mesmer_base.__version__
-__license__			= u'GPL v2'
-__author__			= u'Elihu Ihms'
-__author_email__	= u'elihuihms@elihuihms.com'
-__url__				= u'https://code.google.com/p/mesmer/'
-__download_url__	= u'https://code.google.com/p/mesmer/downloads/list'
-__description__		= u'MESMER: Minimal Ensembles Solutions to Multiple Experimental Restraints'
+__version__			= lib.__version__
+__license__			= lib.__license__
+__author__			= lib.__author__
+__author_email__	= lib.__author_email__
+__url__				= lib.__url__
+__download_url__	= lib.__download_url__
+__description__		= lib.__description__

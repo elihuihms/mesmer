@@ -20,7 +20,7 @@
 import os
 import sys
 
-if( __name__ == "__main__" ):
+def run():
 	try:
 		import Tkinter as tk
 		import tkMessageBox
@@ -45,3 +45,5 @@ if( __name__ == "__main__" ):
 	app = MainWindow(root)	
 	app.mainloop()
 
+if( __name__ == "__main__" ):
+	run()

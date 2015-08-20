@@ -20,25 +20,12 @@
 import os
 import sys
 
-if sys.version_info < (2, 5, 0):
-    sys.stderr.write("MESMER requires Python 2.5 or newer.\n")
+if sys.version_info < (2, 6, 0):
+    sys.stderr.write("MESMER requires Python 2.6 or newer.\n")
     sys.exit(-1)
 
-# Warn the user that the GUI will be noop if Tk is not available:
-try:
-	import Tkinter
-except ImportError:
-	s = raw_input("WARNING: Tkinter is not installed, the GUI will not be available, continue? (Y/N): ")
-	if s[0]!='Y' and s[0]!='y':
-		exit()
-
-# put default plugin-specific imports here
-try:
-	import Bio
-except ImportError:
-	s = raw_input("WARNING: Biopython is not installed, some GUI plugins may not work properly, continue? (Y/N): ")
-	if s[0]!='Y' and s[0]!='y':
-		exit()
+import ez_setup
+ez_setup.use_setuptools()
 
 #
 # Do actual packaging now
@@ -49,6 +36,7 @@ requires = [
 	'numpy',
 	'scipy',
 	'matplotlib'
+	'Bio',
 ]
 
 classifiers = [
@@ -105,11 +93,6 @@ entry_points = {
 		'make_synthetic_target = mesmer.utilities.make_synthetic_target:run'
 	]
 }
-
-import ez_setup
-ez_setup.use_setuptools()
-
-from setuptools import setup
 
 import mesmer
 import mesmer.lib

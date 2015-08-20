@@ -15,7 +15,7 @@ def calculate(pdb,ref_atoms,ref_selector,sup_atoms,sup_selector):
 		parser	= Bio.PDB.PDBParser(QUIET=True)
 		model	= parser.get_structure('',pdb)[0]
 	except Exception as e:
-		return True,(pdb,"Could not parse PDB file: %s"%(e))
+		return False,(pdb,"Could not parse PDB file: %s"%(e))
 
 	# superimpose models first
 	if sup_atoms != None:
@@ -23,37 +23,37 @@ def calculate(pdb,ref_atoms,ref_selector,sup_atoms,sup_selector):
 			try:
 				match_atoms = [res['CA'] for res in model.get_residues()]
 			except KeyError:
-				return True,(pdb,"Error extracting C-alpha atoms from model residues. Perhaps there are solvent or hetams present?")
+				return False,(pdb,"Error extracting C-alpha atoms from model residues. Perhaps there are solvent or hetams present?")
 		else:
 			try:
 				match_atoms = [model[sup_selector[0]][i]['CA'] for i in range(sup_selector[1],sup_selector[2])]
 			except IndexError:
-				return True,(pdb,"Could not find residue %i of chain %s in PDB"%(i,chain),)
+				return False,(pdb,"Could not find residue %i of chain %s in PDB"%(i,chain),)
 
 		try:
 			superimposer = Bio.PDB.Superimposer()
 			superimposer.set_atoms(sup_atoms,match_atoms) # strangely, this seems to crash w/ more than 64 atoms, but only in some environments
 			superimposer.apply( model.get_atoms() ) # move ALL of the atoms in the test model
 		except Exception as e:
-			return True,(pdb,"Failed to superimpose PDB %s"%(e))
+			return False,(pdb,"Failed to superimpose PDB %s"%(e))
 
 	if ref_selector == None:
 		try:
 			match_coords = [res['CA'].get_coord() for res in model.get_residues()]
 		except KeyError:
-			return True,(pdb,"Error extracting C-alpha atoms from model residues. Perhaps there are solvent or hetams present?")
+			return False,(pdb,"Error extracting C-alpha atoms from model residues. Perhaps there are solvent or hetams present?")
 	else:
 		try:
 			match_coords = [model[ref_selector[0]][i]['CA'].get_coord() for i in range(ref_selector[1],ref_selector[2])]
 		except IndexError:
-			return True,(pdb,"Could not find residue %i of chain %s"%(i,chain))
+			return False,(pdb,"Could not find residue %i of chain %s"%(i,chain))
 
 	try:
 		value = rmsd([a.get_coord() for a in ref_atoms],match_coords)
 	except AssertionError:
-		return True,(pdb,"Could not calculate RMSD, some of the residues present in the reference PDB are missing in PDB")
+		return False,(pdb,"Could not calculate RMSD, some of the residues present in the reference PDB are missing in PDB")
 
-	return False,(pdb,value)
+	return True,(pdb,value)
 
 def setup( w ):
 	try:

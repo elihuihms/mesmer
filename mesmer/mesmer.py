@@ -20,7 +20,9 @@
 import sys
 import os
 
-from lib import __version__
+from lib 						import __author__,__version__
+from lib.gui					import __version__ as __gui_version__
+
 from lib.exceptions				import *
 from lib.setup_functions		import parse_arguments,make_results_dir,open_user_prefs
 from lib.utility_functions		import print_msg
@@ -30,43 +32,63 @@ from lib.component_functions	import load_components
 from lib.ga_functions_main		import run_ga
 
 def run():
-	if( sys.version_info < (2,6) ):
-		print "Python version must be 2.6 or greater"
-		sys.exit()
+	print("-"*40)
+	print("MESMER v. %s \n(c) %s" % (__version__,__author__))
+	print("-"*40+"\n")
 
-	# get user preferences
-	prefs = open_user_prefs(mode='c')
+	if( sys.version_info < (2,6) ):
+		print "ERROR:\tPython version must be 2.6 or greater"
+		sys.exit(1)
+
+	# get mesmer user preferences
+	try:
+		prefs = open_user_prefs(mode='c')
+	except:
+		print "ERROR:\tCannot read or create MESMER preferences file."
+		sys.exit(1)
+		
+	print "INFO:\tBase mesmer directory is \"%s\"."%(prefs['mesmer_base_dir'])
 	
 	# obtain the parameters for the run
-	args = parse_arguments()
-
+	args = parse_arguments(prefs=prefs)
+	
 	# attempt to load available plugin modules
 	plugins = []
-	for id,ok,msg,module in load_plugins(os.path.dirname(__file__), 'mesmer', args=args ):
-		if ok:
-			plugins.append( module )
-		else:
-			print_msg("WARNING: Plugin \"%s\" failed to load: (%s).")			
-
+	try:
+		for id,ok,msg,module in load_plugins(prefs['mesmer_base_dir'], 'mesmer', args=args ):
+			if ok:
+				plugins.append( module )
+			else:
+				print("WARNING:\tPlugin \"%s\" failed to load: (%s).")			
+	except mesPluginError as e:
+		print "%s Perhaps the MESMER preferences are misconfigured?"%(e)
+		
 	# did the user request information about a plugin?
 	for p in plugins:
 		if (args.plugin == p.name) or (args.plugin in p.type):
-			p.info()
+			print str(p)
 			sys.exit(0)
 
 	if len(plugins) == 0:
-		raise mesPluginError("ERROR: No valid plugins found in %s." % (os.path.dirname(__file__)) )
-
+		raise mesPluginError("ERROR:\tNo valid MESMER interpreter plugins found.")
+		sys.exit(1)
+		
 	# attempt to create the fitting results directory
 	try:
 		make_results_dir(args)
 	except mesSetupError as e:
 		print e.msg
-		sys.exit(20)
+		sys.exit(1)
+
+	# print information about the MESMER environment to the log file
+	print_msg("Environment:")
+	print_msg("\tmesmer\t:\t%s"%(__version__))
+	#print_msg("\tmesmer-gui: %s"%(__gui_version__))
+	for p in plugins:
+		print_msg("\t%s\t:\t%s"%(p.name,p.version))
 
 	# save the parameters list to the log file
-	print_msg("MESMER v. %s \n(c)2012-2014 Elihu Ihms" % (__version__))
-	print_msg("Arguments:")
+	print_msg("\nArguments:")
 	for k in vars(args):
 		print_msg("\t%s\t:\t%s" % (k,vars(args)[k]))
 	print_msg("")
@@ -76,14 +98,14 @@ def run():
 		targets = load_targets( args, plugins )
 	except mesTargetError as e:
 		print e.msg
-		sys.exit(30)
+		sys.exit(1)
 
 	# create component database
 	try:
 		components = load_components( args, plugins, targets )
 	except mesComponentError as e:
 		print e.msg
-		sys.exit(40)
+		sys.exit(1)
 
 	# Start the algorithm
 	ret = run_ga( args, plugins, targets, components )
@@ -93,11 +115,11 @@ def run():
 		unload_plugins( plugins )
 	except mesPluginError as e:
 		print e.msg
-		sys.exit(41)
+		sys.exit(1)
 
 if( __name__ == "__main__" ):
 	try:
 		run()
 	except KeyboardInterrupt:
-		print_msg( "\nINFO: User forced quit, exiting.\n" )
+		print_msg( "\nINFO:\tUser forced quit, exiting.\n" )
 		sys.exit(0)

@@ -9,7 +9,7 @@ if(_use_weave):
 	try:
 		import plugin_tools_weave as weave
 	except:
-		print "WARNING : plugin_tools.py - Weave compile failure, falling back to native python plugin_tools"
+		print "WARNING:\tplugin_tools.py - Weave compile failure, falling back to native python plugin_tools"
 		_use_weave = False
 
 if(_use_weave):

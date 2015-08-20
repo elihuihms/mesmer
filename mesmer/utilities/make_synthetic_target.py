@@ -26,7 +26,7 @@ def run():
 	args.plugin = ''
 
 	plugins = []
-	for id,ok,msg,module in load_plugins(os.path.dirname(__file__), 'mesmer', args=args ):
+	for id,ok,msg,module in load_plugins(os.path.dirname(os.path.dirname(__file__)), 'mesmer', args=args ):
 		if ok: plugins.append(module)
 	
 	targets		= load_targets( args, plugins )

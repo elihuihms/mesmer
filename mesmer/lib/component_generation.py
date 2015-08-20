@@ -19,7 +19,7 @@ def get_component_values( path ):
 
 		if(a[0] != ''):
 			if( a[0] in ret.keys() ):
-				raise ComponentGenException( "ERROR: Already read values for component \"%s\"" % (a[0]) )
+				raise ComponentGenException( "ERROR:\tAlready read values for component \"%s\"" % (a[0]) )
 			ret[a[0]] = a
 
 	f.close()
@@ -40,9 +40,9 @@ def match_data_files( names, dirs ):
 			matches = glob.glob( "%s%s%s[._]*" % (d,os.sep,n) )
 
 			if( len(matches) == 0 ):
-				raise ComponentGenException("ERROR: Data file for component \"%s\" not found in directory \"%s\"" % (n,d))
+				raise ComponentGenException("ERROR:\tData file for component \"%s\" not found in directory \"%s\"" % (n,d))
 			elif( len(matches) > 1 ):
-				raise ComponentGenException("ERROR: Multiple data files for component \"%s\" found in directory \"%s\". E.g. \"%s\" and \"%s\"" % (n,d,matches[0],matches[1]))
+				raise ComponentGenException("ERROR:\tMultiple data files for component \"%s\" found in directory \"%s\". E.g. \"%s\" and \"%s\"" % (n,d,matches[0],matches[1]))
 
 			ret[n].append(matches[0])
 
@@ -63,7 +63,7 @@ def write_component_files( data_vals, data_dirs, template, dir ):
 			try:
 				handle = open( f, 'r' )
 			except IOError:
-				raise ComponentGenException("ERROR: Could not open component datafile \"%s\"" % (f))
+				raise ComponentGenException("ERROR:\tCould not open component datafile \"%s\"" % (f))
 
 			new = new.replace("%s%i" % ('%',i+1,), handle.read() )
 			handle.close()
@@ -73,7 +73,7 @@ def write_component_files( data_vals, data_dirs, template, dir ):
 		try:
 			handle = open( path, 'w' )
 		except IOError:
-			raise ComponentGenException("ERROR: Could not write to component file \"%s\" " % (path))
+			raise ComponentGenException("ERROR:\tCould not write to component file \"%s\" " % (path))
 
 		handle.write( new )
 		handle.close()

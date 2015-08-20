@@ -164,9 +164,7 @@ class mesEnsemble:
 
 		Returns:
 			float: The weighted sum of all restraint/attribute discrepancies
-			
-		@TODO@ More robust exception/error collection
-		"""
+					"""
 
 		# always keep our component ratios normalized
 		self.ratios[target.name] = ratios

@@ -23,7 +23,7 @@ def write_named_pdbs( path, names, dirs, tarballs ):
 
 			if( os.access( path, os.R_OK ) ):
 				if( pdb != None ):
-					print "WARNING: duplicate named PDBs (\"%s\") detected!" % (n)
+					print "WARNING:\tduplicate named PDBs (\"%s\") detected!" % (n)
 				else:
 					try:
 						pdb = open(path, 'r').read().strip()
@@ -37,7 +37,7 @@ def write_named_pdbs( path, names, dirs, tarballs ):
 				continue
 
 			if( pdb != None ):
-				print "WARNING: duplicate named PDBs (\"%s\") detected!" % (n)
+				print "WARNING:\tduplicate named PDBs (\"%s\") detected!" % (n)
 			else:
 				try:
 					member = t.getmember( tarball_pdb_paths[j][k] )

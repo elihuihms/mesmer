@@ -25,7 +25,7 @@ def startRun( w ):
 			try:
 				shutil.rmtree(path)
 			except OSError:
-				tkMessageBox.showerror("Error","ERROR: Couldn't remove \"%s\"" % path,parent=w)
+				tkMessageBox.showerror("Error","Couldn't remove \"%s\"" % path,parent=w)
 				return False
 		else:
 			return False
@@ -132,9 +132,9 @@ def updateLogWindow( w ):
 		except Empty: # read until queue is empty
 			return
 
-		if( 'INFO: Reading target file' in line):
+		if( 'INFO:\tReading target file' in line):
 			w.statusText.set('Reading targets...')
-		elif( 'INFO: Found ' in line and 'component files' in line):
+		elif( 'INFO:\tFound ' in line and 'component files' in line):
 			w.statusText.set('Loading components...')
 		elif( 'Optimizing parent component ratios' in line):
 			w.statusText.set('Optimizing component ratios...')

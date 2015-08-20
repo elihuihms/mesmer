@@ -24,4 +24,10 @@ __all__ = [
 	'utility_objects'
 	]
 	
-__version__ = '1.0.0'
+__version__			= '1.0.0'
+__license__			= u'GPL v2'
+__author__			= u'Steel Snowflake Software LLC'
+__author_email__	= u'mail@steelsnowflake.com'
+__url__				= u'https://github.com/steelsnowflake/mesmer/'
+__download_url__	= u'http://steelsnowflake.com/downloads/?t=mesmer'
+__description__		= u'MESMER: Minimal Ensembles Solutions to Multiple Experimental Restraints'

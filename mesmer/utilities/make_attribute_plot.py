@@ -86,7 +86,7 @@ def run():
 	args = parser.parse_args()
 
 	if(len(args.ensembleHighlight)>0 and not args.ensembles):
-		print "ERROR: To highlight a specific ensemble ID please provide an ensemble state file."
+		print "ERROR:\tTo highlight a specific ensemble ID please provide an ensemble state file."
 		sys.exit(1)
 
 	plot_data = [ [],[],[],[] ] # generate master data lists
@@ -111,7 +111,7 @@ def run():
 			try:
 				k = plot_data[0].index(n)
 			except:
-				print "ERROR: Target specification contains a component (%s) that does not exist in the attribute table." % n
+				print "ERROR:\tTarget specification contains a component (%s) that does not exist in the attribute table." % n
 				sys.exit(1)
 
 			spec_data[2].append( plot_data[1][k] )
@@ -133,7 +133,7 @@ def run():
 			try:
 				k = plot_data[0].index(a[0])
 			except:
-				print "ERROR: Ensemble statistics file contains a component (%s) that does not exist in the attribute table." % a[0]
+				print "ERROR:\tEnsemble statistics file contains a component (%s) that does not exist in the attribute table." % a[0]
 				sys.exit(1)
 
 			stats_data[0].append( a[0] )
@@ -149,7 +149,7 @@ def run():
 		try:
 			ensemble_stats = get_ensembles_from_state( args.ensembles, unique=True )
 		except Exception as e:
-			print "ERROR: Could not load ensemble information from state file. Reason: %s" % (e)
+			print "ERROR:\tCould not load ensemble information from state file. Reason: %s" % (e)
 			sys.exit(1)
 
 		if( len(args.ensembleHighlight)>0 ):
@@ -164,7 +164,7 @@ def run():
 				try:
 					k = plot_data[0].index(name)
 				except ValueError:
-					print "ERROR: the component \"%s\" from the ensemble state file doesn't exist in the attribute table." % (name)
+					print "ERROR:\tThe component \"%s\" from the ensemble state file doesn't exist in the attribute table." % (name)
 					sys.exit(1)
 
 				state_data[0].append( name )
@@ -181,7 +181,7 @@ def run():
 			try:
 				k = plot_data[0].index(name)
 			except ValueError:
-				print "ERROR: the component \"%s\" from highlight list doesn't exist in the attribute table." % (name)
+				print "ERROR:\tThe component \"%s\" from highlight list doesn't exist in the attribute table." % (name)
 				sys.exit(1)
 
 			highlight_data[0].append( name )

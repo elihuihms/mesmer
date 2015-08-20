@@ -45,9 +45,9 @@ class mesComponent:
 		blocks = get_input_blocks(file)
 
 		if( blocks == None ):
-			print_msg("ERROR: Could not read component file \"%s\"." % (file))
+			print_msg("ERROR:\tCould not read component file \"%s\"." % (file))
 		elif( len(blocks) == 0 ):
-			print_msg("ERROR: Component file \"%s\" contains no recognizable data." % (file))
+			print_msg("ERROR:\tComponent file \"%s\" contains no recognizable data." % (file))
 
 		# make a checklist of the requested target restraints (by plugin name) each component must satisfy
 		checklist = {}
@@ -79,12 +79,12 @@ class mesComponent:
 							try:
 								messages = p.load_attribute( attribute, b, self.plugin_data[b['type']] )
 							except mesPluginError as e:
-								print_msg("ERROR: plugin \"%s\" could not create an attribute from the component file \"%s\" lines %i-%i" % (p.name,file,b['l_start'],b['l_end']))
-								print_msg("ERROR: plugin \"%s\" reported: %s" % (p.name,e.msg))
+								print_msg("ERROR:\tplugin \"%s\" could not create an attribute from the component file \"%s\" lines %i-%i" % (p.name,file,b['l_start'],b['l_end']))
+								print_msg("ERROR:\tplugin \"%s\" reported: %s" % (p.name,e.msg))
 								return False
 
 							for m in messages:
-								print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,m))
+								print_msg("INFO:\tplugin \"%s\" reported: %s" % (p.name,m))
 
 							self.attributes.append(attribute)
 
@@ -95,13 +95,13 @@ class mesComponent:
 							break
 
 		if( self.name == '' ):
-			print_msg("ERROR: component file \"%s\" has no NAME attribute." % (file) )
+			print_msg("ERROR:\tcomponent file \"%s\" has no NAME attribute." % (file) )
 			return False
 
 		# go through our checklist and ensure that all target restraint types are present
 		for (k,v) in checklist.iteritems():
 			if(v != 0):
-				print_msg("ERROR: component file \"%s\" is missing %i \"%s\" restraint type(s)." % (file,v,k))
+				print_msg("ERROR:\tcomponent file \"%s\" is missing %i \"%s\" restraint type(s)." % (file,v,k))
 				return False
 
 		return True

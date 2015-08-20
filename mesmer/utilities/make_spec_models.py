@@ -29,7 +29,7 @@ def run():
 		pdb = "%s%s%s.pdb" % (args.pdbs,os.sep,pdb_names[i])
 		print pdb
 		if( not os.path.exists(pdb) ):
-			print "ERROR: PDB %s not found in %s" % (pdb,args.pdbs)
+			print "ERROR:\tPDB \"%s\" not found in \"%s\"." % (pdb,args.pdbs)
 			exit()
 
 		if( os.path.isdir(args.out) ):

@@ -7,6 +7,7 @@ import tempfile
 
 from threading import Timer
 
+from lib.exceptions			import *
 from lib.gui.plugin_objects import guiCalcPlugin
 from lib.gui.tools_plugin	import makeStringFromOptions
 
@@ -33,10 +34,28 @@ class plugin(guiCalcPlugin):
 #		self.parser.add_argument('-eh',		action='store_true', 		help='Account for explicit hydrogens')
 
 	def setup(self, parent, options, outputdir):
-		#@TODO@ version checking/verification of CRYSOL
 		self.options	= options
 		self.outputdir	= outputdir
 		self.tempdir	= tempfile.mkdtemp()
+		
+		try:
+			sub = subprocess.Popen([self.path,'-v'], stdout=subprocess.PIPE)
+			output,err = sub.communicate()
+			code = sub.wait()
+		except Exception as e:
+			if(e.errno == os.errno.ENOENT):
+				raise mesPluginError("Could not find \"crysol\" excecutable, is it installed?")
+			else:
+				raise e
+		
+		# check crysol version
+		def vsplit(v):
+			return tuple(map(int,(v.split('.'))))
+				
+		crysol_version = output.strip().split()[1][1:]
+		if vsplit(crysol_version) < vsplit('2.8.0'):
+			raise mesPluginError("Installed crysol version %s is too old, MESMER requires at least version 2.8.0"%(crysol_version))
+				
 		return True
 		
 	def close(self, abort):
@@ -48,7 +67,7 @@ class plugin(guiCalcPlugin):
 		name = os.path.splitext( base )[0]
 
 		if not os.path.exists(pdb):
-			return True,(pdb,"Could not read file.")
+			return False,(pdb,"Could not read file.")
 
 		cmd = [self.path]
 		cmd.extend( makeStringFromOptions(self.options).split() )
@@ -66,15 +85,15 @@ class plugin(guiCalcPlugin):
 
 		except Exception as e:
 			if(e.errno == os.errno.ENOENT):
-				return True,(pdb,"Could not find \"crysol\" program. Perhaps it isn't installed, or the path to it is wrong?")
+				return False,(pdb,"Could not find \"crysol\" program. Perhaps it isn't installed, or the path to it is wrong?")
 			else:
-				return True,(pdb,"Error calling \"crysol\" program (%s): %s" %(e,err))
+				return False,(pdb,"Error calling \"crysol\" program (%s): %s" %(e,err))
 		
 		# crysol sometimes fucks up and increments
 		tmp = glob.glob( os.path.join(self.tempdir,"%s??.int"%name) )
 		if len(tmp) == 0:
 			if repeat == _CRYSOL_RETRY:
-				return True,(pdb,"Failed to calculate SAXS profile after %i tries.\n\nCRYSOL output: %s\n\nCRYSOL error:%s" % (_CRYSOL_RETRY,out,err))
+				return False,(pdb,"Failed to calculate SAXS profile after %i tries.\n\nCRYSOL output: %s\n\nCRYSOL error:%s" % (_CRYSOL_RETRY,out,err))
 			else:
 				return self.calculate(pdb, repeat+1)
 
@@ -86,9 +105,9 @@ class plugin(guiCalcPlugin):
 			fpi.close()
 			fpo.close()
 		except Exception as e:
-			return True,(pdb,"Could not clean up CRYSOL profile: %s"%(e))
+			return False,(pdb,"Could not clean up CRYSOL profile: %s"%(e))
 
 		if not os.path.exists( out ):
-			return True,(pdb,"Failed to extract SAXS profile after %i tries." % (_CRYSOL_RETRY))
+			return False,(pdb,"Failed to extract SAXS profile after %i tries." % (_CRYSOL_RETRY))
 			
-		return False,(pdb,None)
+		return True,(pdb,None)

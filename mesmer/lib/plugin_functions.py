@@ -5,7 +5,7 @@ import glob
 
 from exceptions import *
 
-def load_plugins( dir, type, disabled=[], args=None ):
+def load_plugins( basedir, type, disabled=[], args=None ):
 	"""Find all plugin (plugin_*.py) files in the provided directory, and return dict
 	
 	Returned list format tuples:
@@ -15,7 +15,7 @@ def load_plugins( dir, type, disabled=[], args=None ):
 		plugin (module): The actual plugin module (IF ok==True, otherwise None)
 	
 	Args:
-		dir (string): Path to MESMER directory
+		basedir (string): Path to MESMER directory
 		type (string): Plugin type, is used to discriminate plugin file paths
 		disabled (list): List of plugin IDs to ignore
 		args (ArgumentParser namespace): MESMER arguments
@@ -24,14 +24,14 @@ def load_plugins( dir, type, disabled=[], args=None ):
 	"""
 
 	# add lib directory to the system path
-	path = os.path.abspath( dir )
+	path = os.path.abspath( basedir )
 	if not path in sys.path:
 		sys.path.append( path )
 
 	# add plugin directory to the system path, for plugin-specific libraries
-	path = os.path.abspath( os.path.join(dir, 'plugins') )
+	path = os.path.abspath( os.path.join(basedir, 'plugins') )
 	if not os.path.exists( path ):
-		raise mesPluginError("ERROR: Could not find plugin directory at path \"%s\"." % path)
+		raise mesPluginError("ERROR:\tCould not find plugin directory at path \"%s\"." % path)
 	
 	if not path in sys.path:
 		sys.path.append( path )
@@ -75,4 +75,4 @@ def unload_plugins( plugins ):
 		try:
 			del p
 		except:
-			raise mesPluginError("ERROR: Plugin \"%s\" unloading failed: %s" % (p.name,sys.exc_info()[1]))
+			raise mesPluginError("WARNING:\tPlugin \"%s\" unloading failed: %s" % (p.name,sys.exc_info()[1]))

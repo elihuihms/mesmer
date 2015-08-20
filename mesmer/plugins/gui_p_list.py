@@ -4,6 +4,7 @@ import argparse
 
 from subprocess				import Popen
 
+from lib.exceptions			import *
 from lib.gui.plugin_objects import guiPlotPlugin
 from lib.gui.tools_plugin	import makeListFromOptions
 
@@ -12,7 +13,7 @@ class plugin(guiPlotPlugin):
 	def __init__(self):
 		guiPlotPlugin.__init__(self)
 		self.name = 'LIST/TABL Plotter'
-		self.version = '2015.06.30'
+		self.version = '2015.08.19'
 		self.info = "This plugin generates a correlation plot between two discretely sampled datasets."
 		self.type = (
 			'LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9',
@@ -22,12 +23,17 @@ class plugin(guiPlotPlugin):
 		self.parser.add_argument('-xCol',	metavar='X column',	default=1,	type=int,	help='The column containing the desired component attribute')
 		self.parser.add_argument('-yCol',	metavar='Y column',	default=2,	type=int,	help='The column to use as y-axis data')
 
-		# check the script local to the installation first, otherwise use what's in the system's path
 		self.exe = os.path.join(os.path.dirname(os.path.dirname(__file__)),'utilities','make_list_plot.py')
 		if( not os.access(self.exe, os.R_OK) ):
-			raise Exception("Could not read %s" % (self.exe) )
+			raise mesPluginError("Could not access plotter utility located at \"%s\". Perhaps the MESMER directory is incorrectly set?"%(self.exe) )
 
-	def plot(self, path, options):
-		cmd = [sys.executable, self.exe, path]
-		cmd.extend( makeListFromOptions(options) )
-		Popen(cmd)
+	def plot(self, path, options, title):
+		try:
+			Popen([sys.executable, self.exe, path, '-title', title]+makeListFromOptions(options))
+		except Exception as e:
+			if(e.errno == os.errno.ENOENT):
+				raise mesPluginError("Could not execute plotter utility. Perhaps the MESMER directory is set incorrectly?")
+			else:
+				raise e
+
+		return True

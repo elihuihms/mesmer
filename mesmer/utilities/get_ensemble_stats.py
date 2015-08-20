@@ -32,11 +32,11 @@ def run():
 	args = parser.parse_args()
 
 	if( not args.table ):
-		print "ERROR: Must specify an attribute table."
+		print "ERROR:\tMust specify an attribute table."
 		exit()
 
 	if( not args.state ):
-		print "ERROR: Must specify a state table."
+		print "ERROR:\tMust specify a state table."
 		exit()
 
 	tmp = scipy.genfromtxt( args.table, dtype=str, unpack=True )
@@ -44,19 +44,19 @@ def run():
 	try:
 		component_names = list( tmp[args.nCol] )
 	except:
-		print "ERROR: Couldn't read component names from column %i of the attribute table" % args.nCol
+		print "ERROR:\tCouldn't read component names from column %i of the attribute table" % args.nCol
 
 	component_attributes = []
 	for col in args.dCols:
 		try:
 			component_attributes.append( map(float, tmp[col]) )
 		except:
-			print "ERROR: Couldn't read component values from column %i of the attribute table" % i
+			print "ERROR:\tCouldn't read component values from column %i of the attribute table" % i
 
 	try:
 		ensembles = get_ensembles_from_state( args.state, unique=True )
 	except Exception as e:
-		print "ERROR: Couldn't read ensembles from state file. Reason: %s" % (e)
+		print "ERROR:\tCouldn't read ensembles from state file. Reason: %s" % (e)
 		exit()
 
 	ensemble_attributes,ensemble_weights = [], []
@@ -71,7 +71,7 @@ def run():
 				try:
 					row = component_names.index( name )
 				except ValueError:
-					print "ERROR: Could not find component \"%s\" in the attribute table" % name
+					print "ERROR:\tCould not find component \"%s\" in the attribute table" % name
 					exit()
 
 				ensemble_attributes[-1][ col ].append( component_attributes[ col ][ row ] )

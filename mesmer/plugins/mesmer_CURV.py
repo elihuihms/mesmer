@@ -17,7 +17,7 @@ class plugin( mesPluginDB ):
 
 		# call parent constructor first
 		mesPluginDB.__init__(self, args)
-
+		
 		self.name = 'default_CURV'
 		self.version = '2015.06.16'
 		self.info = 'This plugin compares two continuous datasets. Several goodness-of-fit metrics are available.'

@@ -7,6 +7,7 @@ import tkFileDialog
 
 from subprocess		import Popen,PIPE
 
+from .. exceptions import *
 from .. ga_functions_output import _MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
 
 from tools_plugin	import convertParserToOptions,makeListFromOptions
@@ -14,8 +15,10 @@ from tools_general	import getColumnNames
 from win_options	import OptionsWindow
 
 def makeCorrelationPlot( w ):
-	p1 = os.path.join(w.activeDir.get(), _MESMER_CORRELATION_FILE_FORMAT%w.currentSelection[0] )
-	p2 = os.path.join(w.activeDir.get(), _MESMER_STATISTICS_FILE_FORMAT%(w.currentSelection[1],w.currentSelection[0]) )
+	generation_count,target_name,data_type = w.currentSelection
+	
+	p1 = os.path.join(w.activeDir.get(), _MESMER_CORRELATION_FILE_FORMAT%generation_count )
+	p2 = os.path.join(w.activeDir.get(), _MESMER_STATISTICS_FILE_FORMAT%(target_name,generation_count) )
 	
 	cmd = ['make_correlation_plot']
 	if( w.prefs['mesmer_base_dir'] != '' ):
@@ -37,9 +40,11 @@ def makeCorrelationPlot( w ):
 		return
 
 def plotRestraint( w ):
+	generation_count,target_name,data_type = w.currentSelection
+	
 	for p in w.plot_plugins:
-		if (w.currentSelection[2] in p.type):
-			path = (os.path.join(w.activeDir.get(), _MESMER_RESTRAINTS_FILE_FORMAT%(w.currentSelection[1],w.currentSelection[2],w.currentSelection[0])))
+		if (data_type in p.type):
+			path = (os.path.join(w.activeDir.get(), _MESMER_RESTRAINTS_FILE_FORMAT%(target_name,data_type,generation_count)))
 
 			if( not os.access( path, os.R_OK ) ):
 				tkMessageBox.showerror("Error","Could not open the restraint file \"%s\"" % path ,parent=w)
@@ -59,15 +64,14 @@ def plotRestraint( w ):
 				if w.optWindow.returncode != 0:
 					return
 
-			#@TODO@ check for returned plugin status instead of just exception handling
 			try:
 				if( p.parser ):
-					p.plot( path, w.pluginOptions[ p.name ] )
+					p.plot( path, w.pluginOptions[ p.name ], title="Best fit to %s %s data at generation %i"%(target_name,data_type,generation_count) )
 				else:
-					p.plot( path )
+					p.plot( path, None, title="Best fit to %s %s data at generation %i"%(target_name,data_type,generation_count) )
 				return
-			except Exception as e:
-				tkMessageBox.showerror("Error","Plotting plugin experienced an error: %s" % (e))
+			except (Exception,mesPluginError) as e:
+				tkMessageBox.showerror("Error","Plotting plugin returned an error: %s" % (e))
 	return
 	
 def plotAttributes( w ):
@@ -77,11 +81,12 @@ def plotAttributes( w ):
 		return
 		
 	column_names = getColumnNames( p1 )
+	generation_count,target_name,data_type = w.currentSelection
 
-	if(w.currentSelection[0] == None or w.currentSelection[1] == None):
+	if(generation_count == None or target_name == None):
 		return
 
-	p2 = os.path.join(w.activeDir.get(), _MESMER_STATISTICS_FILE_FORMAT%(w.currentSelection[1],w.currentSelection[0]) )
+	p2 = os.path.join(w.activeDir.get(), _MESMER_STATISTICS_FILE_FORMAT%(target_name,generation_count) )
 	if( not os.access( p1, os.R_OK ) ):
 		tkMessageBox.showerror("Error","Could not read component statistics table \"%s\"" % p2,parent=w)
 		return
@@ -131,6 +136,7 @@ def plotAttributes( w ):
 		if( w.prefs['mesmer_base_dir'] != '' ):
 			cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_attribute_plot.py')]
 		cmd.extend( [p1,'-stats',p2] )
+		cmd.extend( ['-title',"Attributes %s ensembles at generation %i"%(target_name,generation_count)] )
 		cmd.extend( makeListFromOptions( w.pluginOptions['attributePlotter'] ) )
 		
 		try:
@@ -143,7 +149,8 @@ def plotHistogram( w ):
 	if( not w.resultsDB.has_key('ensemble_stats') ):
 		return
 
-	if(w.currentSelection[0] == None):
+	generation_count,target_name,data_type = w.currentSelection
+	if(generation_count == None):
 		return
 
 	try:
@@ -152,7 +159,7 @@ def plotHistogram( w ):
 		tkMessageBox.showerror("Error","Could not import matplotlib's pylab",parent=w)
 		return
 
-	n, bins, patches = P.hist(w.resultsDB['ensemble_stats'][w.currentSelection[0]]['scores'], 50, normed=1, histtype='stepfilled')
+	n, bins, patches = P.hist(w.resultsDB['ensemble_stats'][generation_count]['scores'], 50, normed=1, histtype='stepfilled')
 	P.setp(patches, 'facecolor', 'r', 'alpha', 0.75)
 	P.show()
 

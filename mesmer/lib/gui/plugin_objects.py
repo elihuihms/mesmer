@@ -57,8 +57,8 @@ class guiCalcPlugin(Process):
 		"""Connect to the provided Queues
 		
 		Input queue format: is sent None when processing is complete
-		Output queue format: tuple of Error,(PDB,Info) where:
-			Error (bool): Has an error occurred or not
+		Output queue format: tuple of status,(PDB,Info) where:
+			Status (bool): True on success, False on failure
 			PDB (string): Current PDB path
 			Info (variable): If Error is True, should contain some information describing the problem, otherwise can be None
 			
@@ -90,13 +90,13 @@ class guiCalcPlugin(Process):
 			pdb (string): Path to the pdb to calculate the output data from.
 		
 		Returns:
-			Tuple of Error,(pdb,Explanation) (Boolean,(String,String))
+			Tuple of status,(pdb,Explanation) (Boolean,(String,String))
 			
 		Exceptions:
 			None, since this function will be split into a separate thread
 		"""
 		
-		return True,(pdb,'Invalid Plugin')
+		return False,(pdb,'Invalid Plugin')
 		
 	def close(self, abort=False):
 		"""Shut the plugin down.
@@ -134,17 +134,18 @@ class guiPlotPlugin(object):
 		self.path = None #path to executable, if applicable
 		self.parser = argparse.ArgumentParser(prog=self.name)
 
-	def plot(self, path, options=None):
+	def plot(self, path, options, title):
 		"""Generate a figure from the provided path to a MESMER restraint fit file
 		
 		Args:
 			path (string): Path to a MESMER restraint fit file corresponding to the plugin type
-			options (dict): (Optional, defaults to None): Options set by the user based on the plugin's argument parser
+			title (string): Title for the plot
+			options (dict): Options set by the user based on the plugin's argument parser. Is None if the plugin's parser is also None
 		
-		Return: True on success, False on failure
+		Return: True on success, returning False is unsupported at the moment
 		
-		Raises:
-			Any exception that prevents the generation of the figure will be caught and displayed to the user.
+		Exceptions:
+			Raises an Exception or mesPluginError on any problem that prevents the generation of the figure. Exception messages will be displayed to the user.
 		"""
 		return True
 

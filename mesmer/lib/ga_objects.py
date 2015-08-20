@@ -63,6 +63,12 @@ class Worker(Process):
 		self.daemon = True
 
 	def run(self):
+		"""Consume ensembles from the input queue, and calculate their cumulative fitness score
+		
+		Arguments: None
+		
+		Returns: None
+		"""
 		
 		# retrieve ensembles from the queue
 		for e in iter(self.iQ.get, None):

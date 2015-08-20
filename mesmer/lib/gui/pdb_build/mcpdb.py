@@ -59,7 +59,7 @@ eval = ModelEvaluator( model, clash_radius=args.clashR, CA_only=args.CA, clash_c
 
 print "Initial clashes: %i" % (eval.count_clashes())
 
-if args.prefix = '':
+if args.prefix == '':
 	args.prefix = "%s_"%(args.pdb.replace(".pdb",''))
 
 linkers = model.get_linker_phipsi()

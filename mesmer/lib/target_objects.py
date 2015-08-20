@@ -49,11 +49,11 @@ class mesTarget:
 		blocks = get_input_blocks(file)
 
 		if( not blocks ):
-			print_msg("ERROR: Could not read target file \"%s\"." % (file))
+			print_msg("ERROR:\tCould not read target file \"%s\"." % (file))
 			return False
 
 		if( len(blocks) == 0 ):
-			print_msg("ERROR: Target file \"%s\" contains no recognizable data." % (file))
+			print_msg("ERROR:\tTarget file \"%s\" contains no recognizable data." % (file))
 			return False
 
 		# find the plugin that handles this type of of data
@@ -77,7 +77,7 @@ class mesTarget:
 					try:
 						float(header_array[1])
 					except:
-						print_msg("ERROR: Restraint on line %i does not have a scaling value." % (b['l_start']))
+						print_msg("ERROR:\tRestraint on line %i does not have a scaling value." % (b['l_start']))
 						return False
 
 					# create a new restraint
@@ -86,20 +86,20 @@ class mesTarget:
 					try:
 						messages = p.load_restraint( restraint, b, self.plugin_data[b['type']] )
 					except mesPluginError as e:
-						print_msg("ERROR: plugin \"%s\" could not create a restraint from the target file \"%s\" lines %i-%i." % (p.name,file,b['l_start'],b['l_end']))
-						print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,e.msg))
+						print_msg("ERROR:\tplugin \"%s\" could not create a restraint from the target file \"%s\" lines %i-%i." % (p.name,file,b['l_start'],b['l_end']))
+						print_msg("INFO:\tplugin \"%s\" reported: %s" % (p.name,e.msg))
 						return False
 
 					self.restraints.append(restraint)
-					print_msg("INFO: Target file \"%s\" lines %i-%i - plugin \"%s\" created %.1fx weighted \"%s\" restraint." % (file,b['l_start'],b['l_end'],p.name,float(header_array[1]),b['type']))
+					print_msg("INFO:\tTarget file \"%s\" lines %i-%i - plugin \"%s\" created %.1fx weighted \"%s\" restraint." % (file,b['l_start'],b['l_end'],p.name,float(header_array[1]),b['type']))
 					for m in messages:
-						print_msg("INFO: plugin \"%s\" reported: %s" % (p.name,m))
+						print_msg("INFO:\tplugin \"%s\" reported: %s" % (p.name,m))
 
 					# only allow one plugin per block
 					break
 
 		if( self.name == '' ):
-			print_msg("ERROR: component file \"%s\" has no NAME attribute." % (file) )
+			print_msg("ERROR:\tcomponent file \"%s\" has no NAME attribute." % (file) )
 			return False
 
 		return True

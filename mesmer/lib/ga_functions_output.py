@@ -167,7 +167,7 @@ def write_component_stats( args, counter, ensembles ):
 	try:
 		f = open( path, 'w' )
 	except IOError:
-		print_msg( "ERROR: Could not write component correlation table to file \"%s\"" % (path) )
+		print_msg( "ERROR:\tCould not write component correlation table to file \"%s\"" % (path) )
 		return False
 
 	# print table header
@@ -219,7 +219,7 @@ def write_ensemble_stats( args, counter, targets, ensembles ):
 		try:
 			f = open( path, 'w' )
 		except IOError:
-			print_msg( "ERROR: Could not write ensemble statistics to file \"%s\"" % (path) )
+			print_msg( "ERROR:\tCould not write ensemble statistics to file \"%s\"" % (path) )
 			return False
 
 		f.write( "%s\tPrevalence\tAverage\t\tStdev\n" % (''.rjust(32)) )
@@ -268,7 +268,7 @@ def write_optimization_state( args, counter, targets, ensembles ):
 		try:
 			f = open( path, 'w' )
 		except IOError:
-			print_msg( "ERROR: Could not optimization state information to file \"%s\"" % (path) )
+			print_msg( "ERROR:\tCould not optimization state information to file \"%s\"" % (path) )
 			return False
 
 		for (i,e) in enumerate(ensembles):
@@ -302,7 +302,7 @@ def write_ensemble_state( args, counter, targets, ensembles ):
 		try:
 			f = open( path, 'w' )
 		except IOError:
-			print_msg( "ERROR: Could not write ensemble state to file \"%s\" " % (path) )
+			print_msg( "ERROR:\tCould not write ensemble state to file \"%s\" " % (path) )
 			return False
 
 		str_list = ['#']

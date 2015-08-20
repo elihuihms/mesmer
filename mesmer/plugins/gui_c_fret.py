@@ -48,7 +48,7 @@ class plugin(guiCalcPlugin):
 		out = "%s%s%s.dat" % (self.outputpath,os.sep,name)
 
 		if not os.access(pdb, os.R_OK):
-			return True,(pdb,"Failure reading.")
+			return False,(pdb,"Failure reading \"%s\"."%pdb)
 
 		cmd = [self.prog]
 		cmd.extend( makeStringFromOptions(self.options).split() )
@@ -57,8 +57,8 @@ class plugin(guiCalcPlugin):
 		pipe.wait()
 
 		if( pipe.returncode != 0 ):
-			return True(pdb,"Lifetime calculation failed: %s." % (pipe.stdout.read()) )
+			return False(pdb,"Lifetime calculation failed: %s." % (pipe.stdout.read()) )
 		if not os.access(out, os.R_OK):
-			return True,(pdb,"Lifetime calculation failed: %s" % (pipe.stdout.read()) )
+			return False,(pdb,"Lifetime calculation failed: %s" % (pipe.stdout.read()) )
 
-		return False,(pdb,None)
+		return True,(pdb,None)

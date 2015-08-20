@@ -18,19 +18,19 @@ def run():
 	args = parser.parse_args()
 
 	if os.path.isdir(args.out):
-		print "ERROR: component output directory \"%s\" already exists." % (args.out)
+		print "ERROR:\tComponent output directory \"%s\" already exists." % (args.out)
 		sys.exit(1)
 
 	try:
 		os.mkdir(args.out)
 	except OSError:
-		print "ERROR: Couldn't create component output directory \"%s\"." % (args.out)
+		print "ERROR:\tCouldn't create component output directory \"%s\"." % (args.out)
 		sys.exit(2)
 
 	try:
 		handle = open( args.template, 'r' )
 	except IOError:
-		print "ERROR: Could not open template file %s " % (args.template)
+		print "ERROR:\tCould not open template file \"%s\"." % (args.template)
 		sys.exit(3)
 
 	template = handle.read()

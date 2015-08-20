@@ -8,12 +8,12 @@ import platform
 from exceptions				import *
 from utility_functions		import *
 
-def parse_arguments(str=None):
+def parse_arguments(str=None,prefs=None):
 	"""Parses the command-line parameters (or those provided in a configuration file)"""
 
 	class mesParser(argparse.ArgumentParser):
 		def error(self, message):
-			print "ERROR: Argument parser encountered an error: %s"%(message)
+			print "ERROR:\tArgument parser encountered an error: %s"%(message)
 #			self.print_usage()
 			sys.exit(1)
 
@@ -49,9 +49,9 @@ def parse_arguments(str=None):
 
 	group3 = parser.add_argument_group('Variable component ratio parameters')
 	group3.add_argument('-Rforce'	,	action='store_true',default=False,									help='Force ensemble ratio reoptimization at every generation.')
-	group3.add_argument('-Ralgorithm',	action='store',		default=6,	type=int,	choices=[0,1,2,3,4,5,6],	metavar='6',	help='Algorithm to use for optimal component ratios (0-6), 0=no ratio optimization')
+	group3.add_argument('-Ralgorithm',	action='store',		default=3,	type=int,	choices=[0,1,2,3,4,5,6],	metavar='6',	help='Algorithm to use for optimal component ratios (0-6), 0=no ratio optimization. Consult the mesmer docs for more information.')
 	group3.add_argument('-Rprecision',	action='store',		default=0.01,	type=float,		metavar='0.01',	help='Precision of weighting algorithm')
-	group3.add_argument('-Rn',			action='store',		default=-1,		type=int,		metavar='10*N',	help='Number of weighting algorithm iterations')
+	group3.add_argument('-Rn',			action='store',		default=-1,		type=int,		metavar='10*size',	help='Number of weighting algorithm iterations. Defaults to ensemble size x10')
 	group3.add_argument('-boots',		action='store',		default=200,	type=int,		metavar='200',	help='The number of bootstrap samples for component weighting error analysis. 0=no error analysis')
 
 	group4 = parser.add_argument_group('Output options')
@@ -64,18 +64,29 @@ def parse_arguments(str=None):
 	group4.add_argument('-Pcorr',		action='store',		default=1.0,	type=float,		metavar='1.0',	help='Print conformer correlations only if they exist in this percentage of ensembles or greater.')
 
 	group5 = parser.add_argument_group('Miscellaneous options')
-	group5.add_argument('-seed',		action='store',		default=1,		type=int,		metavar='1',	help='Random number generator seed value to use.')
+	group5.add_argument('-seed',		action='store',		default=1,		type=int,		metavar='N',	help='Random number generator seed value to use.')
 	group5.add_argument('-uniform',		action='store_true',default=False,									help='Load ensembles uniformly from available components instead of randomly')
 	group5.add_argument('-force',		action='store_true',default=False,									help='Enable overwriting of previous output directories.')
-	group5.add_argument('-threads',		action='store',		default=1,		type=int,		metavar='1',	help='Number of multiprocessing threads to use.')
+	group5.add_argument('-threads',		action='store',		default=1,		type=int,		metavar='N',	help='Number of multiprocessing threads to use.')
 	group5.add_argument('-scratch',		action='store',		default=None,					metavar='DIR',	help='Scratch directory in which to save temporary files.')
 	group5.add_argument('-plugin',		action='store',										metavar='NAME',	help='Print information about the specified plugin and exit.')
 #	group5.add_argument('-reset',		action='store_true',default=False,									help='Reset saved MESMER preferences.')
+
+	# set run arguments from preferences
+	for action in [a.__dict__ for a in parser.__dict__['_actions']]:
+		if prefs != None and action['dest'] in prefs['run_arguments']:
+			action['default'] = prefs['run_arguments'][action['dest']]
+			print "INFO:\tSetting argument \"-%s\" default to \"%s\" based on user preferences."%(action['dest'],action['default'])
 
 	if(str == None):
 		args = parser.parse_args()
 	else:
 		args = parser.parse_args(str.split())
+	
+	# set run arguments from preferences
+	if(prefs != None):
+		for k,v in prefs['run_arguments'].iteritems():
+			setattr(args, k, v)
 
 	# argument error checking and defaults
 	if (args.Rn < 0):
@@ -96,31 +107,31 @@ def make_results_dir( args ):
 		try:
 			shutil.rmtree(args.dir)
 		except OSError:
-			raise mesSetupError("ERROR: Could not delete directory \"%s\"." % (args.dir))
+			raise mesSetupError("ERROR:\tCould not delete directory \"%s\"." % (args.dir))
 
 	if os.path.isdir(args.dir):
-		raise mesSetupError("ERROR: MESMER results directory \"%s\" already exists." % (args.dir))
+		raise mesSetupError("ERROR:\tMESMER results directory \"%s\" already exists." % (args.dir))
 
 	# Prep the folders to recieve the results
 	try:
 		os.mkdir(args.dir)
 	except OSError:
-		raise mesSetupError("ERROR: Couldn't create MESMER results directory \"%s\"." % (args.dir))
+		raise mesSetupError("ERROR:\tCouldn't create MESMER results directory \"%s\"." % (args.dir))
 
 	try:
 		print_msg('',os.path.join(args.dir,"mesmer_log.txt"))
 	except Exception as e:
-		raise mesSetupError("ERROR: Couldn't open MESMER log file: %s" % e)
+		raise mesSetupError("ERROR:\tCouldn't open MESMER log file: %s" % e)
 
 	try:
 		db = shelve.open( os.path.join(args.dir,'mesmer_log.db') )
 		db['args'] = args
 		db.close()
 	except:
-		raise mesSetupError("ERROR: Couldn't open MESMER results database file")
+		raise mesSetupError("ERROR:\tCouldn't open MESMER results database file")
 
 	if(oWrite):
-		print_msg("INFO: Overwriting old result directory \"%s\"" % (args.dir))
+		print_msg("INFO:\tOverwriting old result directory \"%s\"" % (args.dir))
 		
 def open_user_prefs( mode='r' ):
 	home = os.path.expanduser("~")

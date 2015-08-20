@@ -42,17 +42,17 @@ class plugin(guiCalcPlugin):
 			parser	= Bio.PDB.PDBParser(QUIET=True)
 			model	= parser.get_structure('',pdb)[0]
 		except Exception as e:
-			return True,(pdb,"Could not parse PDB file: %s"%(e))
+			return False,(pdb,"Could not parse PDB file: %s"%(e))
 			
 		try:
 			atomA	= model[ self.args.chainAID ][ self.args.resANum ][ 'CB' ]
 		except (IndexError,KeyError):
-			return True,(pdb,"Could not find a C-beta atom for residue %s:%i."%(self.args.chainAID,self.args.resANum)) 
+			return False,(pdb,"Could not find a C-beta atom for residue %s:%i."%(self.args.chainAID,self.args.resANum)) 
 
 		try:
 			atomB	= model[ self.args.chainBID ][ self.args.resBNum ][ 'CB' ]
 		except (IndexError,KeyError):
-			return True,(pdb,"Could not find a C-beta atom for residue %s:%i."%(self.args.chainAID,self.args.resANum)) 
+			return False,(pdb,"Could not find a C-beta atom for residue %s:%i."%(self.args.chainAID,self.args.resANum)) 
 
 		# generate a distance distribution
 		tmp = PDBTools.make_distribution( atomA-atomB, self.args.distW )
@@ -73,4 +73,4 @@ class plugin(guiCalcPlugin):
 			f.write( "%.3f\t%.5f\n" % (i*self.args.Tstep,v/norm) )
 		f.close()
 
-		return False,(pdb,None)
+		return True,(pdb,None)
