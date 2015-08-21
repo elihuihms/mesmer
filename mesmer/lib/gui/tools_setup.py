@@ -8,7 +8,7 @@ def loadControlVarArgs(w):
 	tmp = tkFileDialog.askopenfilename(title='Select MESMER run config file:',parent=w)
 	if(tmp == ''):
 		return
-	args = parse_arguments("@%s"%(tmp),w.prefs)
+	args = parse_arguments(["@%s"%(tmp)],w.prefs)
 	setControlVarsFromMESMERArgs(w, args)
 
 def saveControlVarArgs(w):
@@ -81,9 +81,10 @@ def makeMESMERArgsFromWindow( w ):
 
 	args = parse_arguments( pre_args, w.prefs )
 	args.name = w.runTitle.get().replace(' ','_')
+	
 	args.dir = w.saveResults.get()
-	args.target = list(w.targetFilesList.get(0,tk.END)) #see bug notice in createControlVars
-	args.components = list(w.componentFilesList.get(0,tk.END)) #see bug notice in createControlVars
+	args.target = [os.path.normpath(os.path.join(w.basedir,f)) for f in list(w.targetFilesList.get(0,tk.END))] #see bug notice in createControlVars
+	args.components = [os.path.normpath(os.path.join(w.basedir,f)) for f in list(w.componentFilesList.get(0,tk.END))] #see bug notice in createControlVars
 	args.size = w.ensembleSize.get()
 	args.ensembles = w.numEnsembles.get()
 	args.Gcross = w.gCrossFreq.get()
@@ -126,8 +127,9 @@ def makeMESMERArgsFromWindow( w ):
 def makeStringFromArgs( a ):
 	args = vars( a )
 
+	""" @TODO@ Make this general purpose and move to tools_plugin """
 	ret = []
-	booleans = ('Rforce','Pstats','Pbest','Popt','Pextra','Pstate','force','uniform','resume','dbm')
+	booleans = ('Rforce','Pstats','Pbest','Popt','Pextra','Pstate','force','uniform','resume','dbm','reset')
 	for k in args:
 		if(k in booleans):
 			if(args[k]>0):
