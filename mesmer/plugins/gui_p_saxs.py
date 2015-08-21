@@ -6,7 +6,6 @@ from subprocess				import Popen
 
 from lib.exceptions			import *
 from lib.gui.plugin_objects import guiPlotPlugin
-from lib.gui.tools_plugin	import makeStringFromOptions
 
 class plugin(guiPlotPlugin):
 

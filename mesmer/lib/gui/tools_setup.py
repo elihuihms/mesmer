@@ -8,10 +8,7 @@ def loadControlVarArgs(w):
 	tmp = tkFileDialog.askopenfilename(title='Select MESMER run config file:',parent=w)
 	if(tmp == ''):
 		return
-	string = open(tmp).read()
-	string.replace("\n",'')
-	string.replace("\r",'')
-	args = parse_arguments(string)
+	args = parse_arguments("@%s"%(tmp),w.prefs)
 	setControlVarsFromMESMERArgs(w, args)
 
 def saveControlVarArgs(w):
@@ -82,7 +79,7 @@ def makeMESMERArgsFromWindow( w ):
 		for k in tmp:
 			pre_args.extend( ["-%s" % k, str(tmp[k])] )
 
-	args = parse_arguments( ' '.join(pre_args) )
+	args = parse_arguments( pre_args, w.prefs )
 	args.name = w.runTitle.get().replace(' ','_')
 	args.dir = w.saveResults.get()
 	args.target = list(w.targetFilesList.get(0,tk.END)) #see bug notice in createControlVars

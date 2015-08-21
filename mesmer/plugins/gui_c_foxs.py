@@ -7,7 +7,7 @@ import IMP.core
 import IMP.saxs
 
 from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_plugin	import makeStringFromOptions
+from lib.gui.tools_plugin	import makeListFromOptions
 
 class plugin(guiCalcPlugin):
 
@@ -25,7 +25,7 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-water',	action='store_true',	default=True,			help='Use hydration layer')
 
 	def setup(self, parent, options, outputpath):
-		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
+		self.args		= self.parser.parse_args( makeListFromOptions(options) )
 		self.outputpath	= outputpath
 		
 		# initialize some IMP objects

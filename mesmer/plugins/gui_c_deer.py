@@ -4,7 +4,7 @@ import shutil
 import sys
 
 from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_plugin	import makeStringFromOptions
+from lib.gui.tools_plugin	import makeListFromOptions
 
 from gui_c_deer_lib			import *
 
@@ -30,7 +30,7 @@ class plugin(guiCalcPlugin):
 
 	def setup(self, parent, options, outputdir):
 		self.outputdir	= outputdir
-		self.args	= self.parser.parse_args( makeStringFromOptions(options).split() )
+		self.args	= self.parser.parse_args( makeListFromOptions(options) )
 		self.args.Dip = self.args.Dip*1000.0 # convert dipolar coupling to MHz/A**3
 		return True
 

@@ -9,7 +9,7 @@ from threading import Timer
 
 from lib.exceptions			import *
 from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_plugin	import makeStringFromOptions
+from lib.gui.tools_plugin	import makeListFromOptions
 
 _CRYSOL_TIMER = 10000 # time to wait for crysol to finish calculating (in ms)
 _CRYSOL_RETRY = 5 # crysol occasionally fails for unknown reasons, try again
@@ -70,7 +70,7 @@ class plugin(guiCalcPlugin):
 			return False,(pdb,"Could not read file.")
 
 		cmd = [self.path]
-		cmd.extend( makeStringFromOptions(self.options).split() )
+		cmd.extend( makeListFromOptions(self.options) )
 		cmd.append( pdb )
 		
 		try:

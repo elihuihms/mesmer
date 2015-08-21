@@ -8,7 +8,7 @@ import platform
 from exceptions				import *
 from utility_functions		import *
 
-def parse_arguments(str=None,prefs=None):
+def parse_arguments(args=None,prefs=None):
 	"""Parses the command-line parameters (or those provided in a configuration file)"""
 
 	class mesParser(argparse.ArgumentParser):
@@ -17,13 +17,15 @@ def parse_arguments(str=None,prefs=None):
 #			self.print_usage()
 			sys.exit(1)
 
-		# default behavior of argparse is to split on newlines in  argument list files
+		# default behavior of argparse is to split on newlines in argument list files
 		# this allows for both the argument and value to be on the same line
-		def convert_arg_line_to_args(self, arg_line):
-			for arg in arg_line.split():
-				if not arg.strip():
-					continue
-				yield arg
+		def convert_arg_line_to_args(self, line):
+			line = line.strip()
+			if not line:
+				return []
+			if line[0] == '#':
+				return []
+			return line.split(' ',1)
 
 	# argument groups are just used for more attractive formatting when help is invoked
 	parser = mesParser(fromfile_prefix_chars='@')
@@ -70,29 +72,28 @@ def parse_arguments(str=None,prefs=None):
 	group5.add_argument('-threads',		action='store',		default=1,		type=int,		metavar='N',	help='Number of multiprocessing threads to use.')
 	group5.add_argument('-scratch',		action='store',		default=None,					metavar='DIR',	help='Scratch directory in which to save temporary files.')
 	group5.add_argument('-plugin',		action='store',										metavar='NAME',	help='Print information about the specified plugin and exit.')
-#	group5.add_argument('-reset',		action='store_true',default=False,									help='Reset saved MESMER preferences.')
+	group5.add_argument('-reset',		action='store_true',default=False,									help='Reset saved MESMER preferences.')
 
-	# set run arguments from preferences
-	for action in [a.__dict__ for a in parser.__dict__['_actions']]:
-		if prefs != None and action['dest'] in prefs['run_arguments']:
-			action['default'] = prefs['run_arguments'][action['dest']]
-			print "INFO:\tSetting argument \"-%s\" default to \"%s\" based on user preferences."%(action['dest'],action['default'])
-
-	if(str == None):
-		args = parser.parse_args()
+	if args != None:	
+		ret = parser.parse_args(args)
 	else:
-		args = parser.parse_args(str.split())
-	
+		ret = parser.parse_args() # get from sys.argv
+
 	# set run arguments from preferences
-	if(prefs != None):
-		for k,v in prefs['run_arguments'].iteritems():
-			setattr(args, k, v)
-
+	if prefs != None:
+		for action in [a.__dict__ for a in parser.__dict__['_actions']]:
+			name,value,default = action['dest'],getattr(ret,action['dest'],None),action['default']
+			if value == None:
+				continue
+			if value == default and name in prefs['run_arguments']:
+				print "INFO:\tOverwriting argument \"-%s\" default to \"%s\" based on user preferences."%(name,prefs['run_arguments'][name])
+				setattr(ret, name, prefs['run_arguments'][name])
+				
 	# argument error checking and defaults
-	if (args.Rn < 0):
-		args.Rn = args.size * 10
+	if (ret.Rn < 0):
+		ret.Rn = ret.size * 10
 
-	return args
+	return ret
 
 def make_results_dir( args ):
 	"""

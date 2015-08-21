@@ -6,7 +6,7 @@ from subprocess				import Popen,PIPE
 
 from lib.exceptions			import *
 from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_plugin	import makeStringFromOptions
+from lib.gui.tools_plugin	import makeListFromOptions
 
 class plugin(guiCalcPlugin):
 
@@ -51,7 +51,7 @@ class plugin(guiCalcPlugin):
 			return False,(pdb,"Failure reading \"%s\"."%pdb)
 
 		cmd = [self.prog]
-		cmd.extend( makeStringFromOptions(self.options).split() )
+		cmd.extend( makeListFromOptions(self.options) )
 		cmd.extend( ['-TAi','1.0','-irf',self.irf,'-pdb',pdb,'-out',out] )
 		pipe = Popen(cmd, cwd=self.outputpath, stdout=PIPE)
 		pipe.wait()

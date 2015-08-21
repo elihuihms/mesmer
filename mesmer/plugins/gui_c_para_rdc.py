@@ -5,7 +5,7 @@ import Bio.PDB
 
 from lib.exceptions			import *
 from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_plugin	import makeStringFromOptions
+from lib.gui.tools_plugin	import makeListFromOptions
 
 from	pyParaTools.ParaParser	import *
 from	pyParaTools.CalcPara	import *
@@ -32,7 +32,7 @@ class plugin(guiCalcPlugin):
 
 	def setup(self, parent, options, outputpath):
 		self.outputpath	= outputpath
-		self.args		= self.parser.parse_args( makeStringFromOptions(options).split() )
+		self.args		= self.parser.parse_args( makeListFromOptions(options) )
 
 		if not os.access(self.args.template, os.R_OK):
 			raise mesPluginError("Could not read specified RDC table")

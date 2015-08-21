@@ -43,7 +43,7 @@ class TargetWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()	
 		
-		self.target_plugins = tryLoadPlugins(self.prefs, 'mesmer', args=parse_arguments(), disabled_writeback=True  )
+		self.target_plugins = tryLoadPlugins(self.prefs, 'mesmer', args=parse_arguments([],self.prefs), disabled_writeback=True  )
 
 		self.plugin_types,self.plugin_options = getTargetPluginOptions(self.target_plugins, self.prefs)
 		

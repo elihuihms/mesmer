@@ -252,7 +252,7 @@ class PluginWindow(tk.Frame):
 				self.plugin_list_info.append( msg )
 				self.createPluginRow( self.f_mesmerplugins, True, id, '', '' )
 
-		for id,ok,msg,module in load_plugins( self.prefs['mesmer_base_dir'], 'mesmer', args=parse_arguments('') ):
+		for id,ok,msg,module in load_plugins( self.prefs['mesmer_base_dir'], 'mesmer', args=parse_arguments([],self.prefs) ):
 			_apply(id,ok,msg,module,self.f_mesmerplugins)
 
 		for id,ok,msg,module in load_plugins( self.prefs['mesmer_base_dir'], 'gui_c' ):

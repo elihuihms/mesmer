@@ -34,7 +34,7 @@ class SetupWindow(tk.Frame):
 		self.basedir = os.path.expanduser('~')
 
 		# initialize to defaults
-		args = parse_arguments('')
+		args = parse_arguments([],self.prefs)
 		args.dir = self.basedir
 		setControlVarsFromMESMERArgs(self, args)
 

@@ -43,7 +43,7 @@ class ComponentsWindow(tk.Frame):
 			self.master.destroy()
 
 		self.calc_plugins	= tryLoadPlugins(self.prefs, 'gui_c', disabled_writeback=True)
-		self.target_plugins	= tryLoadPlugins(self.prefs, 'mesmer', args=parse_arguments(), disabled_writeback=True)
+		self.target_plugins	= tryLoadPlugins(self.prefs, 'mesmer', args=parse_arguments([],self.prefs), disabled_writeback=True)
 		self.target_plugin_types,self.target_plugin_options = getTargetPluginOptions(self.target_plugins,self.prefs)
 
 	def loadTarget(self):

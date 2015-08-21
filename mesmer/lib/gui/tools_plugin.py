@@ -3,7 +3,7 @@ import tkMessageBox
 
 from .. exceptions			import *
 from .. plugin_functions	import load_plugins
-from .. setup_functions		import parse_arguments,set_default_prefs
+from .. setup_functions		import set_default_prefs
 
 def tryLoadPlugins( shelf, type, args=None, disabled_writeback=False ):
 
@@ -120,6 +120,4 @@ def makeListFromOptions( options ):
 		else:
 			raise Exception("Encountered an option that could not be converted to a string properly: %s" % o['dest'])
 	return ret
-	
-def makeStringFromOptions( options ):
-	return ' '.join( makeListFromOptions(options) )
+
