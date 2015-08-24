@@ -79,9 +79,9 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	if(plugin == None):
 		return
 
-	# overwrite plugin executable path
-	if getPluginPrefs( w.prefs, plugin.name )['path'] != None:
-		plugin.path = getPluginPrefs( w.prefs, plugin.name )['path']
+	# overwrite plugin executable path if necessary
+	savedpath = getPluginPrefs( w.prefs, plugin.name )['path']
+	if savedpath != None: setattr(plugin,'path',savedpath)
 
 	# get user-specifiable options from the plugin argument parser object
 	options = convertParserToOptions( plugin.parser )
@@ -105,7 +105,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	setPluginPrefs( w.prefs, plugin.name, options={o['dest']:o['value'] for o in options} )
 
 	path = tkFileDialog.askdirectory(title="Directory to save calculated data to:",parent=w)
-#	path = tkFileDialog.asksaveasfilename(title='Directory to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.type) )
+#	path = tkFileDialog.asksaveasfilename(title='Directory to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.types[0]) )
 	if(path == ''):
 		return
 	if(os.path.exists(path)):
@@ -126,7 +126,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 
 	# update the parent window row
 	for i in range(w.rowCounter):
-		if( w.widgetRowTypes[i].get() == plugin.type and w.widgetRowFolders[i].get() == '' ):
+		if( w.widgetRowTypes[i].get() in plugin.types and w.widgetRowFolders[i].get() == '' ):
 			w.widgetRowFolders[i].set( path )
 			w.widgetRowFolderEntries[i].xview_moveto(1.0)
 			break

@@ -14,7 +14,7 @@ class plugin(guiPlotPlugin):
 		self.name = 'CURV Plotter'
 		self.version = '2015.08.19'
 		self.info = "This plugin generates an overlay plot of two continuous datasets."
-		self.type = (
+		self.types = (
 			'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',
 			'DEER','DEER0','DEER1','DEER2','DEER3','DEER4','DEER5','DEER6','DEER7','DEER8','DEER9')
 		self.parser = None

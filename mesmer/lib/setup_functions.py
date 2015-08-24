@@ -3,7 +3,7 @@ import sys
 import shutil
 import argparse
 import shelve
-import platform
+import multiprocessing
 
 from exceptions				import *
 from utility_functions		import *
@@ -69,7 +69,7 @@ def parse_arguments(args=None,prefs=None):
 	group5.add_argument('-seed',		action='store',		default=1,		type=int,		metavar='N',	help='Random number generator seed value to use.')
 	group5.add_argument('-uniform',		action='store_true',default=False,									help='Load ensembles uniformly from available components instead of randomly')
 	group5.add_argument('-force',		action='store_true',default=False,									help='Enable overwriting of previous output directories.')
-	group5.add_argument('-threads',		action='store',		default=1,		type=int,		metavar='N',	help='Number of multiprocessing threads to use.')
+	group5.add_argument('-threads',		action='store',		default=multiprocessing.cpu_count(),		type=int,		metavar='N',	help='Number of multiprocessing threads to use.')
 	group5.add_argument('-scratch',		action='store',		default=None,					metavar='DIR',	help='Scratch directory in which to save temporary files.')
 	group5.add_argument('-plugin',		action='store',										metavar='NAME',	help='Print information about the specified plugin and exit.')
 	group5.add_argument('-reset',		action='store_true',default=False,									help='Reset saved MESMER preferences.')
@@ -86,7 +86,7 @@ def parse_arguments(args=None,prefs=None):
 			if value == None:
 				continue
 			if value == default and name in prefs['run_arguments']:
-				print "INFO:\tOverwriting argument \"-%s\" default to \"%s\" based on user preferences."%(name,prefs['run_arguments'][name])
+#				print "INFO:\tOverwriting argument \"-%s\" default to \"%s\" based on user preferences."%(name,prefs['run_arguments'][name])
 				setattr(ret, name, prefs['run_arguments'][name])
 				
 	# argument error checking and defaults
@@ -171,13 +171,12 @@ def open_user_prefs( mode='r' ):
 def set_default_prefs( shelf ):
 	from . import __version__ as base_version
 	from gui import __version__ as gui_version
-	from multiprocessing import cpu_count
 	
 	shelf['base-version'] = base_version
 	shelf['gui-version'] = gui_version
 	shelf['mesmer_base_dir'] = ''
 	shelf['mesmer_scratch'] = ''
-	shelf['cpu_count'] = cpu_count()
+	shelf['cpu_count'] = multiprocessing.cpu_count()
 	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
 	shelf['disabled_plugins'] = []
 	shelf['plugin_prefs'] = {}

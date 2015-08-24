@@ -43,7 +43,7 @@ def plotRestraint( w ):
 	generation_count,target_name,data_type = w.currentSelection
 	
 	for p in w.plot_plugins:
-		if (data_type in p.type):
+		if (data_type in p.types):
 			path = (os.path.join(w.activeDir.get(), _MESMER_RESTRAINTS_FILE_FORMAT%(target_name,data_type,generation_count)))
 
 			if( not os.access( path, os.R_OK ) ):

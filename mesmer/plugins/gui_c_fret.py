@@ -15,7 +15,7 @@ class plugin(guiCalcPlugin):
 		self.name = 'FRET'
 		self.version = '2015.06.23'
 		self.info = 'This plugin predicts fluorescence lifetime data from a PDB containing two labeling sites.'
-		self.type = 'CURV'
+		self.types = ('CURV',)
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-TDi',	type=float,	help='Intrinsic donor lifetime', required=True)

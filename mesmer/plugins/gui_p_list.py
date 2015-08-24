@@ -15,7 +15,7 @@ class plugin(guiPlotPlugin):
 		self.name = 'LIST/TABL Plotter'
 		self.version = '2015.08.19'
 		self.info = "This plugin generates a correlation plot between two discretely sampled datasets."
-		self.type = (
+		self.types = (
 			'LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9',
 			'TABL','TABL0','TABL1','TABL2','TABL3','TABL4','TABL5','TABL6','TABL7','TABL8','TABL9')
 

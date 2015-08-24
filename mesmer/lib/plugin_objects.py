@@ -29,10 +29,10 @@ class mesPluginBasic:
 		self.version = ''
 		self.info = ''
 		self.path = None
-		self.type = ('NONE')
+		self.types = ('NONE',)
 
-		self.target_parser = argparse.ArgumentParser(prog=self.type[0])
-		self.component_parser = argparse.ArgumentParser(prog=self.type[0])
+		self.target_parser = argparse.ArgumentParser(prog=self.types[0])
+		self.component_parser = argparse.ArgumentParser(prog=self.types[0])
 		
 	def __getstate__(self):
 		"""Return the state of plugin
@@ -68,7 +68,7 @@ class mesPluginBasic:
 		ret = "Help for plugin: \"%s\"" % self.name
 		ret+= "\tVersion: %s" % self.version
 		ret+= "\tValid data types:"
-		for t in self.type:
+		for t in self.types:
 			ret+= "\t\t%s" % t
 		ret+= ""
 		ret+= "Target file argument help:"

@@ -16,7 +16,7 @@ class plugin(guiCalcPlugin):
 		self.name = 'SAXS - FoXS'
 		self.version = '2015.06.23'
 		self.info = 'This plugin uses the Integrative Modeling Platform (see http://salilab.org/imp) to predict a SAXS profile from a PDB.'
-		self.type = 'SAXS'
+		self.types = ('SAXS',)
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-qmin',	metavar='Min q',	type=float,	default=0.0,	help='Minimum scattering angle')

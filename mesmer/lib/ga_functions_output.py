@@ -128,7 +128,7 @@ def print_plugin_state( args, counter, plugins, targets, ensembles):
 			path = os.path.abspath( os.path.join(args.dir,_MESMER_RESTRAINTS_FILE_FORMAT%(t.name,r.type,counter)) )
 
 			for p in plugins:
-				if(r.type in p.type):
+				if(r.type in p.types):
 					# build the ensemble data list from all ensembles
 					all_ensemble_data = []
 					for e in ensembles:

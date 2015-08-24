@@ -23,7 +23,7 @@ def getTargetPluginOptions( plugins, prefs ):
 	types, options = [], []
 	for p in plugins:
 		types.append( [] )
-		for t in p.type:
+		for t in p.types:
 			if( not t[0:4] in types[-1] ):
 				types[-1].append(t[0:4])
 		options.append( convertParserToOptions(p.target_parser) )

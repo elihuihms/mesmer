@@ -14,7 +14,7 @@ class plugin(guiPlotPlugin):
 		self.name = 'SAXS Plotter'
 		self.version = '2015.08.19'
 		self.info = "This plugin generates an overlay log-scaled plot of two SAXS datasets."
-		self.type = ('SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9')
+		self.types = ('SAXS','SAXS0','SAXS1','SAXS2','SAXS3','SAXS4','SAXS5','SAXS6','SAXS7','SAXS8','SAXS9')
 		self.parser = None
 		
 		self.exe = os.path.join(os.path.dirname(os.path.dirname(__file__)),'utilities','make_saxs_plot.py')

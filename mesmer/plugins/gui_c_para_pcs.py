@@ -18,7 +18,7 @@ class plugin(guiCalcPlugin):
 		self.name = 'PCS - pyParaTools'
 		self.version = '2015.07.01'
 		self.info = 'This plugin uses PyParaTools (see http://comp-bio.anu.edu.au/mscook/PPT/) to calculate pseudocontact shifts from a paramagnetic atom in a PDB.'
-		self.type = 'TABL'
+		self.types = ('TABL',)
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-chainID',			help='Chain ID for paramagnetic center')

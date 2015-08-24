@@ -42,10 +42,8 @@ class PluginWindow(tk.Frame):
 	def createWidgets(self):	
 		self.f_tools = tk.Frame(self,borderwidth=0,width=450)
 		self.f_tools.grid(column=0,row=0,sticky=tk.E+tk.W)
-		self.addPluginButton = tk.Button(self.f_tools,text='Add...',command=self.revealPluginDirectory)
+		self.addPluginButton = tk.Button(self.f_tools,text='Add...',command=lambda:revealDirectory(os.path.join(self.prefs['mesmer_base_dir'],'plugins')))
 		self.addPluginButton.grid(column=0,row=0,sticky=tk.W)
-		#self.delPluginButton = tk.Button(self.f_tools,text='Remove Plugin',state=tk.DISABLED)
-		#self.delPluginButton.grid(column=1,row=0,sticky=tk.W)
 		self.enablePluginButton = tk.Button(self.f_tools,text='Enable',state=tk.DISABLED,command=self.enablePlugin)
 		self.enablePluginButton.grid(column=1,row=0,sticky=tk.E)
 		self.disablePluginButton = tk.Button(self.f_tools,text='Disable',state=tk.DISABLED,command=self.disablePlugin)
@@ -63,18 +61,17 @@ class PluginWindow(tk.Frame):
 		self.f_plotplugins.grid(column=0,row=3,sticky=tk.E+tk.W,padx=8)
 		self.plotplugins_count	= 0
 
-		self.rowcount = 0
 		self.pluginListIndex		= tk.IntVar()
 		self.plugin_list_checkboxes	= []
 		self.plugin_list_checkstate	= []
 		self.plugin_list_ids		= []
 		self.plugin_list_types		= []
 		self.plugin_list_versions	= []
-		self.plugin_list_info		= []
+		self.plugin_info		= []
 
 		self.plugin_ids				= []
-		self.plugin_names			= []
-		self.plugin_states			= []
+		self.plugin_states			= [] # -1,0,1 = error,disabled,enabled
+		self.plugin_modules			= []
 
 		self.f_actions = tk.LabelFrame(self,width=450,text='Plugin information')
 		self.f_actions.grid(column=0,row=4,sticky=tk.E+tk.W,padx=8)
@@ -98,7 +95,7 @@ class PluginWindow(tk.Frame):
 		self.closeButton = tk.Button(self.f_footer,text='Close',command=self.close)
 		self.closeButton.grid(column=0,row=0,sticky=tk.E)
 
-	def createPluginRow(self, container, error, id, type, version ):		
+	def createPluginRow(self, container, id, module, error, disabled ):		
 		if container == self.f_mesmerplugins:
 			row = self.mesmerplugins_count
 			self.mesmerplugins_count +=1
@@ -108,24 +105,19 @@ class PluginWindow(tk.Frame):
 		elif container == self.f_plotplugins:
 			row = self.plotplugins_count
 			self.plotplugins_count +=1
-		self.plugin_ids.append( id )
-
-		try:
-			disabled = id in self.prefs['disabled_plugins']
-		except KeyError:
-			disabled = False
 		
 		if error:
-			self.plugin_states.append( -1 ) # -1 = error on load
+			type,version = '',''
 			state = tk.DISABLED
 		elif disabled:
-			self.plugin_states.append( 0 ) # 0 = disabled
+			type,version = module.types[0],module.version
 			state = tk.DISABLED
 		else:
-			self.plugin_states.append( 1 ) # enabled
+			type,version = module.types[0],module.version
 			state = tk.NORMAL
 		
-		self.plugin_list_checkboxes.append( tk.Radiobutton(container,variable=self.pluginListIndex,value=self.rowcount,command=self.setWidgetState) )
+		rowcount = (self.mesmerplugins_count + self.calcplugins_count + self.plotplugins_count) -1
+		self.plugin_list_checkboxes.append( tk.Radiobutton(container,variable=self.pluginListIndex,value=rowcount,command=self.setWidgetState) )
 		self.plugin_list_checkboxes[-1].grid(column=0,row=row, sticky=tk.W)
 		self.plugin_list_ids.append( tk.Label(container, text=id, state=state, width=20) )
 		self.plugin_list_ids[-1].grid(column=1,row=row, sticky=tk.W)
@@ -133,11 +125,7 @@ class PluginWindow(tk.Frame):
 		self.plugin_list_types[-1].grid(column=2,row=row, sticky=tk.E)
 		self.plugin_list_versions.append( tk.Label(container, text=version, state=state, width=20) )
 		self.plugin_list_versions[-1].grid(column=3,row=row, sticky=tk.E)
-
-#		self.master.geometry('450x%i' % (360+self.rowcount*20))
-#		self.config(width=450,height=(360+self.rowcount*20))
-		self.rowcount += 1
-
+		
 	def togglePluginRow( self, index, enable ):
 		state = tk.DISABLED
 		if enable:
@@ -146,20 +134,6 @@ class PluginWindow(tk.Frame):
 		self.plugin_list_types[ index ].configure(state=state)
 		self.plugin_list_versions[ index ].configure(state=state)
 		self.setWidgetState()
-	
-#	def destroyPluginRow(self,index):
-#		self.plugin_list_checkboxes[index].destroy()
-#		del self.plugin_list_checkstate[index]
-#		self.plugin_list_ids[index].destroy()
-#		self.plugin_list_states[index].destroy()
-#		self.plugin_list_versions[index].destroy()
-#		
-#		self.rowcount -=1
-#		if(self.rowCounter==0):
-#			self.delRowButton.config(state=tk.DISABLED)
-#
-#		self.master.geometry('450x%i' % (360+self.rowcount*30))
-#		self.config(width=450,height=(360+self.rowcount*30))
 	
 	def setWidgetState(self):
 		index = int(self.pluginListIndex.get())
@@ -172,20 +146,24 @@ class PluginWindow(tk.Frame):
 		self.pluginExecutableButton.configure(state=tk.DISABLED)
 		self.pluginApplyButton.configure(state=tk.DISABLED)		
 		
-		self.pluginInfoText.insert(1.0, self.plugin_list_info[index] )
+		self.pluginInfoText.insert(1.0, self.plugin_info[index] )
 		if self.plugin_states[index] == 1: # -1,0,1 = error,disabled,enabled
 			self.disablePluginButton.configure(state=tk.NORMAL)
 		elif self.plugin_states[index] == 0:
 			self.enablePluginButton.configure(state=tk.NORMAL)
-		path = getPluginPrefs( self.prefs, self.plugin_names[index] )['path']
-		if path != None:
-			self.pluginExecutablePath.set( path )
-		else:
-			self.pluginExecutablePath.set( '' )
-		if path != None and self.plugin_states[index] > 0:
+
+		if self.plugin_modules[index] != None and self.plugin_modules[index].path != None:
+			savedpath = getPluginPrefs( self.prefs, self.plugin_modules[index].name )['path']
+			if savedpath == None:
+				self.pluginExecutablePath.set( self.plugin_modules[index].path )
+			else:
+				self.pluginExecutablePath.set( savedpath )
+				
 			self.pluginExecutableLabel.configure(state=tk.NORMAL)
 			self.pluginExecutableEntry.configure(state=tk.NORMAL)
 			self.pluginExecutableButton.configure(state=tk.NORMAL)
+		else:
+			self.pluginExecutablePath.set( '' )
 		
 	def disablePlugin(self,id=None):
 		if id == None:
@@ -214,43 +192,45 @@ class PluginWindow(tk.Frame):
 			
 	def setPluginPath(self, evt):
 		index = int(self.pluginListIndex.get())
-		if getPluginPrefs( self.prefs, self.plugin_names[index] )['path'][-1] == os.sep:
-			tmp = tkFileDialog.askdirectory(title='Select directory for this plugin:',mustexist=True,parent=self)
+		if self.plugin_modules[index].path[-1] == os.sep:
+			self.pluginExecutablePath.set( tkFileDialog.askdirectory(title='Select directory for this plugin:',mustexist=True,parent=self) )
 		else:
-			tmp = tkFileDialog.askopenfilename(title='Select executable for this plugin:',parent=self)
-		if(tmp == ''):
-			return
-		self.pluginExecutablePath.set(tmp)
+			self.pluginExecutablePath.set( tkFileDialog.askopenfilename(title='Select executable for this plugin:',parent=self) )
 		self.pluginApplyButton.configure(state=tk.NORMAL)
 
 	def enableApplyButton(self, evt):
 		self.pluginApplyButton.configure(state=tk.NORMAL)		
 		
 	def applyPluginSettings(self, evt):
-		index = int(self.pluginListIndex.get())
-		setPluginPrefs( self.prefs, self.plugin_names[index], path=str(self.pluginExecutablePath.get()) )
+		index,newpath = int(self.pluginListIndex.get()),self.pluginExecutablePath.get()
+
+		if newpath != self.plugin_modules[index].path:
+			if newpath == '': # reset
+				setPluginPrefs( self.prefs, self.plugin_modules[index].name, path=None )
+				self.pluginExecutablePath.set( self.plugin_modules[index].path )
+			else:
+				setPluginPrefs( self.prefs, self.plugin_modules[index].name, path=newpath)
+			
 		self.pluginApplyButton.configure(state=tk.DISABLED)	
 	
-	def revealPluginDirectory(self):
-		revealDirectory( os.path.join(self.prefs['mesmer_base_dir'],'plugins') )
-
 	def loadPlugins(self):
 		def _apply( id, ok, msg, module, container ):
+			self.plugin_ids.append( id )
+
 			if ok:
-				if type(module.type) == str:
-					datatype = module.type
-				else:
-					datatype = module.type[0]
-					
-				self.plugin_names.append( module.name )
-				self.plugin_list_info.append( module.info )
-				self.createPluginRow( container, False, id, datatype, module.version )
-				if getPluginPrefs( self.prefs, module.name )['path'] == None: setPluginPrefs( self.prefs, id, path=module.path )
+				disabled = getattr(self.prefs['disabled_plugins'],id,False)
+
+				self.plugin_modules.append( module )
+				self.plugin_states.append( not disabled )
+				self.plugin_info.append( module.info )
+				self.createPluginRow( container, id, module=module, error=False, disabled=disabled )
 			else:
-				self.disablePlugin(id)
-				self.plugin_names.append(None)
-				self.plugin_list_info.append( msg )
-				self.createPluginRow( self.f_mesmerplugins, True, id, '', '' )
+				self.disablePlugin(id) # force disabling of broken plugins
+				
+				self.plugin_modules.append(None)
+				self.plugin_states.append( -1 )
+				self.plugin_info.append( msg )
+				self.createPluginRow( container, id, module=None, error=True, disabled=None )
 
 		for id,ok,msg,module in load_plugins( self.prefs['mesmer_base_dir'], 'mesmer', args=parse_arguments([],self.prefs) ):
 			_apply(id,ok,msg,module,self.f_mesmerplugins)

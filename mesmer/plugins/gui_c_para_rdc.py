@@ -18,7 +18,7 @@ class plugin(guiCalcPlugin):
 		self.name = 'RDC - pyParaTools'
 		self.version = '2015.06.23'
 		self.info = 'This plugin uses PyParaTools (see http://comp-bio.anu.edu.au/mscook/PPT/) to calculate paragmagnetic residual dipolar couplings resulting from a paramagnetic atom in a PDB.'
-		self.type = 'TABL'
+		self.types = ('TABL',)
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-Dax',	type=float,	help='Axial component of diffusion tensor',				required=True)

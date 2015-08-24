@@ -19,7 +19,7 @@ class plugin( mesPluginDB ):
 		self.name = 'default_LIST'
 		self.version = '2013.09.24'
 		self.info = 'This plugin compares two discretely sampled datasets. Several goodness-of-fit metrics are available.'
-		self.type = (
+		self.types = (
 			'LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9',
 			'TABL','TABL0','TABL1','TABL2','TABL3','TABL4','TABL5','TABL6','TABL7','TABL8','TABL9')
 

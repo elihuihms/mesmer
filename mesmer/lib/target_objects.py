@@ -66,7 +66,7 @@ class mesTarget:
 				continue
 
 			for p in plugins:
-				if(b['type'] in p.type):
+				if(b['type'] in p.types):
 
 					# initialize the plugin storage variable for this restraint type
 					self.plugin_data[b['type']] = {}
@@ -121,7 +121,7 @@ class mesTarget:
 
 		for r in dupe.restraints:
 			for p in plugins:
-				if(r.type in p.type):
+				if(r.type in p.types):
 					p.load_bootstrap( r, r, ensemble.plugin_data[dupe.name][r.type], dupe.plugin_data[r.type] )
 
 		return dupe

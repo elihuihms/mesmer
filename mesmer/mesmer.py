@@ -69,7 +69,7 @@ def run():
 		
 	# did the user request information about a plugin?
 	for p in plugins:
-		if (args.plugin == p.name) or (args.plugin in p.type):
+		if (args.plugin == p.name) or (args.plugin in p.types):
 			print str(p)
 			sys.exit(0)
 

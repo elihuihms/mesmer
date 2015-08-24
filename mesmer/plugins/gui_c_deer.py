@@ -15,7 +15,7 @@ class plugin(guiCalcPlugin):
 		self.name = 'DEER'
 		self.version = '2015.06.23'
 		self.info = 'This plugin predicts a DEER time trace from a PDB containing two spin-labeled residues.'
-		self.type = 'DEER'
+		self.types = ('DEER',)
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-Dip', 	type=float, default=52.04,	required=True,	help='Dipolar susceptibility (MHz/nm^3)')

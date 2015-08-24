@@ -65,7 +65,7 @@ class mesComponent:
 				continue
 
 			for p in plugins:
-				if(b['type'] in p.type):
+				if(b['type'] in p.types):
 
 					# initialize the plugin storage variable for this restraint type
 					self.plugin_data[b['type']] = None

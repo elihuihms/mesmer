@@ -21,7 +21,7 @@ class plugin(guiCalcPlugin):
 		self.name = 'SAXS - Crysol'
 		self.version = '2015.06.30'
 		self.info = 'This plugin uses the external program CRYSOL (see http://www.embl-hamburg.de/biosaxs/manuals/crysol.html) to predict a SAXS profile from a PDB. CRYSOL arguments and descriptions (C) the ATSAS team.'
-		self.type = 'SAXS'
+		self.types = ('SAXS',)
 		self.path = 'crysol'
 
 		self.parser = argparse.ArgumentParser(prog=self.name)

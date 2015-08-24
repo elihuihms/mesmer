@@ -14,7 +14,7 @@ class guiCalcPlugin(Process):
 		name (string): (Required) Brief name of the plugin
 		version (string): (Required) Version string of the plugin
 		info (string): (Required) User-friendly information about the plugin
-		type (string): (Required) e.g. "CURV" or "SAXS", etc.: the data type that this plugin will generate
+		types (tuple): (Required) Tuple of strings, e.g. "CURV" or "SAXS", etc.: the data types that this plugin will generate. Currently, only the first data type in the list is used.
 		parser (Argparse parser): Argument parser for user-selectable options
 		path (string): (Optional) Path to a required external executable or library
 
@@ -27,7 +27,7 @@ class guiCalcPlugin(Process):
 		
 		self.name = ''
 		self.version = ''
-		self.type = 'NONE'
+		self.types = ('NONE',)
 		self.info = ''
 		self.path = None
 		self.parser = argparse.ArgumentParser(prog=self.name)
@@ -121,7 +121,7 @@ class guiPlotPlugin(object):
 		name (string): (Required) Brief name of the plugin
 		version (string): (Required) Version string of the plugin
 		info (string): (Required) User-friendly information about the plugin
-		type (tuple): (Required) Strings (e.g. "CURV", "SAXS") naming data types that this plugin can comprehend
+		types (tuple): (Required) Tuple of strings (e.g. "CURV", "SAXS") naming data types that this plugin can comprehend
 		parser (Argparse parser): Argument parser for user-selectable options
 		path (string): (Optional) Path to a required external executable or library
 	"""
@@ -129,7 +129,7 @@ class guiPlotPlugin(object):
 	def __init__(self):
 		self.name = ''
 		self.version = ''
-		self.type = ('NONE')
+		self.types = ('NONE',)
 		self.info = ''
 		self.path = None #path to executable, if applicable
 		self.parser = argparse.ArgumentParser(prog=self.name)

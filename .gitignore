@@ -2,3 +2,4 @@
 tests/out/
 build/
 dist/
+package.py
