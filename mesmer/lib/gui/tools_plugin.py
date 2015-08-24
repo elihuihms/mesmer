@@ -1,5 +1,6 @@
 import inspect
 import tkMessageBox
+import collections
 
 from .. exceptions			import *
 from .. plugin_functions	import load_plugins
@@ -62,21 +63,21 @@ def convertParserToOptions( parser ):
 	
 	Returns: dict representation of parser"""
 	
-	options,savetypes = [],('help','option_strings','choices','type','dest','default','choices','required','nargs','metavar')
+	options,savetypes = collections.OrderedDict([]),('help','option_strings','choices','type','dest','default','choices','required','nargs','metavar')
 	for action in [a.__dict__ for a in parser.__dict__['_actions']]:
 		if action['dest'] == 'help':
 			continue
-		options.append( {} )
+		options[ action['dest'] ] = {}
 		for key in savetypes:
-			options[ -1 ][ key ] = action[ key ]
-		options[ -1 ]['value'] = ''
-		options[ -1 ]['group'] = action['container'].title
+			options[ action['dest'] ][ key ] = action[ key ]
+		options[ action['dest'] ]['value'] = ''
+		options[ action['dest'] ]['group'] = action['container'].title
 
 	return options
 
 def makeListFromOptions( options ):
 	ret = []
-	for o in options:
+	for k,o in options.iteritems():
 		if(o['nargs'] == 0):
 			if o['value']:
 				ret.append( o['option_strings'][0] )
@@ -89,14 +90,11 @@ def makeListFromOptions( options ):
 		else:
 			raise Exception("Encountered an option that could not be converted to a string properly: %s" % o['dest'])
 	return ret
-	
-def makeDictFromOptions( options ):
-	
-	
+		
 def setOptionsFromBlock( options, block ):
 	header = block['header'].split()
 
-	for o in options:
+	for k,o in options.iteritems():
 
 		if(o['nargs'] == 0):
 			o['value'] = (o['option_strings'][0] in header[2:])

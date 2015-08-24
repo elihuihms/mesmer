@@ -84,16 +84,13 @@ class plugin(guiCalcPlugin):
 			timer.cancel()
 
 		except Exception as e:
-#			if(e.errno == os.errno.ENOENT):
-#				return False,(pdb,"Could not find \"crysol\" program. Perhaps it isn't installed, or the path to it is wrong?")
-#			else:
-				return False,(pdb,"Error calling \"crysol\" program (%s): %s" %(e,err))
+				return False,(pdb,"Error calling \"crysol\" program: %s" %e)
 		
 		# crysol sometimes fucks up and increments
 		tmp = glob.glob( os.path.join(self.tempdir,"%s??.int"%name) )
 		if len(tmp) == 0:
 			if repeat == _CRYSOL_RETRY:
-				return False,(pdb,"Failed to calculate SAXS profile after %i tries.\n\nCRYSOL output: %s\n\nCRYSOL error:%s" % (_CRYSOL_RETRY,out,err))
+				return False,(pdb,"Failed to calculate SAXS profile after %i tries."%_CRYSOL_RETRY)
 			else:
 				return self.calculate(pdb, repeat+1)
 
@@ -105,9 +102,9 @@ class plugin(guiCalcPlugin):
 			fpi.close()
 			fpo.close()
 		except Exception as e:
-			return False,(pdb,"Could not clean up CRYSOL profile: %s"%(e))
+			return False,(pdb,"Could not clean up CRYSOL profile: %s"%e)
 
 		if not os.path.exists( out ):
-			return False,(pdb,"Failed to extract SAXS profile after %i tries." % (_CRYSOL_RETRY))
+			return False,(pdb,"Failed to extract SAXS profile after %i tries."%_CRYSOL_RETRY)
 			
 		return True,(pdb,None)

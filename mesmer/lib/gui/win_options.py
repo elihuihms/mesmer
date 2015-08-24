@@ -28,6 +28,7 @@ class OptionsWindow(tk.Frame):
 		self.master.bind("<Return>", self.saveWindow)
 
 		self.options = options
+		self.option_keys = options.keys()
 		
 		tk.Frame.__init__(self,master)
 		self.pack(expand=True,fill='both',padx=6,pady=6)
@@ -37,18 +38,18 @@ class OptionsWindow(tk.Frame):
 		self.returncode = 0
 
 	def saveWindow(self, evt=None):
-		for i,option in enumerate(self.options):
-			
-			if option['group'] in _OPTION_HIDE_ARGUMENT_GROUPS:
+		for i,k in enumerate(self.options):
+					
+			if self.options[k]['group'] in _OPTION_HIDE_ARGUMENT_GROUPS:
 				break
 				
 			try:
-				option['value'] = self.optionValues[i].get()
+				self.options[k]['value'] = self.optionValues[i].get()
 			except ValueError:
-				option['value'] = None
+				self.options[k]['value'] = None
 				
-			if option['value'] in _OPTION_EMPTY_VALUES:
-				option['value'] == None
+			if self.options[k]['value'] in _OPTION_EMPTY_VALUES:
+				self.options[k]['value'] == None
 			
 		self.returncode = 0
 		self.close()
@@ -64,7 +65,7 @@ class OptionsWindow(tk.Frame):
 		for i,b in enumerate(self.optionEntries):
 			if b == evt.widget:
 				break
-		tmp = askOpenFilename(parent=self.master,title=self.options[i]['dest'],message=self.options[i]['help'])
+		tmp = askOpenFilename(parent=self.master,title=self.options[self.option_keys[i]]['dest'],message=self.options[self.option_keys[i]]['help'])
 		self.optionValues[i].set(tmp)
 		self.optionEntries[i].config(text=os.path.basename(tmp))
 				
@@ -72,7 +73,7 @@ class OptionsWindow(tk.Frame):
 		for i,b in enumerate(self.optionEntries):
 			if b == evt.widget:
 				break
-		tmp = tkFileDialog.askdirectory(parent=self.master,title=self.options[i]['help'])
+		tmp = tkFileDialog.askdirectory(parent=self.master,title=self.options[self.option_keys[i]]['help'])
 		self.optionValues[i].set(tmp)
 		self.optionEntries[i].config(text=os.path.basename(os.path.normpath(tmp)))
 
@@ -90,7 +91,7 @@ class OptionsWindow(tk.Frame):
 		self.optionGroups[''].grid(column=0,row=0,columnspan=2,sticky=tk.W)
 		
 		# create option groups beforehand
-		for option in self.options:
+		for k,option in self.options.iteritems():
 			if option['group'] in _OPTION_HIDE_ARGUMENT_GROUPS:
 				break
 
@@ -100,7 +101,7 @@ class OptionsWindow(tk.Frame):
 				self.optionGroups[option['group']] = tk.LabelFrame(self.optionGroups[''],text=option['group'])
 		
 		rowcounter = 0	
-		for option in self.options:
+		for k,option in self.options.iteritems():
 			if option['group'] in _OPTION_HIDE_ARGUMENT_GROUPS:
 				break
 			if option['value'] in _OPTION_EMPTY_VALUES:

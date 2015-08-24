@@ -123,7 +123,7 @@ def plotAttributes( w ):
 	
 	# convert column names into indices
 	if column_names != None and len(column_names) > 2:
-		for group in w.pluginOptions['attributePlotter']:
+		for k,group in w.pluginOptions['attributePlotter'].iteritems():
 			if group['dest'] == 'xCol':
 				group['value'] = column_names.index(group['value'])
 			elif group['dest'] == 'yCol':

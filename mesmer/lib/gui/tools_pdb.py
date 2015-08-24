@@ -7,7 +7,7 @@ import tkFileDialog
 
 from subprocess		import Popen,PIPE
 
-from .. ga_functions_output import _MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
+from .. ga_functions_output import _MESMER_ENSEMBLES_FILE_FORMAT,_MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
 
 from tools_plugin	import convertParserToOptions,makeListFromOptions
 from win_options	import OptionsWindow

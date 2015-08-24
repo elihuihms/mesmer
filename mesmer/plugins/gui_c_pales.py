@@ -1,6 +1,6 @@
 import os
-import glob
 import shlex
+import shutil
 import argparse
 import subprocess
 import tempfile
@@ -25,7 +25,7 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-Model',	default='Wall',	choices=['Wall','Rod'],	help='Steric model, i.e. Bicelles (wall), Phage (rod)')
 		self.parser.add_argument('-template', metavar='FILE', help="Experimental RDC data template, in CYANA format", required=True)
 
-		simulation = self.parser.add_argument_group("Simulation Parameters:")
+		simulation = self.parser.add_argument_group("Simulation Parameters")
 		simulation.add_argument('-wv',		metavar="LC Conc.",		type=float,	default=0.05,	help="Liquid crystal concentration (mg/mL)")
 		simulation.add_argument('-lcS',		metavar="LC Order",		type=float,	default=0.90,	help="Liquid crystal order (0-1)")
 		simulation.add_argument('-surf',	action="store_true",				default=True,	help="Select surface accessible atoms")
@@ -33,7 +33,7 @@ class plugin(guiCalcPlugin):
 		simulation.add_argument('-rA',		metavar="Atom radius",	type=float, default=0.00,	help="Atom radius, in angstroms")
 
 		self.parser.add_argument('-Electrostatics',	default=False,	action='store_true',	help='Use electrostatic model')
-		electro = self.parser.add_argument_group("Electrostatic Parameters:")
+		electro = self.parser.add_argument_group("Electrostatic Parameters")
 		electro.add_argument('-mwLC',	type=float,	default=268E3,			help='Liquid crystal molecular weight (g/mol)')
 		electro.add_argument('-massLC',	type=float,	default=0.05,			help='Liquid crystal mass (g)')
 		electro.add_argument('-unitLC',	type=float,	default=1.00,			help='Liquid crystal unit height (Angstrom)')
@@ -50,30 +50,27 @@ class plugin(guiCalcPlugin):
 		self.options	= options
 		self.outputdir	= outputdir
 
-		def getopt(list,name):
-			for i,o in enumerate(list):
-				if o['name'] == name:
-					return i,o
-
 		# option processing
-		self.extra_options = shlex.split(getopt(self.options,'extra')[1]['value'])
-		del self.options[getopt(self.options,'value')[0]]
+		self.extra_args = shlex.split(self.options['extra']['value'])
+		del self.options['extra']
 
-		if getopt(self.options,'Model')[1]['value'] == 'Wall':
-			self.extra_options.append('-bic')
+		if self.options['Model']['value'] == 'Wall':
+			self.extra_args.append('-bic')
 		else:
-			self.extra_options.append('-pf1')
-		del self.options[getopt(self.options,'Model')[0]]
+			self.extra_args.append('-pf1')
+		del self.options['Model']
 
-		if getopt(self.options,'Electrostatics')[1]['value']:
-			self.extra_options.append('-elPales')
-		else:
-			self.extra_options.append('-stPales')
+		if self.options['Electrostatics']['value']:
+			self.extra_args.append('-elPales')
+		else: # remove electrostatic parameters
+			self.extra_args.append('-stPales')
+			for k,o in self.options.iteritems():
+				if o['group'] == 'Electrostatic Parameters':
+					del self.options[k] 
+		del self.options['Electrostatics']
 
-		del self.options[getopt(self.options,'Electrostatics')[0]]
-
-		self.template = getopt(self.options,'template')[1]['value']
-		del self.options[getopt(self.options,'template')[0]]
+		self.template = self.options['template']['value']
+		del self.options['template']
 		
 		# check that pales is installed
 		try:
@@ -86,33 +83,35 @@ class plugin(guiCalcPlugin):
 			else:
 				raise e
 				
-		print "PALES arguments: ",
-		cmd = [self.path,'-pdb','<input.pdb>','-inD',self.template,'-outD','<output.tbl>']
-		cmd.extend( makeListFromOptions(self.options) )
-		cmd.extend( self.extra_options )
-				
 		return True
 		
 	def close(self, abort):
 		return True
 		
 	def calculate(self, pdb, repeat=0):
-		base = os.path.basename(pdb)
-		name = os.path.splitext( base )[0]
-		tabl = os.path.join(self.outputdir,"%s.tbl"%name)
+		name = os.path.splitext( os.path.basename(pdb) )[0]
 
 		if not os.path.exists(pdb):
 			return False,(pdb,"Could not read file.")
 
-		cmd = [self.path,'-pdb',pdb,'-inD',self.template,'-outD',tabl]
+		cmd = [self.path,'-pdb',pdb,'-inD',self.template,'-outD',"%s.out"%name]
+		cmd.extend( self.extra_args )
 		cmd.extend( makeListFromOptions(self.options) )
-		cmd.extend( self.extra_options )
-		
-		try:
-			sub = subprocess.Popen(cmd)
-			sub.wait()
+		print 'PALES arguments #1/2: %s'%(' '.join(cmd))
 
+		try:
+			sub = subprocess.Popen(cmd,cwd=self.outputdir)
+			sub.wait()
 		except Exception as e:
-			return False,(pdb,"Error calling \"pales\" program (%s): %s" %(e,err))
+			return False,(pdb,"Error calling \"pales\" program: %s"%e)
+
+		cmd = [self.path,'-conv','-cyana','-inD',"%s.out"%name,'-outD',"%s.tbl"%name]
+		print 'PALES arguments #2/2: %s'%(' '.join(cmd))
+
+		try:
+			sub = subprocess.Popen(cmd,cwd=self.outputdir)
+			sub.wait()
+		except Exception as e:
+			return False,(pdb,"Error calling \"pales\" program: %s"%e)
 					
 		return True,(pdb,None)

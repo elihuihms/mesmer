@@ -89,7 +89,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	
 	# retrieve saved options from preferences
 	saved_options = getPluginPrefs( w.prefs, plugin.name )['options']
-	for o in options:
+	for k,o in options.iteritems():
 		if o['dest'] in saved_options and saved_options[o['dest']] != None: o['value'] = saved_options[o['dest']]
 
 	# open the options window to set plugin variables
@@ -103,7 +103,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 		return
 	
 	# save the modified preferences/options with a handy generator	
-	setPluginPrefs( w.prefs, plugin.name, options={o['dest']:o['value'] for o in options} )
+	setPluginPrefs( w.prefs, plugin.name, options={o['dest']:o['value'] for k,o in options.iteritems()} )
 
 	path = tkFileDialog.askdirectory(title="Directory to save calculated data to:",parent=w)
 #	path = tkFileDialog.asksaveasfilename(title='Directory to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.types[0]) )
