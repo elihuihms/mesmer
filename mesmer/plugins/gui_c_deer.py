@@ -13,7 +13,7 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'DEER'
-		self.version = '2015.06.23'
+		self.version = '0.9.0'
 		self.info = 'This plugin predicts a DEER time trace from a PDB containing two spin-labeled residues.'
 		self.types = ('DEER',)
 

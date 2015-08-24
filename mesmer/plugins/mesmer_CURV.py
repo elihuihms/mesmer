@@ -19,7 +19,7 @@ class plugin( mesPluginDB ):
 		mesPluginDB.__init__(self, args)
 		
 		self.name = 'default_CURV'
-		self.version = '2015.06.16'
+		self.version = '1.0.0'
 		self.info = 'This plugin compares two continuous datasets. Several goodness-of-fit metrics are available.'
 		self.types = (
 			'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',

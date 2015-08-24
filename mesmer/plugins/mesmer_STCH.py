@@ -19,7 +19,7 @@ class plugin( mesPluginBasic ):
 		mesPluginBasic.__init__(self, args)
 
 		self.name = 'default_STCH'
-		self.version = '2015.06.23'
+		self.version = '1.0.0'
 		self.info = 'This plugin compares experimental and predicted stoichiometry of the components present in multicomponent mixtures.'
 		self.types = ('STCH','STCH0','STCH1','STCH2','STCH3','STCH4','STCH5','STCH6','STCH7','STCH8','STCH9')
 

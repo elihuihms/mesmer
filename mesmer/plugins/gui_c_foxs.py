@@ -14,7 +14,7 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'SAXS - FoXS'
-		self.version = '2015.06.23'
+		self.version = '1.0.0'
 		self.info = 'This plugin uses the Integrative Modeling Platform (see http://salilab.org/imp) to predict a SAXS profile from a PDB.'
 		self.types = ('SAXS',)
 

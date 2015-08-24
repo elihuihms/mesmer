@@ -88,6 +88,8 @@ class OptionsWindow(tk.Frame):
 
 		self.optionGroups[''] = tk.Frame(self.container,border=0)
 		self.optionGroups[''].grid(column=0,row=0,columnspan=2,sticky=tk.W)
+		
+		# create option groups beforehand
 		for option in self.options:
 			if option['group'] in _OPTION_HIDE_ARGUMENT_GROUPS:
 				break
@@ -95,8 +97,7 @@ class OptionsWindow(tk.Frame):
 			if option['group'] == 'optional arguments':
 				option['group'] = ''
 			if option['group'] not in self.optionGroups:
-				self.optionGroups[option['group']] = tk.LabelFrame(self.container,text=option['group'])
-				self.optionGroups[option['group']].grid(column=0,row=len(self.optionGroups),columnspan=2,sticky=tk.W)
+				self.optionGroups[option['group']] = tk.LabelFrame(self.optionGroups[''],text=option['group'])
 		
 		rowcounter = 0	
 		for option in self.options:
@@ -105,8 +106,11 @@ class OptionsWindow(tk.Frame):
 			if option['value'] in _OPTION_EMPTY_VALUES:
 				option['value'] = option['default']
 
-			container = self.optionGroups[option['group']]			
-
+			container = self.optionGroups[option['group']]
+			if len(container.winfo_children()) == 0: # group hasn't been placed in window yet
+				container.grid(column=0,row=rowcounter,columnspan=2,sticky=tk.W+tk.E)
+				rowcounter+=1
+				
 			# what do we show for the entry label?	
 			if option['metavar'] in _OPTION_FILE_METAVARS:
 				text = option['dest'][0].upper()+option['dest'][1:]+" file:"

@@ -12,7 +12,7 @@ class plugin(guiPlotPlugin):
 	def __init__(self):
 		guiPlotPlugin.__init__(self)
 		self.name = 'CURV Plotter'
-		self.version = '2015.08.19'
+		self.version = '1.0.0'
 		self.info = "This plugin generates an overlay plot of two continuous datasets."
 		self.types = (
 			'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',

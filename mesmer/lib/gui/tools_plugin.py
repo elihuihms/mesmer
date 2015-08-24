@@ -73,6 +73,25 @@ def convertParserToOptions( parser ):
 		options[ -1 ]['group'] = action['container'].title
 
 	return options
+
+def makeListFromOptions( options ):
+	ret = []
+	for o in options:
+		if(o['nargs'] == 0):
+			if o['value']:
+				ret.append( o['option_strings'][0] )
+		elif( o['value'] == None or o['value'] == 'None' or o['value'] == '' ):
+			if o['required']:
+				raise Exception("Encountered a required option without a value: %s" % o['dest'])
+		elif(o['nargs'] == None):
+			ret.append( o['option_strings'][0] )
+			ret.append( str(o['value']) )
+		else:
+			raise Exception("Encountered an option that could not be converted to a string properly: %s" % o['dest'])
+	return ret
+	
+def makeDictFromOptions( options ):
+	
 	
 def setOptionsFromBlock( options, block ):
 	header = block['header'].split()
@@ -104,20 +123,3 @@ def setOptionsFromBlock( options, block ):
 		else:
 			raise Exception("Encountered an option that could not be parsed properly: %s" % o['dest'])
 	return options
-
-def makeListFromOptions( options ):
-	ret = []
-	for o in options:
-		if(o['nargs'] == 0):
-			if o['value']:
-				ret.append( o['option_strings'][0] )
-		elif( o['value'] == None or o['value'] == 'None' or o['value'] == '' ):
-			if o['required']:
-				raise Exception("Encountered a required option without a value: %s" % o['dest'])
-		elif(o['nargs'] == None):
-			ret.append( o['option_strings'][0] )
-			ret.append( str(o['value']) )
-		else:
-			raise Exception("Encountered an option that could not be converted to a string properly: %s" % o['dest'])
-	return ret
-

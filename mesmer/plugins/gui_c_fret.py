@@ -13,7 +13,7 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'FRET'
-		self.version = '2015.06.23'
+		self.version = '0.9.0'
 		self.info = 'This plugin predicts fluorescence lifetime data from a PDB containing two labeling sites.'
 		self.types = ('CURV',)
 

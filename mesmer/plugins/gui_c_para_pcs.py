@@ -16,7 +16,7 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'PCS - pyParaTools'
-		self.version = '2015.07.01'
+		self.version = '1.0.0'
 		self.info = 'This plugin uses PyParaTools (see http://comp-bio.anu.edu.au/mscook/PPT/) to calculate pseudocontact shifts from a paramagnetic atom in a PDB.'
 		self.types = ('TABL',)
 

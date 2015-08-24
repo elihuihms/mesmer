@@ -218,7 +218,7 @@ class PluginWindow(tk.Frame):
 			self.plugin_ids.append( id )
 
 			if ok:
-				disabled = getattr(self.prefs['disabled_plugins'],id,False)
+				disabled = id in self.prefs['disabled_plugins']
 
 				self.plugin_modules.append( module )
 				self.plugin_states.append( not disabled )

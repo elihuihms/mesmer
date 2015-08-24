@@ -17,7 +17,7 @@ class plugin( mesPluginDB ):
 		mesPluginDB.__init__(self, args)
 
 		self.name = 'default_LIST'
-		self.version = '2013.09.24'
+		self.version = '1.0.0'
 		self.info = 'This plugin compares two discretely sampled datasets. Several goodness-of-fit metrics are available.'
 		self.types = (
 			'LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9',

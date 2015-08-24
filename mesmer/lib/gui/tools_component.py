@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import Tkinter as tk
 import tkMessageBox
@@ -119,7 +120,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	try:
 		ok = plugin.setup( w, options, path )
 	except (Exception,mesPluginError) as e:
-		tkMessageBox.showerror("Error","%s plugin reported a problem: %s" % (plugin.name,e),parent=w)
+		tkMessageBox.showerror("Error","%s plugin reported a problem: %s" % (plugin.name,sys.exc_info()[1]),parent=w)
 		return		
 	if not ok:
 		return

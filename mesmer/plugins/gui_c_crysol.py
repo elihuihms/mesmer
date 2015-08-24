@@ -19,7 +19,7 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'SAXS - Crysol'
-		self.version = '2015.06.30'
+		self.version = '1.0.0'
 		self.info = 'This plugin uses the external program CRYSOL (see http://www.embl-hamburg.de/biosaxs/manuals/crysol.html) to predict a SAXS profile from a PDB. CRYSOL arguments and descriptions (C) the ATSAS team.'
 		self.types = ('SAXS',)
 		self.path = 'crysol'
@@ -84,9 +84,9 @@ class plugin(guiCalcPlugin):
 			timer.cancel()
 
 		except Exception as e:
-			if(e.errno == os.errno.ENOENT):
-				return False,(pdb,"Could not find \"crysol\" program. Perhaps it isn't installed, or the path to it is wrong?")
-			else:
+#			if(e.errno == os.errno.ENOENT):
+#				return False,(pdb,"Could not find \"crysol\" program. Perhaps it isn't installed, or the path to it is wrong?")
+#			else:
 				return False,(pdb,"Error calling \"crysol\" program (%s): %s" %(e,err))
 		
 		# crysol sometimes fucks up and increments

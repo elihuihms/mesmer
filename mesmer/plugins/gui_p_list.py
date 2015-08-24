@@ -13,7 +13,7 @@ class plugin(guiPlotPlugin):
 	def __init__(self):
 		guiPlotPlugin.__init__(self)
 		self.name = 'LIST/TABL Plotter'
-		self.version = '2015.08.19'
+		self.version = '1.0.0'
 		self.info = "This plugin generates a correlation plot between two discretely sampled datasets."
 		self.types = (
 			'LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9',
