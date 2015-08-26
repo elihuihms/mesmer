@@ -52,9 +52,16 @@ NAME	$0
 	tmp = tkFileDialog.asksaveasfilename(title='Save components folder:',parent=w,initialfile='components')
 	if(tmp == ''):
 		return False
-	if(os.path.exists(tmp)):
-		shutil.rmtree(tmp)
-
+		
+	if os.path.isdir(path) and os.listdir(path):
+		if tkMessageBox.askyesno('Warning',"Continuing will replace the existing \"%s\" folder, continue anyway?"%os.path.basename(path),parent=w):
+			try:
+				shutil.rmtree(path)
+			except OSError:
+				tkMessageBox.showerror("Error","Could not delete existing folder \"%s\"" % path,parent=w)
+				return False
+		else:
+			return False
 	try:
 		os.mkdir(tmp)
 	except OSError:
@@ -109,8 +116,16 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 #	path = tkFileDialog.asksaveasfilename(title='Directory to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.types[0]) )
 	if(path == ''):
 		return
-	if(os.path.exists(path)):
-		shutil.rmtree(path)
+		
+	if os.path.isdir(path) and os.listdir(path):
+		if tkMessageBox.askyesno('Warning',"Continuing will replace the existing \"%s\" folder, continue anyway?"%os.path.basename(path),parent=w):
+			try:
+				shutil.rmtree(path)
+			except OSError:
+				tkMessageBox.showerror("Error","Could not delete existing folder \"%s\"" % path,parent=w)
+				return
+		else:
+			return
 	try:
 		os.mkdir(path)
 	except:

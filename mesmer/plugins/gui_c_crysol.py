@@ -84,7 +84,7 @@ class plugin(guiCalcPlugin):
 			timer.cancel()
 
 		except Exception as e:
-				return False,(pdb,"Error calling \"crysol\" program: %s" %e)
+				return False,(pdb,"Error calling \"crysol\": %s" %e)
 		
 		# crysol sometimes fucks up and increments
 		tmp = glob.glob( os.path.join(self.tempdir,"%s??.int"%name) )

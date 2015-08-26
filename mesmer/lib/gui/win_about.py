@@ -1,35 +1,52 @@
 import os
 import Tkinter as tk
+import codecs
 
 from __init__ import __version__
+from .. __init__ import __copyright__
 
-programInfo = {
-	'version'	: __version__,
-	'author'	: 'SteelSnowflake Software, LLC',
-	'copyright'	: """Copyright (C) 2015 SteelSnowflake Software, LLC
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License version 2 as published by the Free Software Foundation.
+__acknowledgements__ = codecs.decode("""Fcrpvny gunaxf gb:
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+Revp Qnauneg
+Znex Sbfgre
+Naa Vuzf
+Unaanu Vuzf
+Anguna Wbarf
+Eboregb Fnyvanf
+Naan Fzvgu
+Ncnean Haavxevfuana
+Ivouhgv Jnqujn
+Yv Munat
 
-You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-"""
-}
+Gur BFH Ovbculfvpf Ngbzvp Erfbyhgvba fznyy tebhc
+Gur FVOLYF fgnss ng YOAY
+ 
+jjj.furqernzfvaqvtvgny.arg""",'rot_13')
 
 class AboutWindow(tk.Frame):
 	def __init__(self, master):
 		self.master = master
-		self.master.geometry('700x480+200+200')
-		self.master.resizable(width=False, height=False)
 		self.master.title('About MESMER')
-
+		self.master.resizable(width=False, height=False)
+		
 		tk.Frame.__init__(self,master)
+		self.pack(expand=True,fill='both',padx=6,pady=0)
+		self.pack_propagate(True)
 
-		self.grid(column=0,row=0,sticky=tk.N+tk.W+tk.E+tk.S)
 		self.createWidgets()
 
 	def close(self):
 		self.master.destroy()
-
+		
+	def scrolltext(self):
+		if self.scrollcounter > 300:
+			self.scrollcounter = -100
+			self.aboutCanvas.yview_scroll(-400,tk.UNITS)
+			
+		self.aboutCanvas.yview_scroll(1,tk.UNITS)
+		self.after(50, self.scrolltext)
+		self.scrollcounter+=1
+		
 	def createWidgets(self):
 
 		self.container = tk.Frame(self)
@@ -43,24 +60,20 @@ class AboutWindow(tk.Frame):
 		self.LogoLabel = tk.Label(self.f_logo,image=self.LogoImage)
 		self.LogoLabel.pack(side=tk.TOP)
 
-		self.aboutText = tk.Label(
+		self.infoText = tk.Label(
 			self.container,
 			justify='center',
 			wraplength=670,
-			text="""
-MESMER GUI version %s
+			text="MESMER GUI version %s\n\n%s"%(__version__,__copyright__))
+		self.infoText.grid(column=0,row=1)
 
-%s
+		self.aboutCanvas = tk.Canvas(self.container,width=400,height=100,borderwidth=2)
+		self.aboutCanvas.grid(column=0,row=2)
+		self.aboutCanvas.create_text(200,10,anchor="n",justify='center',text=__acknowledgements__)
+		self.aboutCanvas.configure(yscrollincrement='1')
+		self.scrollcounter = 0
+		self.after(1000, self.scrolltext)
 
-Special Thanks:
-
-The Mark Foster Lab
-The Ohio State Biophysics Program
-The Ohio State University
-www.shedreamsindigital.net
-""" % (programInfo['version'],programInfo['copyright']))
-
-		self.aboutText.grid(column=0,row=1)
-
-		self.cancelButton = tk.Button(self.container,text='Close',command=self.close)
-		self.cancelButton.grid(column=0,columnspan=2,row=2,pady=(8,0))
+#		self.cancelButton = tk.Button(self.container,text='Close',command=self.close)
+#		self.cancelButton.grid(column=0,columnspan=2,row=3,pady=(8,0))
+		

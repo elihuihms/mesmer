@@ -17,15 +17,14 @@ from win_analysis	import AnalysisWindow
 def startRun( w ):
 
 	args = makeMESMERArgsFromWindow(w) # w in this context is a SetupWindow
-
 	path = os.path.join(args.dir,args.name)
-	if(os.path.exists(path)):
-		result = tkMessageBox.askyesno('Warning',"Continuing will overwrite an existing results folder, continue anyway?",parent=w)
-		if(result):
+	
+	if os.path.isdir(path) and os.listdir(path):
+		if tkMessageBox.askyesno('Warning',"Continuing will overwrite the existing \"%s\" folder, continue anyway?"%os.path.basename(path),parent=w):
 			try:
 				shutil.rmtree(path)
 			except OSError:
-				tkMessageBox.showerror("Error","Couldn't remove \"%s\"" % path,parent=w)
+				tkMessageBox.showerror("Error","Couldn't remove existing folder \"%s\"" % path,parent=w)
 				return False
 		else:
 			return False

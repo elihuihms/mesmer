@@ -5,6 +5,7 @@ import tkFont
 import tkFileDialog
 import tkMessageBox
 
+from __init__ import __version__
 from .. setup_functions	import open_user_prefs
 
 import tools_run # to avoid circular import of AnalysisWindow
@@ -15,7 +16,6 @@ from tools_pdb			import *
 from tools_plugin		import tryLoadPlugins
 from tools_TkTooltip	import ToolTip
 from win_log			import LogWindow
-from win_about			import programInfo
 
 class AnalysisWindow(tk.Frame):
 	def __init__(self, master, path=None, pHandle=None):
@@ -177,7 +177,7 @@ class AnalysisWindow(tk.Frame):
 		self.LogoImage = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'mesmer_logo.gif'))
 		self.LogoLabel = tk.Label(self.f_logo,image=self.LogoImage)
 		self.LogoLabel.pack(side=tk.LEFT)
-		self.versionLabel = tk.Label(self.f_logo,text='GUI version %s' % programInfo['version'])
+		self.versionLabel = tk.Label(self.f_logo,text='GUI version %s' % __version__)
 		self.versionLabel.pack(side=tk.LEFT,anchor=tk.NE)
 
 		self.activeDirLabel = tk.Label(self.container,text='Work Folder:')

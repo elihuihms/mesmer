@@ -182,7 +182,7 @@ def insert_attribute_column(w,child_fp,col_title):
 	parent_fp.close()
 	parent_db.close()
 	
-	os.remove(parent_bkup_path)
+	os.unlink(parent_bkup_path)
 	return
 			
 	

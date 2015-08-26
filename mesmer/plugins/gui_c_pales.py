@@ -71,17 +71,6 @@ class plugin(guiCalcPlugin):
 
 		self.template = self.options['template']['value']
 		del self.options['template']
-		
-		# check that pales is installed
-		try:
-			sub = subprocess.Popen([self.path], stdout=subprocess.PIPE)
-			output,err = sub.communicate()
-			code = sub.wait()
-		except Exception as e:
-			if(e.errno == os.errno.ENOENT):
-				raise mesPluginError("Could not find \"pales\" excecutable, is it installed?")
-			else:
-				raise e
 				
 		return True
 		
@@ -103,7 +92,7 @@ class plugin(guiCalcPlugin):
 			sub = subprocess.Popen(cmd,cwd=self.outputdir)
 			sub.wait()
 		except Exception as e:
-			return False,(pdb,"Error calling \"pales\" program: %s"%e)
+			return False,(pdb,"Error calling \"pales\": %s"%e)
 
 		cmd = [self.path,'-conv','-cyana','-inD',"%s.out"%name,'-outD',"%s.tbl"%name]
 		print 'PALES arguments #2/2: %s'%(' '.join(cmd))
@@ -112,6 +101,6 @@ class plugin(guiCalcPlugin):
 			sub = subprocess.Popen(cmd,cwd=self.outputdir)
 			sub.wait()
 		except Exception as e:
-			return False,(pdb,"Error calling \"pales\" program: %s"%e)
+			return False,(pdb,"Error calling \"pales\": %s"%e)
 					
 		return True,(pdb,None)

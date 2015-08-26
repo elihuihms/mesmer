@@ -7,6 +7,8 @@ import tkMessageBox
 from .. exceptions		import *
 from .. setup_functions	import open_user_prefs,set_default_prefs
 
+from __init__			import __version__
+
 from tools_TkTooltip	import ToolTip
 from tools_general		import tryProgramCall
 
@@ -16,7 +18,7 @@ from win_setup			import SetupWindow
 from win_config			import ConfigWindow
 from win_analysis		import AnalysisWindow
 from win_plugins		import PluginWindow
-from win_about			import AboutWindow,programInfo
+from win_about			import AboutWindow
 from pdb_build			import PDBBuildWindow
 from pdb_attribute		import PDBAttributeWindow
 
@@ -192,7 +194,7 @@ class MainWindow(tk.Frame):
 		self.LogoImage = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__),'mesmer_logo.gif'))
 		self.LogoLabel = tk.Label(self.f_logo,image=self.LogoImage)
 		self.LogoLabel.pack(side=tk.TOP)
-		self.versionLabel = tk.Label(self.f_logo,text='GUI version %s' % programInfo['version'])
+		self.versionLabel = tk.Label(self.f_logo,text='GUI version %s' % __version__)
 		self.versionLabel.pack(side=tk.TOP,anchor=tk.NE)
 
 		self.createTargetButton = tk.Button(self.f_buttons, text='Create Target', command=self.makeTarget,width=20,height=1)

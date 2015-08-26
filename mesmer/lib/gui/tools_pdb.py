@@ -52,7 +52,7 @@ def makePDBs( w ):
 
 	if(os.path.exists(output) ):
 		try:
-			os.remove(output)
+			os.unlink(output)
 		except:
 			tkMessageBox.showerror("Error","Could not remove existing PDB",parent=w)
 			return

@@ -285,11 +285,18 @@ class PDBBuildWindow(tk.Frame):
 		if path == '':
 			return
 		
-		if(os.path.exists(path)):
-			shutil.rmtree(path)
+		if os.path.isdir(path) and os.listdir(path):
+			if tkMessageBox.askyesno('Warning',"Continuing will remove the existing \"%s\" folder, continue anyway?"%os.path.basename(path),parent=self):
+				try:
+					shutil.rmtree(path)
+				except OSError:
+					tkMessageBox.showerror("Error","Could not delete existing folder \"%s\"" % path,parent=self)
+					return
+			else:
+				return
 		try:
 			os.mkdir(path)
-		except:
+		except OSError:
 			tkMessageBox.showerror("Error","Could not create folder \"%s\"" % path,parent=self)
 			return
 	
