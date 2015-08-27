@@ -8,6 +8,7 @@ import tkFont
 from multiprocessing import Queue
 
 from ... setup_functions import open_user_prefs
+from .. tools_general import askNewDirectory
 from .. tools_multiprocessing import PluginParallelizer
 from .. tools_TkTooltip import ToolTip
 
@@ -35,7 +36,7 @@ class PDBBuildWindow(tk.Frame):
 		self.Generator = None
 		
 		try:
-			self.prefs = open_user_prefs(mode='r')
+			self.prefs = open_user_prefs()
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
@@ -224,10 +225,11 @@ class PDBBuildWindow(tk.Frame):
 		self.update_idletasks()
 	
 	def loadPDB(self):
-		tmp = tkFileDialog.askopenfilename(title='Select PDB coordinate file:',parent=self,filetypes=[('PDB',"*.pdb")])
+		tmp = tkFileDialog.askopenfilename(title='Select PDB coordinate file:',parent=self,filetypes=[('PDB',"*.pdb")],initialdir=self.prefs['last_open_dir'])
 		if(tmp == ''):
 			return
-
+		self.prefs['last_open_dir'] = os.path.dirname(tmp)
+		
 		self.destroyWidgetRows()
 		self.updatePDBInfo("Checking PDB:","Looking for discontinuities..." )
 
@@ -280,34 +282,19 @@ class PDBBuildWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Problem with group definitions: %s' % (msg),parent=self)
 			return
 		
-		path = tkFileDialog.askdirectory(title="Choose a directory to save generated PDBs into:",parent=self)
-#		path = tkFileDialog.asksaveasfilename(title='Choose a directory to save generated PDBs into:',parent=self)
+		path = askNewDirectory(self,title='Select location to save PDBs:',initialfile='PDBs',initialdir=self.prefs['last_open_dir'])
 		if path == '':
 			return
-		
-		if os.path.isdir(path) and os.listdir(path):
-			if tkMessageBox.askyesno('Warning',"Continuing will remove the existing \"%s\" folder, continue anyway?"%os.path.basename(path),parent=self):
-				try:
-					shutil.rmtree(path)
-				except OSError:
-					tkMessageBox.showerror("Error","Could not delete existing folder \"%s\"" % path,parent=self)
-					return
-			else:
-				return
-		try:
-			os.mkdir(path)
-		except OSError:
-			tkMessageBox.showerror("Error","Could not create folder \"%s\"" % path,parent=self)
-			return
+		self.prefs['last_open_dir'] = os.path.dirname(path)
 	
 		notified = False
-		self.updatePDBInfo(None,"Scanning existing directory...")
+		self.updatePDBInfo(None,"Scanning folder for PDBs...")
 
 		indices = []
 		for i in range(self.pdbNumber.get()):
 			if os.path.exists(os.path.join(path,self.pdbPrefix.get()+(_PDB_generator_format%(i)))):
 				if not notified:
-					if not tkMessageBox.askokcancel("Warning", "Directory already contains PDBs, PDB generator will start where previous iterations left off.", icon='warning', parent=self) != 'yes':
+					if not tkMessageBox.askokcancel("Warning", "Folder already contains PDBs, PDB generator will start where previous iterations left off.", icon='warning', parent=self) != 'yes':
 						self.updatePDBInfo(None,"Aborted.")				
 						return
 					notified = True

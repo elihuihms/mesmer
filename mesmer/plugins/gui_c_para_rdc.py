@@ -28,7 +28,7 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-Gamma',	type=float,	help='Gamma component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-B0',		type=float,	help='Field strength (Gauss)',	default=16.44)
 		self.parser.add_argument('-temp',	metavar='Temperature',	type=float,	help='Temperature (K)',			default=298.0)
-		self.parser.add_argument('-template', metavar='FILE', help="Experimental RDC data template, in CYANA format", required=True)
+		self.parser.add_argument('-template', default='template.rdc', metavar='FILE', help="Experimental RDC data template, in CYANA format", required=True)
 
 	def setup(self, parent, options, outputpath):
 		self.outputpath	= outputpath

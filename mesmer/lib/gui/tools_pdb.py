@@ -9,6 +9,7 @@ from subprocess		import Popen,PIPE
 
 from .. ga_functions_output import _MESMER_ENSEMBLES_FILE_FORMAT,_MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
 
+from tools_general	import askNewDirectory
 from tools_plugin	import convertParserToOptions,makeListFromOptions
 from win_options	import OptionsWindow
 
@@ -19,11 +20,12 @@ def makePDBs( w ):
 	pdb_dirs = []
 	title = 'Choose folder containing component PDBs'
 	while True:
-		dir = tkFileDialog.askdirectory(title=title) #note - don't set parent, obscures the title
-		if(not dir):
+		path = tkFileDialog.askdirectory(title=title,initialdir=w.prefs['last_open_dir'],mustexist=True) #note - don't set parent, obscures the title in OSX
+		if(not path):
 			break
-		pdb_dirs.append(dir)
-		title = 'Added %s. Select another?' % os.path.basename(dir)
+		w.prefs['last_open_dir'] = os.path.dirname(path)
+		pdb_dirs.append(path)
+		title = 'Added %s. Select another?' % os.path.basename(path)
 	if(len(pdb_dirs)<1):
 		return
 
@@ -46,16 +48,10 @@ def makePDBs( w ):
 		return
 
 	name = "%05i_models.pdb" % w.currentSelection[0]
-	output = tkFileDialog.asksaveasfilename(title='Select name and location to save generation models:',initialfile=name,parent=w)
+	output = askNewDirectory(w,title='Select location to save generation models:',initialfile=name,initialdir=w.prefs['last_open_dir'])
 	if(not output):
 		return
-
-	if(os.path.exists(output) ):
-		try:
-			os.unlink(output)
-		except:
-			tkMessageBox.showerror("Error","Could not remove existing PDB",parent=w)
-			return
+	w.prefs['last_open_dir'] = os.path.dirname(output)
 
 	if( w.prefs['mesmer_base_dir'] == '' ):
 		cmd = ['make_models']

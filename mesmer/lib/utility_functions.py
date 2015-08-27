@@ -1,6 +1,6 @@
-import re
 import math
 import shelve
+import shlex
 
 # global for storing the last message file used
 _lastMsgFile = None
@@ -61,20 +61,29 @@ def get_input_blocks( file ):
 
 	i,blocks = 0,[]
 	while( i < len(lines) ):
-		header = re.split('\s+',lines[i])
-
-		# a non-empty and non-comment line
-		if( (header[0] != '') and (header[0][0] != '#') ):
-			
-			# create a new block with the header line
-			blocks.append( {'type':header[0],'header':lines[i],'content':[],'l_start':i,'l_end':i} )
-			
-			# append all subsequent non-empty lines to the new block's content until an empty one appears
+		data = shlex.split(lines[i])
+		
+		if len(data) == 0 or data[0] == '#':
 			i+=1
-			while( i < len(lines) and lines[i].strip() != '' ):
-				blocks[-1]['content'].append( lines[i] )
-				blocks[-1]['l_end'] = i
-				i+=1
+			continue
+
+		header,comment = [],''
+		for j,d in enumerate(data):
+			if d[0] != '#':
+				header.append(d)
+			else:
+				comment = ' '.join(data[j:])
+				break
+				
+		# create a new block with the header line
+		blocks.append( {'type':header[0],'header':header,'content':[],'l_start':i,'l_end':i,'comment':comment} )
+		
+		# append all subsequent non-empty lines to the new block's content until an empty one appears
+		i+=1
+		while( i < len(lines) and lines[i].strip() != '' ):
+			blocks[-1]['content'].append( lines[i] )
+			blocks[-1]['l_end'] = i
+			i+=1
 		i+=1
 
 	return blocks

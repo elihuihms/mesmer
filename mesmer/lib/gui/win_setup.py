@@ -58,15 +58,17 @@ class SetupWindow(tk.Frame):
 			self.close()
 
 	def setResultsPath(self):
-		tmp = tkFileDialog.askdirectory(title='Select Results Directory',mustexist=True,parent=self)
-		if(tmp != ''):
-			self.saveResults.set(tmp)
+		path = tkFileDialog.askdirectory(title='Select Results Folder',mustexist=True,parent=self,initialdir=self.prefs['last_open_dir'])
+		if(path != ''):
+			self.prefs['last_open_dir'] = path
+			self.saveResults.set(path)
 			self.saveResultsEntry.xview_moveto(1.0)
-			self.basedir = tmp
+			self.basedir = path
 
 	def addTargetFile(self):
-		tmp = tkFileDialog.askopenfilename(title='Select MESMER Target File:',multiple=False,parent=self)
+		tmp = tkFileDialog.askopenfilename(title='Select MESMER Target File:',multiple=False,parent=self,initialdir=self.prefs['last_open_dir'])
 		if(tmp != ''):
+			self.prefs['last_open_dir'] = os.path.dirname(tmp)
 			self.targetFilesList.insert(tk.END, os.path.relpath(tmp,self.basedir))
 		self.setButtonStates()
 
@@ -76,9 +78,10 @@ class SetupWindow(tk.Frame):
 		self.setButtonStates()
 
 	def addComponentDir(self):
-		tmp = tkFileDialog.askdirectory(title='Select directory containing MESMER components:',mustexist=True,parent=self)
-		if(tmp != ''):
-			self.componentFilesList.insert(tk.END, os.path.relpath(tmp,self.basedir))
+		path = tkFileDialog.askdirectory(title='Select folder containing MESMER components:',mustexist=True,parent=self,initialdir=self.prefs['last_open_dir'])
+		if(path != ''):
+			self.prefs['last_open_dir'] = os.path.dirname(path)
+			self.componentFilesList.insert(tk.END, os.path.relpath(path,self.basedir))
 		self.setButtonStates()
 
 	def delComponentDir(self):
@@ -371,11 +374,11 @@ class SetupWindow(tk.Frame):
 		self.saveResultsEntryTT 		= ToolTip(self.saveResultsEntry,	follow_mouse=0, text='The directory in which the results folder will be created')
 		self.targetFilesListTT 			= ToolTip(self.targetFilesList,		follow_mouse=0, text='Specify the target files to be used in the run.')
 		self.componentFilesListTT 		= ToolTip(self.componentFilesList,	follow_mouse=0, text='Specify the components or directories containing components to be used for the run')
-		self.setResultsPathButtonTT 	= ToolTip(self.setResultsPathButton,	follow_mouse=0, text='Set the directory where the results will be saved')
+		self.setResultsPathButtonTT 	= ToolTip(self.setResultsPathButton,	follow_mouse=0, text='Set the folder where the results will be saved')
 		self.addTargetButtonTT			= ToolTip(self.addTargetButton,	follow_mouse=0, text='Add a target file for fitting')
-		self.addComponentButtonTT		= ToolTip(self.addComponentButton, follow_mouse=0, text='Add a directory containing components')
+		self.addComponentButtonTT		= ToolTip(self.addComponentButton, follow_mouse=0, text='Add a folder containing MESMER components')
 		self.removeTargetButtonTT		= ToolTip(self.removeTargetButton,	follow_mouse=0, text='Remove the selected target')
-		self.removeComponentButtonTT	= ToolTip(self.removeComponentButton, follow_mouse=0, text='Remove the selected component directory')
+		self.removeComponentButtonTT	= ToolTip(self.removeComponentButton, follow_mouse=0, text='Remove the selected component folder')
 		self.ensembleSizeEntryTT		= ToolTip(self.ensembleSizeEntry,	follow_mouse=0, text='The number of components to be used per ensemble')
 		self.numEnsemblesEntryTT		= ToolTip(self.numEnsemblesEntry,	follow_mouse=0, text='The number of ensembles to be used during fitting')
 		self.gCrossFreqEntryTT			= ToolTip(self.gCrossFreqEntry,		follow_mouse=0, text='The frequency of crossing (exchanging components with other ensembles) 0-1')

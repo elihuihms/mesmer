@@ -1,4 +1,3 @@
-import re
 import random
 
 from exceptions			import *
@@ -61,7 +60,7 @@ class mesComponent:
 		for b in blocks:
 
 			if(b['type'] == 'NAME'):
-				self.name = re.split("\s+",b['header'])[1]
+				self.name = b['header'][1]
 				continue
 
 			for p in plugins:

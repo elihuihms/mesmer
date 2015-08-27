@@ -19,15 +19,15 @@ def startRun( w ):
 	args = makeMESMERArgsFromWindow(w) # w in this context is a SetupWindow
 	path = os.path.join(args.dir,args.name)
 	
-	if os.path.isdir(path) and os.listdir(path):
-		if tkMessageBox.askyesno('Warning',"Continuing will overwrite the existing \"%s\" folder, continue anyway?"%os.path.basename(path),parent=w):
+	if os.path.exists(path):
+		if tkMessageBox.askyesno('Warning',"Remove the existing MESMER results folder \"%s\" and its contents?"%os.path.basename(path),parent=w):
 			try:
 				shutil.rmtree(path)
-			except OSError:
-				tkMessageBox.showerror("Error","Couldn't remove existing folder \"%s\"" % path,parent=w)
-				return False
+			except OSError as e:
+				tkMessageBox.showerror("Error","Could not remove the folder \"%s\": %s" %(path,e),parent=w)
+				return
 		else:
-			return False
+			return
 
 	try:
 		argpath = os.path.join(args.dir,"%s_args.txt" % args.name)

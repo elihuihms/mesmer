@@ -1,4 +1,6 @@
+import os
 import sys
+import shutil
 import tkFileDialog
 
 from multiprocessing import cpu_count
@@ -20,6 +22,41 @@ def askOpenFilename(parent,title='',message='',**kwargs):
 		return tkFileDialog.askopenfilename(parent=parent,title=message,**kwargs)
 	else:
 		return tkFileDialog.askopenfilename(parent=parent,title=title,message=message,**kwargs)
+		
+def askNewDirectory(parent,**kwargs):
+	# different options for creating a new directory
+	
+	path = tkFileDialog.asksaveasfilename(parent=parent,**kwargs)
+	if path == '':
+		return ''
+		
+	if os.path.exists(path):
+		try:
+			shutil.rmtree(path)
+		except OSError as e:
+			tkMessageBox.showerror("Error","Could not remove \"%s\": %s" %(path,e),parent=parent)
+			return ''
+	try:
+		os.mkdir(path)
+	except OSError as e:
+		tkMessageBox.showerror("Error","Could not create \"%s\": %s" %(path,e),parent=parent)
+		return ''
+	
+#	path = tkFileDialog.askdirectory(parent=parent,**kwargs)
+#	if path == '':
+#		return
+#			
+#	if os.listdir(path):
+#		if tkMessageBox.askyesno('Warning',"Remove the existing folder \"%s\" and its contents?"%os.path.basename(path),parent=self):
+#			try:
+#				shutil.rmtree(path)
+#				os.mkdir(args.dir)
+#			except OSError as e:
+#				tkMessageBox.showerror("Error","Could not replace the folder \"%s\": %s" %(path,e),parent=self)
+#				return
+#		else:
+#			return
+	return path
 		
 def revealDirectory( dir ):
 	from subprocess import call

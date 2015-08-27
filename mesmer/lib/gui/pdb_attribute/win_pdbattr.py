@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 import tempfile
 
@@ -37,7 +38,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.Calculator = None
 	
 		try:
-			self.prefs = open_user_prefs(mode='r')
+			self.prefs = open_user_prefs()
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
@@ -63,7 +64,7 @@ class PDBAttributeWindow(tk.Frame):
 		self.pdbDirectoryEntry.grid(row=0,column=0,sticky=tk.W)
 		self.pdbDirectoryButton = tk.Button(self.pdb_frame,text='Set...',command=self.loadDirPDBs)
 		self.pdbDirectoryButton.grid(row=0,column=1,sticky=tk.W)
-		self.pdbDirectoryButtonTT = ToolTip(self.pdbDirectoryButton,follow_mouse=0,text='Set a directory containing PDBs to calculate attributes from.')
+		self.pdbDirectoryButtonTT = ToolTip(self.pdbDirectoryButton,follow_mouse=0,text='Set a folder containing PDBs to calculate attributes from.')
 		self.pdbDirectoryInfo = tk.Label(self.pdb_frame,text='Idle - No PDBs loaded.',font=self.infoFont)
 		self.pdbDirectoryInfo.grid(row=1,columnspan=2,sticky=tk.W)
 		
@@ -149,6 +150,8 @@ class PDBAttributeWindow(tk.Frame):
 		self.calc_Angle_Button.configure(default=tk.NORMAL)
 		self.calc_Dihedral_Button.configure(default=tk.NORMAL)
 		evt.widget.configure(default=tk.ACTIVE)
+		if sys.platform == 'win32':
+			evt.widget.configure(state=tk.ACTIVE)
 
 		self.calc_RMSD_frame.grid_forget()
 		self.calc_Rg_frame.grid_forget()
@@ -550,17 +553,18 @@ class PDBAttributeWindow(tk.Frame):
 	def loadDirPDBs(self,path=''):
 		"""Set the directory containing PDBs."""
 		if path == '':
-			path = tkFileDialog.askdirectory(title="Choose a directory containing PDBs:",parent=self)
+			path = tkFileDialog.askdirectory(title="Choose a folder containing PDBs:",parent=self,initialdir=self.prefs['last_open_dir'])
+			self.prefs['last_open_dir'] = os.path.dirname(path)
 		if path == '':
 			return
 	
-		self.pdbDirectoryInfo.config(text="Scanning directory...")
+		self.pdbDirectoryInfo.config(text="Scanning folder...")
 		self.update_idletasks()
 		self.pdbList = glob.glob(os.path.join(path,"*.pdb"))
 		self.pdbList.sort()
 		
 		if len(self.pdbList) == 0:
-			if tkMessageBox.askyesno("Empty","There are no readable PDBs in this directory. Try another?",parent=self):
+			if tkMessageBox.askyesno("Empty","There are no readable PDBs in this folder. Try another?",parent=self):
 				self.loadDirPDBs()
 			else:
 				self.pdbDirectoryInfo.config(text="Error.")
@@ -586,11 +590,12 @@ class PDBAttributeWindow(tk.Frame):
 		# @TODO@ Check loaded PDBs against selected table?
 		if path == '':
 			if new:
-				path = tkFileDialog.asksaveasfilename(title='Create new attribute table:',filetypes=[('Attr',"*.attr"),('Text',"*.txt"),('Table',"*.tbl")],initialfile="pdb_attributes.txt",parent=self)
+				path = tkFileDialog.asksaveasfilename(title='Create new attribute table:',filetypes=[('Attr',"*.attr"),('Text',"*.txt"),('Table',"*.tbl")],initialfile="pdb_attributes.txt",parent=self,initialdir=self.prefs['last_open_dir'])
 			else:
-				path = tkFileDialog.askopenfilename(title='Attribute table to append to:',filetypes=[('Attr',"*.attr"),('Text',"*.txt"),('Table',"*.tbl")],parent=self)
+				path = tkFileDialog.askopenfilename(title='Attribute table to append to:',filetypes=[('Attr',"*.attr"),('Text',"*.txt"),('Table',"*.tbl")],parent=self,initialdir=self.prefs['last_open_dir'])
 		if path == '':
 			return
+		self.prefs['last_open_dir'] = os.path.dirname(path)
 				
 		if new:
 			self.updateAttributeInfo("Creating table...")
@@ -617,7 +622,7 @@ class PDBAttributeWindow(tk.Frame):
 				return
 			
 			if rows != len(self.pdbList):
-				tkMessageBox.showerror("Error","The selected table does not have a corresponding number of entries for the provided PDB directory!",parent=self)
+				tkMessageBox.showerror("Error","The selected table does not have an equivalent number of entries as the provided PDB folder!",parent=self)
 				self.updateAttributeInfo("Error.")
 				return
 						
@@ -647,17 +652,18 @@ class PDBAttributeWindow(tk.Frame):
 		self.attributeFileEntry.xview_moveto(1.0)
 		self.updateCalculateButton()
 			
-	def setRMSDReference(self,tmp=''):
+	def setRMSDReference(self,path=''):
 		"""Sets the RMSD reference PDB.
 		
 		Args:
 			tmp (string): Path to an existing PDB. If not provided, prompts the user.
 		
 		Returns: None"""
-		if tmp == '':
-			tmp = tkFileDialog.askopenfilename(title='PDB coordinate file to use as a reference:',parent=self,filetypes=[('PDB',"*.pdb")])
-		if tmp == '':
+		if path == '':
+			path = tkFileDialog.askopenfilename(title='PDB coordinate file to use as a reference:',parent=self,filetypes=[('PDB',"*.pdb")],initialdir=self.prefs['last_open_dir'])
+		if path == '':
 			return
-		self.calc_RMSD_PDBPath.set(tmp)
+		self.prefs['last_open_dir'] = os.path.dirname(path)
+		self.calc_RMSD_PDBPath.set(path)
 		self.calc_RMSD_PDBEntry.xview_moveto(1.0)
 		self.updateCalculateButton()

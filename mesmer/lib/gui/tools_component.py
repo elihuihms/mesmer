@@ -13,6 +13,7 @@ from .. plugin_functions		import *
 from win_options				import *
 from win_status					import *
 from tools_plugin				import *
+from tools_general				import askNewDirectory
 from tools_multiprocessing		import PluginParallelizer
 
 _PDB_calculator_timer = 500 # in ms
@@ -49,27 +50,13 @@ NAME	$0
 		tkMessageBox.showerror("Error",e.msg,parent=w)
 		return False
 
-	tmp = tkFileDialog.asksaveasfilename(title='Save components folder:',parent=w,initialfile='components')
-	if(tmp == ''):
+	path = askNewDirectory(w,title='Select location to save components:',initialfile='components',initialdir=w.prefs['last_open_dir'])
+	if(path == ''):
 		return False
-		
-	if os.path.isdir(path) and os.listdir(path):
-		if tkMessageBox.askyesno('Warning',"Continuing will replace the existing \"%s\" folder, continue anyway?"%os.path.basename(path),parent=w):
-			try:
-				shutil.rmtree(path)
-			except OSError:
-				tkMessageBox.showerror("Error","Could not delete existing folder \"%s\"" % path,parent=w)
-				return False
-		else:
-			return False
+	w.prefs['last_open_dir'] = os.path.dirname(path)		
+	
 	try:
-		os.mkdir(tmp)
-	except OSError:
-		tkMessageBox.showerror("Error","Couldn't create component folder.",parent=w)
-		return False
-
-	try:
-		write_component_files( names, data_files, template, tmp )
+		write_component_files( names, data_files, template, path )
 	except ComponentGenException as e:
 		tkMessageBox.showerror("Error",e.msg,parent=w)
 		return False
@@ -112,26 +99,11 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	# save the modified preferences/options with a handy generator	
 	setPluginPrefs( w.prefs, plugin.name, options={o['dest']:o['value'] for k,o in options.iteritems()} )
 
-	path = tkFileDialog.askdirectory(title="Directory to save calculated data to:",parent=w)
-#	path = tkFileDialog.asksaveasfilename(title='Directory to save calculated data to:',parent=w, initialfile="%s_data" % (plugin.types[0]) )
+	path = askNewDirectory(w,title="Select location to save calculated data to:",initialfile='%s_data'%plugin.types[0],initialdir=w.prefs['last_open_dir'])
 	if(path == ''):
 		return
-		
-	if os.path.isdir(path) and os.listdir(path):
-		if tkMessageBox.askyesno('Warning',"Continuing will replace the existing \"%s\" folder, continue anyway?"%os.path.basename(path),parent=w):
-			try:
-				shutil.rmtree(path)
-			except OSError:
-				tkMessageBox.showerror("Error","Could not delete existing folder \"%s\"" % path,parent=w)
-				return
-		else:
-			return
-	try:
-		os.mkdir(path)
-	except:
-		tkMessageBox.showerror("Error","Could not create folder \"%s\"" % path,parent=w)
-		return
-	
+	w.prefs['last_open_dir'] = os.path.dirname(path)		
+
 	try:
 		ok = plugin.setup( w, options, path )
 	except (Exception,mesPluginError) as e:
@@ -142,7 +114,12 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 
 	# update the parent window row
 	for i in range(w.rowCounter):
-		if( w.widgetRowTypes[i].get() in plugin.types and w.widgetRowFolders[i].get() == '' ):
+		if w.widgetRowTypes[i].get() in plugin.types:
+			
+			# only if no data is already loaded, or we just have a placeholder
+			if w.widgetRowFolders[i].get() != '' and w.widgetRowFolders[i].get()[0] != '(':
+				continue
+		
 			w.widgetRowFolders[i].set( path )
 			w.widgetRowFolderEntries[i].xview_moveto(1.0)
 			break

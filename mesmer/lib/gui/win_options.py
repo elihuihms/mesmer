@@ -106,6 +106,8 @@ class OptionsWindow(tk.Frame):
 				break
 			if option['value'] in _OPTION_EMPTY_VALUES:
 				option['value'] = option['default']
+			if str(option['value']) == 'None':
+				option['value'] = ''
 
 			container = self.optionGroups[option['group']]
 			if len(container.winfo_children()) == 0: # group hasn't been placed in window yet

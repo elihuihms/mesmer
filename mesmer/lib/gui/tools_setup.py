@@ -5,9 +5,10 @@ import tkFileDialog
 from .. setup_functions	import parse_arguments
 
 def loadControlVarArgs(w):
-	tmp = tkFileDialog.askopenfilename(title='Select MESMER run config file:',parent=w)
+	tmp = tkFileDialog.askopenfilename(title='Select MESMER run config file:',parent=w,initialdir=w.prefs['last_open_dir'])
 	if(tmp == ''):
 		return
+	w.prefs['last_open_dir'] = os.path.dirname(tmp)
 	args = parse_arguments(["@%s"%(tmp)],w.prefs)
 	setControlVarsFromMESMERArgs(w, args)
 

@@ -98,7 +98,7 @@ class plugin( mesPluginDB ):
 		messages = []
 
 		try:
-			args = self.target_parser.parse_args(block['header'].split()[2:])
+			args = self.target_parser.parse_args(block['header'][2:])
 		except argparse.ArgumentError, exc:
 			raise mesPluginError("Argument error: %s" % exc.message())
 
@@ -160,7 +160,7 @@ class plugin( mesPluginDB ):
 		messages = []
 
 		try:
-			args = self.component_parser.parse_args(block['header'].split()[1:])
+			args = self.component_parser.parse_args(block['header'][1:])
 		except argparse.ArgumentError, exc:
 			raise mesPluginError("Argument error: %s" % exc.message())
 

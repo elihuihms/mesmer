@@ -92,31 +92,29 @@ def makeListFromOptions( options ):
 	return ret
 		
 def setOptionsFromBlock( options, block ):
-	header = block['header'].split()
-
 	for k,o in options.iteritems():
 
 		if(o['nargs'] == 0):
-			o['value'] = (o['option_strings'][0] in header[2:])
+			o['value'] = (o['option_strings'][0] in block['header'][2:])
 			continue
 
-		if( not o['option_strings'][0] in header[2:]):
+		if( not o['option_strings'][0] in block['header'][2:]):
 			continue
 		else:
-			i = header.index(o['option_strings'][0])+1
+			i = block['header'].index(o['option_strings'][0])+1
 
-		if(i > len(header)):
+		if(i > len(block['header'])):
 			raise Exception("Header to short to contain a value for key: %s" % o['dest'])
-		elif(header[i][0] == o['option_strings'][0][0]):
+		elif(block['header'][i][0] == o['option_strings'][0][0]):
 			raise Exception("Header missing a value for key: %s" % o['dest'])
 
 		if(o['nargs'] == None):
 			if(o['type'] == type(0)):
-				o['value'] = int( header[i] )
+				o['value'] = int( block['header'][i] )
 			elif(o['type'] == type(0.0)):
-				o['value'] = float( header[i] )
+				o['value'] = float( block['header'][i] )
 			else:
-				o['value'] = header[i]
+				o['value'] = block['header'][i]
 
 		else:
 			raise Exception("Encountered an option that could not be parsed properly: %s" % o['dest'])

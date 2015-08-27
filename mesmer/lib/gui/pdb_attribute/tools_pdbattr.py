@@ -32,9 +32,10 @@ def get_table_info(path):
 def rescue_attribute_table(w,fp):
 	if not tkMessageBox.askyesno("Rescue","Do you wish to save the calculated attribute column anyway?",parent=w):
 		return
-	tmp = tkFileDialog.asksaveasfilename(title='Save rescued attribute table as:',filetypes=[('Attr',"*.attr"),('Text',"*.txt"),('Table',"*.tbl")],initialfile="rescue.txt",parent=w)
+	tmp = tkFileDialog.asksaveasfilename(title='Save rescued attribute table as:',filetypes=[('Attr',"*.attr"),('Text',"*.txt"),('Table',"*.tbl")],initialfile="rescue.txt",parent=w,initialdir=w.prefs['last_open_dir'])
 	if(tmp == ''):
 		return
+	w.prefs['last_open_dir'] = os.path.dirname(tmp)
 
 	fp.seek(0)
 	try:
@@ -104,7 +105,6 @@ def insert_attribute_column(w,child_fp,col_title):
 		counter+=1
 
 		l = l.rstrip()
-		
 		if len(l) == 0:
 			break
 
@@ -128,20 +128,20 @@ def insert_attribute_column(w,child_fp,col_title):
 		_handle_error("Attribute table has missing or malformed column header!")
 		return
 	
-	# header will just be column names now
-	header.pop(0)
-		
-	if column_index > len(header):
-		_handle_error("Attribute table has the incorrect number of column headers!")
-		return
+	header.pop(0) # header will just be column names now
+	
+	if column_index == len(header):
+		header.append(col_title)
+		append = True
 	elif column_index < len(header):
 		header[column_index] = col_title
+		append = False
 	else:
-		header.append(col_title)
+		_handle_error("Attribute table has the incorrect number of column headers!")
+		return
 
-	# rewind the incoming file handle to the beginning
-	child_fp.seek(0)
-	
+	child_fp.seek(0) # rewind the incoming file handle
+
 	counter = 0
 	for l in child_fp:
 		counter+=1
@@ -156,12 +156,11 @@ def insert_attribute_column(w,child_fp,col_title):
 			return
 		else:
 			tmp = parent_db[name]
-			if column_index == len(header)-1: #because we've added a column header already
+			if append:
 				tmp.append(data)
 			else:
 				tmp[column_index] = data
-			parent_db[name] = tmp
-			parent_up[name] = True
+			parent_db[name],parent_up[name] = tmp,True
 
 	# check and make sure we've updated all the parent records	
 	for name in parent_up:

@@ -29,7 +29,7 @@ class plugin(guiCalcPlugin):
 		self.parser.add_argument('-Alpha',	type=float,	help='Alpha component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-Beta',	type=float,	help='Beta component of alignment tensor Euler angle',	required=True)
 		self.parser.add_argument('-Gamma',	type=float,	help='Gamma component of alignment tensor Euler angle',	required=True)
-		self.parser.add_argument('-template', metavar='FILE', help="Experimental PCS data template, in CYANA format", required=True)
+		self.parser.add_argument('-template', default='template.pcs', metavar='FILE', help="Experimental PCS data template, in CYANA format", required=True)
 
 	def setup(self, parent, options, outputpath):
 		self.outputpath	= outputpath

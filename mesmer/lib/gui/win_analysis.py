@@ -45,7 +45,7 @@ class AnalysisWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = open_user_prefs(mode='w')
+			self.prefs = open_user_prefs()
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
@@ -71,14 +71,16 @@ class AnalysisWindow(tk.Frame):
 			self.statusText.set('Aborted')
 
 	def setWorkFolder(self):
-		tmp = tkFileDialog.askdirectory(title='Select Results Directory',mustexist=True,parent=self)
+		tmp = tkFileDialog.askdirectory(title='Select Results Folder',mustexist=True,parent=self,initialdir=self.prefs['last_open_dir'])
 		if(tmp != ''):
+			self.prefs['last_open_dir'] = os.path.dirname(tmp)
 			openRunDir(self, tmp)
 			self.activeDirEntry.xview_moveto(1.0)
 
 	def setAttributeTable(self):
-		tmp = tkFileDialog.askopenfilename(title='Select PDB attribute table',parent=self)
+		tmp = tkFileDialog.askopenfilename(title='Select PDB attribute table',parent=self,initialdir=self.prefs['last_open_dir'])
 		if(tmp != ''):
+			self.prefs['last_open_dir'] = os.path.dirname(tmp)
 			self.attributeTable.set(tmp)
 			self.attributeTableEntry.xview_moveto(1.0)
 
@@ -250,8 +252,8 @@ class AnalysisWindow(tk.Frame):
 		self.cancelButton.grid(column=1,row=0,pady=(4,0))
 
 	def createToolTips(self):
-		self.activeDirEntryTT	= ToolTip(self.activeDirEntry,		follow_mouse=0,text='The current MESMER result directory')
-		self.activeDirButtonTT	= ToolTip(self.activeDirButton,		follow_mouse=0,text='Open a MESMER results output directory')
+		self.activeDirEntryTT	= ToolTip(self.activeDirEntry,		follow_mouse=0,text='The current MESMER result folder')
+		self.activeDirButtonTT	= ToolTip(self.activeDirButton,		follow_mouse=0,text='Open a MESMER results output folder')
 		self.statusTextEntryTT	= ToolTip(self.statusTextEntry,		follow_mouse=0,text='The current status of the MESMER run')
 		self.abortButtonTT		= ToolTip(self.abortButton,		follow_mouse=0,text='Abort a MESMER run in progress')
 		self.generationsListTT	= ToolTip(self.generationsList,		follow_mouse=0,text='The list of generations and minimum, average, and standard deviations of the ensemble fitnesses')

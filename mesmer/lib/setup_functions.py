@@ -134,7 +134,7 @@ def make_results_dir( args ):
 	if(oWrite):
 		print_msg("INFO:\tOverwriting old result directory \"%s\"." % (args.dir))
 		
-def open_user_prefs( mode='r' ):
+def open_user_prefs( mode='w' ):
 	from . import __version__ as base_version
 	from gui import __version__ as gui_version
 	import anydbm
@@ -180,4 +180,5 @@ def set_default_prefs( shelf ):
 	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
 	shelf['disabled_plugins'] = []
 	shelf['plugin_prefs'] = {}
+	shelf['last_open_dir'] = os.path.expanduser('~')
 	shelf.sync()

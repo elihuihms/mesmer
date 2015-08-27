@@ -1,3 +1,5 @@
+import os
+
 import tkMessageBox
 import tkFileDialog
 
@@ -32,6 +34,7 @@ def makeTargetFromWindow( w ):
 		type	= w.widgetRowTypes[i].get()
 		weight	= w.widgetRowWeights[i].get()
 		data	= extractDataFromFile( w.widgetRowFiles[i].get() )
+		comment	= os.path.basename( w.widgetRowFiles[i].get() )
 		if( data == None ):
 			return None
 
@@ -48,7 +51,7 @@ def makeTargetFromWindow( w ):
 		else:
 			type_counters[type]=0
 
-		text+="%s%i\t%f\t%s\n%s\n\n" % (type,type_counters[type],weight,opts,data)
+		text+="%s%i\t%f\t%s\t#%s\n%s\n\n" % (type,type_counters[type],weight,opts,comment,data)
 
 	name = w.targetName.get().replace(' ','_')
 	handle = tkFileDialog.asksaveasfile(defaultextension='.target',initialfile="%s.target"%(name),parent=w)

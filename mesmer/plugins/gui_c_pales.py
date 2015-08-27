@@ -23,7 +23,7 @@ class plugin(guiCalcPlugin):
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
 		self.parser.add_argument('-Model',	default='Wall',	choices=['Wall','Rod'],	help='Steric model, i.e. Bicelles (wall), Phage (rod)')
-		self.parser.add_argument('-template', metavar='FILE', help="Experimental RDC data template, in CYANA format", required=True)
+		self.parser.add_argument('-template', default='template.rdc', metavar='FILE', help="Experimental RDC data template, in CYANA format", required=True)
 
 		simulation = self.parser.add_argument_group("Simulation Parameters")
 		simulation.add_argument('-wv',		metavar="LC Conc.",		type=float,	default=0.05,	help="Liquid crystal concentration (mg/mL)")

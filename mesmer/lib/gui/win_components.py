@@ -37,7 +37,7 @@ class ComponentsWindow(tk.Frame):
 		self.Ready = False
 
 		try:
-			self.prefs = open_user_prefs(mode='w')
+			self.prefs = open_user_prefs()
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
@@ -47,12 +47,13 @@ class ComponentsWindow(tk.Frame):
 		self.target_plugin_types,self.target_plugin_options = getTargetPluginOptions(self.target_plugins,self.prefs)
 
 	def loadTarget(self):
-		tmp = tkMessageBox.askquestion("Load Target","Are you sure you would like to load an existing target as a template?\nThis will clear your current entries.", icon='warning',parent=self)
+		tmp = tkMessageBox.askquestion("Load Target","Are you sure you would like to load an existing target as a template?\nThis will reset your current restraint types.", icon='warning',parent=self)
 		if(tmp != 'yes'):
 			return
-		tmp = tkFileDialog.askopenfilename(title='Select target file:',parent=self)
+		tmp = tkFileDialog.askopenfilename(title='Select target file:',parent=self,initialdir=self.prefs['last_open_dir'])
 		if(tmp == ''):
 			return
+		self.prefs['last_open_dir'] = os.path.dirname(tmp)
 
 		blocks = get_input_blocks(tmp)
 		if(len(blocks)<2):
@@ -72,6 +73,7 @@ class ComponentsWindow(tk.Frame):
 			if type in available_types:
 				self.createWidgetRow()
 				self.widgetRowTypes[-1].set( type )
+				self.widgetRowFolders[-1].set( "(Data to match %s)"% b['comment'][1:] )
 			elif(type != 'NAME'):
 				tkMessageBox.showwarning("Unknown Type",'Target contains unknown data type (\"%s\").' % type,parent=self)
 
@@ -85,9 +87,10 @@ class ComponentsWindow(tk.Frame):
 		calcDataFromWindow(self, pdbs, pluginName)
 
 	def loadComponentPDBs(self):
-		tmp = tkFileDialog.askdirectory(title='Select folder containing PDBs:',mustexist=True,parent=self)
-		if(tmp != ''):
-			files = glob.glob(os.path.join(tmp,'*.pdb'))
+		path = tkFileDialog.askdirectory(title='Select folder containing PDBs:',mustexist=True,parent=self,initialdir=self.prefs['last_open_dir'])
+		if path != '':
+			self.prefs['last_open_dir'] = os.path.dirname(path)
+			files = glob.glob(os.path.join(path,'*.pdb'))
 			for f in files:
 				self.componentPDBsList.insert(tk.END, f)
 		self.setListStates()
@@ -129,13 +132,14 @@ class ComponentsWindow(tk.Frame):
 			self.clearComponentsButton.config(state=tk.DISABLED)
 
 	def attachDataFolder(self,evt):
-		tmp = tkFileDialog.askdirectory(title='Select folder containing calculated data:',mustexist=True,parent=self)
-		if(tmp == ''):
+		path = tkFileDialog.askdirectory(title='Select folder containing calculated data:',mustexist=True,parent=self,initialdir=self.prefs['last_open_dir'])
+		if(path == ''):
 			return
+		self.prefs['last_open_dir'] = os.path.dirname(path)
 		for (i,w) in enumerate(self.widgetRowFolderButtons):
 			if w == evt.widget:
 				break
-		self.widgetRowFolders[i].set(tmp)
+		self.widgetRowFolders[i].set(path)
 		self.widgetRowFolderEntries[i].xview_moveto(1.0)
 		self.updateWidgets()
 
@@ -278,7 +282,7 @@ class ComponentsWindow(tk.Frame):
 		self.delRowButtonTT			 	= ToolTip(self.delRowButton,			follow_mouse=0, text='Remove the selected attribute type')
 		self.calcDataMenuTT			 	= ToolTip(self.calcDataMenu,			follow_mouse=0, text='Calculate the selected attribute from the component PDBs')
 		self.openButtonTT			 	= ToolTip(self.openButton,				follow_mouse=0, text='Select a target to use as a template for the component attribute types')
-		self.saveButtonTT			 	= ToolTip(self.saveButton,				follow_mouse=0, text='Compile the components and save to a new component directory')
+		self.saveButtonTT			 	= ToolTip(self.saveButton,				follow_mouse=0, text='Compile the components and save to a new component folder')
 		self.cancelButtonTT			 	= ToolTip(self.cancelButton,			follow_mouse=0, text='Close this window without saving')
 		self.widgetRowCheckboxesTT = []
 		self.widgetRowTypeMenusTT = []

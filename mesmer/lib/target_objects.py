@@ -59,10 +59,8 @@ class mesTarget:
 		# find the plugin that handles this type of of data
 		for b in blocks:
 
-			header_array = re.split("\s+",b['header'])
-
 			if(b['type'] == 'NAME'):
-				self.name = header_array[1]
+				self.name = b['header'][1]
 				continue
 
 			for p in plugins:
@@ -75,13 +73,13 @@ class mesTarget:
 
 					# check that the scaling
 					try:
-						float(header_array[1])
+						weighting = float(b['header'][1])
 					except:
-						print_msg("ERROR:\tRestraint on line %i does not have a scaling value." % (b['l_start']))
+						print_msg("ERROR:\tRestraint on line %i does not have a weighting value." % (b['l_start']))
 						return False
 
 					# create a new restraint
-					restraint = mesRestraint(float(header_array[1]),b['type'])
+					restraint = mesRestraint(weighting, b['type'])
 
 					try:
 						messages = p.load_restraint( restraint, b, self.plugin_data[b['type']] )
@@ -91,7 +89,7 @@ class mesTarget:
 						return False
 
 					self.restraints.append(restraint)
-					print_msg("INFO:\tTarget file \"%s\" lines %i-%i - plugin \"%s\" created %.1fx weighted \"%s\" restraint." % (file,b['l_start'],b['l_end'],p.name,float(header_array[1]),b['type']))
+					print_msg("INFO:\tTarget file \"%s\" lines %i-%i - plugin \"%s\" created %.1fx weighted \"%s\" restraint." % (file,b['l_start'],b['l_end'],p.name,weighting,b['type']))
 					for m in messages:
 						print_msg("INFO:\tplugin \"%s\" reported: %s" % (p.name,m))
 

@@ -38,7 +38,7 @@ class TargetWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = open_user_prefs(mode='w')
+			self.prefs = open_user_prefs()
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()	
@@ -67,12 +67,14 @@ class TargetWindow(tk.Frame):
 		self.newWindow.wait_window(self.newWindow)
 
 	def loadTarget(self):
-		tmp = tkMessageBox.askquestion("Load Target","Are you sure you would like to load an existing target as a template?\nThis will clear your current entries.", icon='warning',parent=self)
+		tmp = tkMessageBox.askquestion("Load Target","Are you sure you would like to load an existing target as a template?\nThis will replace your existing restraint types.", icon='warning',parent=self)
 		if(tmp != 'yes'):
 			return
-		tmp = tkFileDialog.askopenfilename(title='Select target file:',parent=self)
+		tmp = tkFileDialog.askopenfilename(title='Select target file:',parent=self,initialdir=self.prefs['last_open_dir'])
 		if(tmp == ''):
 			return
+		self.prefs['last_open_dir'] = os.path.dirname(tmp)
+		
 		blocks = get_input_blocks(tmp)
 		if(len(blocks)<2):
 			return
@@ -88,21 +90,18 @@ class TargetWindow(tk.Frame):
 			available_types.extend(t)
 
 		for b in blocks:
-			type = b['type'][0:4]
-			header = b['header'].split()
-
-			if(type == 'NAME'):
+			if(b['type'][0:4] == 'NAME'):
 				self.targetName.set(header[1])
-			elif(type in available_types):
+			elif(b['type'][0:4] in available_types):
 				self.createWidgetRow()
 
 				# update the new row with the right type and options
-				self.widgetRowTypes[-1].set( type )
+				self.widgetRowTypes[-1].set( b['type'][0:4] )
 				self.widgetRowWeights[-1].set( header[1] )
 
 				# set the plugin options for this type of data from the block
 				for i in range(len(self.plugin_types)):
-					if( type in self.plugin_types[i] ):
+					if( b['type'][0:4] in self.plugin_types[i] ):
 						setOptionsFromBlock(self.widgetRowOptions[-1][i],b)
 
 	def updateWidgets(self, evt=None):
@@ -128,9 +127,11 @@ class TargetWindow(tk.Frame):
 						self.widgetRowOptButtons[i].config(state=tk.DISABLED)				
 					
 	def attachDataFile(self,evt):
-		tmp = tkFileDialog.askopenfilename(title='Select experimental datafile:',parent=self)
+		tmp = tkFileDialog.askopenfilename(title='Select experimental datafile:',parent=self,initialdir=self.prefs['last_open_dir'])
 		if(tmp == ''):
 			return
+		self.prefs['last_open_dir'] = os.path.dirname(tmp)
+		
 		for (i,w) in enumerate(self.widgetRowFileButtons):
 			if w == evt.widget:
 				break

@@ -31,7 +31,7 @@ class PluginWindow(tk.Frame):
 
 	def loadPrefs(self):
 		try:
-			self.prefs = open_user_prefs(mode='w')
+			self.prefs = open_user_prefs()
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()		
