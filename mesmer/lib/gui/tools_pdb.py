@@ -48,11 +48,18 @@ def makePDBs( w ):
 		return
 
 	name = "%05i_models.pdb" % w.currentSelection[0]
-	output = askNewDirectory(w,title='Select location to save generation models:',initialfile=name,initialdir=w.prefs['last_open_dir'])
-	if(not output):
-		return
-	w.prefs['last_open_dir'] = os.path.dirname(output)
+	output = tkFileDialog.asksaveasfilename(title='Select name and location to save generation models:',initialfile=name,parent=w)
+ 	if(not output):
+ 		return
 
+	if(os.path.exists(output) ):
+		try:
+			os.unlink(output)
+		except:
+			tkMessageBox.showerror("Error","Could not remove existing PDB",parent=w)
+			return
+	w.prefs['last_open_dir'] = os.path.dirname(output)
+	
 	if( w.prefs['mesmer_base_dir'] == '' ):
 		cmd = ['make_models']
 	else:
