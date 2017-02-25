@@ -174,7 +174,7 @@ def set_default_prefs( shelf ):
 	
 	shelf['base-version'] = base_version
 	shelf['gui-version'] = gui_version
-	shelf['mesmer_base_dir'] = ''
+	shelf['mesmer_base_dir'] = get_installation_dir()
 	shelf['mesmer_scratch'] = ''
 	shelf['cpu_count'] = multiprocessing.cpu_count()
 	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
@@ -182,3 +182,16 @@ def set_default_prefs( shelf ):
 	shelf['plugin_prefs'] = {}
 	shelf['last_open_dir'] = os.path.expanduser('~')
 	shelf.sync()
+	
+def get_installation_dir():
+	# @TODO@ check for frozen status
+
+	ret = os.path.abspath(os.path.dirname(__file__))
+	while True:
+		if os.access(os.path.join(ret,'mesmer.py'), os.R_OK) or os.access(os.path.join(ret,'mesmer.pyc'), os.R_OK):
+			return ret
+		else:
+			ret = os.path.dirname(ret)
+		
+		if ret == os.path.dirname(ret):
+			return None

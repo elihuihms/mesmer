@@ -65,7 +65,7 @@ def run():
 			else:
 				print("WARNING:\tPlugin \"%s\" failed to load: (%s).")			
 	except mesPluginError as e:
-		print "%s Perhaps the MESMER preferences are misconfigured?"%(e)
+		print "%s\nPerhaps the MESMER preferences are misconfigured?"%(e)
 		
 	# did the user request information about a plugin?
 	for p in plugins:

@@ -5,8 +5,7 @@ import Tkinter as tk
 import tkMessageBox
 
 from .. exceptions		import *
-from .. setup_functions	import open_user_prefs,set_default_prefs
-
+from .. setup_functions	import *
 from __init__			import __version__
 
 from tools_TkTooltip	import ToolTip
@@ -61,15 +60,14 @@ class MainWindow(tk.Frame):
 		
 		if( not self.prefs.has_key('mesmer_base_dir') ):
 			set_default_prefs(self.prefs)
-		
-		if( self.prefs['mesmer_base_dir'] == '' and not tryProgramCall('mesmer') ):
-			self.prefs['mesmer_base_dir'] = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-		elif( not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os.R_OK) ):
-			self.prefs['mesmer_base_dir'] = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-		
-		if( self.prefs['mesmer_base_dir'] != '' and not os.access(os.path.join(self.prefs['mesmer_base_dir'],'mesmer.py'), os.R_OK) ):
-			self.Ready = False
 				
+		if( self.prefs['mesmer_base_dir'] == '' and not tryProgramCall('mesmer') ):
+			self.prefs['mesmer_base_dir'] = get_installation_dir()
+
+		if self.prefs['mesmer_base_dir'] == None:
+			tkMessageBox.showerror("Error","Could not determine MESMER installation path.\n\nYou will need to set this manually in the MESMER configuration panel.",parent=self)
+			self.Ready = False
+							
 		self.prefs.close()
 
 	def createMenus(self):

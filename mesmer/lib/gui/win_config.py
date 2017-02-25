@@ -84,7 +84,7 @@ class ConfigWindow(tk.LabelFrame):
 		ok = True
 		if(self.mesmerPath.get() == ''):
 			if(not tryProgramCall('mesmer')):
-				tkMessageBox.showwarning("Warning","The MESMER executables are not available at the specified installation path.\nTry resetting the MESMER preferences?",parent=self)
+				tkMessageBox.showwarning("Warning","The MESMER executables are not available on the system path.\nTry resetting the MESMER preferences, or setting the MESMER installation path manually.",parent=self)
 				ok = False
 		elif(not os.access(os.path.join(self.mesmerPath.get(),'mesmer.py'), os.R_OK)):
 			tkMessageBox.showwarning("Warning","MESMER executables are not installed in this directory.",parent=self)
