@@ -1,15 +1,17 @@
 import os
 import sys
 import shutil
+import tempfile
 import tkFileDialog
 
 from multiprocessing import cpu_count
 
-def tryProgramCall( program ):
-	from subprocess		import Popen,PIPE
-
+def tryProgramCall( program, args=[] ):
+	from subprocess	import Popen,PIPE
+	from tempfile	import mkdtemp
+	
 	try:
-		pHandle = Popen( program, stdout=PIPE, stderr=PIPE )
+		pHandle = Popen( [program]+args, cwd=mkdtemp(), stdout=PIPE, stderr=PIPE )
 	except OSError as e:
 		return False
 
