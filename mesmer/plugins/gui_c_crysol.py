@@ -49,12 +49,12 @@ class plugin(guiCalcPlugin):
 				raise e
 		
 		# check crysol version
-		def vsplit(v):
-			return tuple(map(int,(v.split('.'))))
-				
-		crysol_version = output.strip().split()[1][1:]
-		if vsplit(crysol_version) < vsplit('2.8.0'):
-			raise mesPluginError("Installed crysol version %s is too old, MESMER requires at least version 2.8.0"%(crysol_version))
+#		def vsplit(v):
+#			return tuple(map(int,(v.split('.'))))
+#				
+#		crysol_version = output.strip().split()[1][1:]
+#		if vsplit(crysol_version) < vsplit('2.8.0'):
+#			raise mesPluginError("Installed crysol version %s is too old, MESMER requires at least version 2.8.0"%(crysol_version))
 				
 		return True
 		
