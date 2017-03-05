@@ -1,0 +1,12 @@
+include *.txt
+include mesmer/plugins/pyParaTools/*.txt
+
+recursive-include mesmer/lib/gui *.gif
+
+prune docs
+prune test
+prune dist
+
+exclude package.py
+global-exclude __pycache__
+global-exclude *.py[co]
