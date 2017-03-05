@@ -26,13 +26,15 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'SAXS - FoXS'
-		self.version = '1.0.1'
+		self.version = '1.0.2'
 		self.types = ('SAXS',)
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
-		self.parser.add_argument('-qmin',	metavar='Min q',	type=float,	default=0.0,	help='Minimum scattering angle')
-		self.parser.add_argument('-qmax',	metavar='Max q',	type=float,	default=0.5,	help='Maximum scattering angle')
-		self.parser.add_argument('-qnum',	metavar="q Points",	type=int,	default=100,	help='Total points in the scattering profile')
+		#self.parser.add_argument('-qmin',	metavar='Min q',	type=float,	default=0.0,	help='Minimum scattering angle')
+		#self.parser.add_argument('-qmax',	metavar='Max q',	type=float,	default=0.5,	help='Maximum scattering angle')
+		#self.parser.add_argument('-qnum',	metavar="q Points",	type=int,	default=100,	help='Total points in the scattering profile')
+		self.parser.add_argument('-q',	metavar='Max q',	type=float,	default=0.5,	help='Maximum scattering angle')
+		self.parser.add_argument('-s',	metavar="Points",	type=int,	default=100,	help='Total points in the scattering profile')
 		
 		if IMP != None:
 			self.info = 'This plugin uses the Integrative Modeling Platform (see http://salilab.org/imp) to predict SAXS profiles from PDBs.'
@@ -42,7 +44,8 @@ class plugin(guiCalcPlugin):
 			self.path = 'foxs'
 
 	def setup(self, parent, options, outputpath):
-		self.args		= self.parser.parse_args( makeListFromOptions(options) )
+		self.options	= options
+		self.args		= self.parser.parse_args( makeListFromOptions(self.options) )
 		self.outputpath	= outputpath
 		
 		# initialize some IMP objects
@@ -72,7 +75,8 @@ class plugin(guiCalcPlugin):
 		mp = IMP.atom.read_pdb( pdb, self.IMP_model, IMP.atom.NonWaterNonHydrogenPDBSelector(), True, True )
 		
 		particles = IMP.atom.get_by_type(mp, IMP.atom.ATOM_TYPE )
-		profile = IMP.saxs.Profile( self.args.qmin, self.args.qmax, (self.args.qmax - self.args.qmin) / self.args.qnum )
+#		profile = IMP.saxs.Profile( self.args.qmin, self.args.qmax, (self.args.qmax - self.args.qmin) / self.args.qnum )
+		profile = IMP.saxs.Profile( 0.0, self.args.q, (self.args.q - 0.0) / self.args.s )
 		
 		if( self.args.water ):
 			ft = IMP.saxs.get_default_form_factor_table()

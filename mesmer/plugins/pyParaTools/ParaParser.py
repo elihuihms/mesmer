@@ -855,7 +855,7 @@ class RDCParser(ParaParser):
                 if (c_res == res) and (at2 == c_at):
                     c2 = atom.get_coord()
 
-                if (c1 != None) and (c2 != None):
+                if (c1 != None) and (c2 != None): # comparison to None will result in an elementwise object comparison in the future
                     pDList.append(RDCData(at1, int(res), exp, tol, c1, at2 ,c2))
                     c1, c2 = None, None
 
