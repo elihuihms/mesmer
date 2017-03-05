@@ -3,7 +3,6 @@ import argparse
 import Tkinter as tk
 import tkFileDialog
 
-from tools_general	import askOpenFilename
 from tools_TkTooltip import ToolTip
 
 # Argument groups to not show in the window
@@ -65,7 +64,7 @@ class OptionsWindow(tk.Frame):
 		for i,b in enumerate(self.optionEntries):
 			if b == evt.widget:
 				break
-		tmp = askOpenFilename(parent=self.master,title=self.options[self.option_keys[i]]['dest'],message=self.options[self.option_keys[i]]['help'])
+		tmp = tkFileDialog.askopenfilename(parent=self.master,title=self.options[self.option_keys[i]]['dest'])
 		self.optionValues[i].set(tmp)
 		self.optionEntries[i].config(text=os.path.basename(tmp))
 				

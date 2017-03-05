@@ -16,14 +16,6 @@ def tryProgramCall( program, args=[] ):
 		return False
 
 	return True
-
-def askOpenFilename(parent,title='',message='',**kwargs):
-	if sys.platform == 'darwin':
-		return tkFileDialog.askopenfilename(parent=parent,title=title,message=message,**kwargs)
-	elif sys.platform == 'win32':
-		return tkFileDialog.askopenfilename(parent=parent,title=message,**kwargs)
-	else:
-		return tkFileDialog.askopenfilename(parent=parent,title=title,message=message,**kwargs)
 		
 def askNewDirectory(parent,**kwargs):
 	# different options for creating a new directory
