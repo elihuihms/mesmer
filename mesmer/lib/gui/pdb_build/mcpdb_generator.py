@@ -24,9 +24,9 @@ class PDBGenerator(guiCalcPlugin):
 		self.linkers = self.model.get_linker_phipsi()
 
 		if self.use_rama:
-			rama.seed( int(time.time()*1000) )
+			rama.seed( int(time.time()) )
 		else:
-			random.seed( int(time.time()*1000) )
+			random.seed( int(time.time()) )
 		
 	def calculate(self, index):
 		while True:
