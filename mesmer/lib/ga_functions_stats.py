@@ -1,4 +1,5 @@
 import copy
+import random
 
 from operator			import itemgetter
 
@@ -195,7 +196,7 @@ def get_best_ensembles( args, targets, parents, offspring ):
 	(best_scored,stats)
 	"""
 
-	# calculate total fitness values for each population
+	# calculate total fitness values for each population, parent and offspring
 	p_scores = calculate_fitnesses( targets, parents )
 	o_scores = calculate_fitnesses( targets, offspring )
 
@@ -203,17 +204,24 @@ def get_best_ensembles( args, targets, parents, offspring ):
 	scores = []
 
 	for i in range( args.ensembles ):
-		scores.append( [i, 0.0] )
+		scores.append( [i, 0.0, 0.0] ) # third value will contain fuzzy value ensemble tolerance
 		for t in targets:
 			scores[-1][1] += p_scores[t.name][i]
+		scores[-1][2] = scores[-1][1]
 
 	for i in range( args.ensembles ):
-		scores.append( [i +args.ensembles, 0.0] )
+		scores.append( [i +args.ensembles, 0.0, 0.0] )
 		for t in targets:
 			scores[-1][1] += o_scores[t.name][i]
+		scores[-1][2] = scores[-1][1]
+	
+	score_min = min(zip(*scores)[1])
+	if args.Gtolerance > 0: # add a small amount of variation to generate "fuzzy" tolerance during sorting
+		for i in range( args.ensembles*2 ):
+			scores[i][2] += scores[i][1] + (score_min * args.Gtolerance * random.random())
 
 	# sort the array by the fitness scores
-	sorted_scores = sorted(scores, key=itemgetter(1))
+	sorted_scores = sorted(scores, key=itemgetter(2))
 
 	# keep track of per-target scores as well
 	target_scores = {}
@@ -221,10 +229,11 @@ def get_best_ensembles( args, targets, parents, offspring ):
 		target_scores[t.name] = []
 
 	# select only the 1/2 best scoring from the combined parent and offspring ensembles for the next step
-	best_scored, total_scores = [], []
+	best_scored, total_scores, fuzzy_scores = [], [], []
 	counter = 0
-	for (i, (key,score) ) in enumerate(sorted_scores):
+	for (i, (key,score,fuzzy) ) in enumerate(sorted_scores):
 		total_scores.append( score )
+		fuzzy_scores.append( fuzzy )
 
 		if( key < args.ensembles ):
 			best_scored.append( parents[key] )

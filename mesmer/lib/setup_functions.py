@@ -48,6 +48,7 @@ def parse_arguments(args=None,prefs=None):
 	group2.add_argument('-Gcross',		action='store',		default=0.8,	type=float,		metavar='0.8',	help='Ensemble component crossing frequency')
 	group2.add_argument('-Gmutate',		action='store',		default=1.0,	type=float,		metavar='1.0',	help='Ensemble component mutation frequency')
 	group2.add_argument('-Gsource',		action='store',		default=0.1,	type=float,		metavar='0.1',	help='Ensemble component mutation source frequency')
+	group2.add_argument('-Gtolerance',	action='store',		default=0.0,	type=float,		metavar='0.0',	help='Tolerance in ensemble fitness to use during down-selection')
 
 	group3 = parser.add_argument_group('Variable component ratio parameters')
 	group3.add_argument('-Rforce'	,	action='store_true',default=False,									help='Force ensemble ratio reoptimization at every generation.')
@@ -92,6 +93,10 @@ def parse_arguments(args=None,prefs=None):
 	# argument error checking and defaults
 	if (ret.Rn < 0):
 		ret.Rn = ret.size * 10
+		
+	#if (ret.Gtolerance > ret.Smin):
+	#	print "INFO:\tGtolerance is greater than Smin, setting to Smin."
+	#	ret.Gtolerance = ret.Smin
 
 	return ret
 
@@ -134,7 +139,7 @@ def make_results_dir( args ):
 	if(oWrite):
 		print_msg("INFO:\tOverwriting old result directory \"%s\"." % (args.dir))
 		
-def open_user_prefs( mode='w' ):
+def open_user_prefs( mode='w', reset=False ):
 	from . import __version__ as base_version
 	from gui import __version__ as gui_version
 	import anydbm
@@ -146,8 +151,8 @@ def open_user_prefs( mode='w' ):
 	except anydbm.error as e:
 		raise mesSetupError(str(e))
 	
-	def update_prefs( shelf ):
-		set_default_prefs( shelf )		
+	if reset:
+		set_default_prefs( shelf )	
 		shelf.sync()
 	
 	if 'base-version' not in shelf or 'gui-version' not in shelf:
@@ -159,11 +164,11 @@ def open_user_prefs( mode='w' ):
 		return tuple(map(int,(v.split('.'))))
 	
 	if vsplit(shelf['base-version']) < vsplit(base_version):
-		print_msg("INFO:\tUpdating MESMER preferences file."%path)
+		print_msg("INFO:\tUpdating MESMER preferences file.")
 		set_default_prefs( shelf )
 		
 	if vsplit(shelf['gui-version']) < vsplit(gui_version):
-		print_msg("INFO:\tUpdating MESMER preferences file."%path)
+		print_msg("INFO:\tUpdating MESMER preferences file.")
 		set_default_prefs( shelf )
 	
 	return shelf
