@@ -31,7 +31,7 @@ __author_email__	= u'mail@steelsnowflake.com'
 __url__				= u'https://github.com/steelsnowflake/mesmer/'
 __download_url__	= u'http://steelsnowflake.com/downloads/?t=mesmer'
 __description__		= u'MESMER: Minimal Ensembles Solutions to Multiple Experimental Restraints'
-__copyright__		= """Copyright (C) 2015 SteelSnowflake Software, LLC
+__copyright__		= """Copyright (C) 2017 SteelSnowflake Software, LLC
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License version 2 as published by the Free Software Foundation.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.

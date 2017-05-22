@@ -51,7 +51,8 @@ def startRun( w ):
 
 	time.sleep(1) # sleep a second to catch any MESMER argument parsing errors
 	if(pHandle.poll() != None):
-		tkMessageBox.showerror("Error","Error starting a MESMER run.\nError:\n%s" % pHandle.stdout.read(),parent=w)
+		tkMessageBox.showerror("Error","Error starting a MESMER run.\nInformation written to \"error_log.txt\" in the output folder.", parent=w)
+		writeToErrorLog( path, pHandle.stdout.read() )
 		return False
 
 	# create analysis window, attach to original MainWindow, w.parent = MainWindow
@@ -59,6 +60,11 @@ def startRun( w ):
 	w.parent.windows.append( AnalysisWindow(w.parent.masters[-1],os.path.join(args.dir,args.name),pHandle) )
 
 	return True # tell setup window to close down now
+	
+def writeToErrorLog( path, text, filename="error_log.txt", mode="a" ):
+	f = open( os.path.join(path,filename), mode )
+	f.write(text)
+	f.close()
 
 def connectToRun( w, path, pHandle ):
 

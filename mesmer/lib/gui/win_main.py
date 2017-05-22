@@ -67,7 +67,7 @@ class MainWindow(tk.Frame):
 		if self.prefs['mesmer_base_dir'] == None:
 			tkMessageBox.showerror("Error","Could not determine MESMER installation path.\n\nYou will need to set this manually in the MESMER configuration panel.",parent=self)
 			self.Ready = False
-							
+			
 		self.prefs.close()
 
 	def createMenus(self):
@@ -101,18 +101,21 @@ class MainWindow(tk.Frame):
 		self.topMenu.add_cascade(label="File", menu=self.fileMenu)
 		self.topMenu.add_cascade(label="Actions", menu=self.actionMenu)
 		self.topMenu.add_cascade(label="Tools", menu=self.toolsMenu)
-
-		self.master.bind_all("<Control-q>", lambda a: sys.exit(0) )
-		self.master.bind_all("<Control-t>", lambda a: self.makeTarget() )
-		self.master.bind_all("<Control-k>", lambda a: self.makeComponents() )
-		self.master.bind_all("<Control-r>", lambda a: self.setupMESMER() )
-		self.master.bind_all("<Control-y>", lambda a: self.openAnalysis() )
-		self.master.bind_all("<Command-q>", lambda a: sys.exit(0) )
-		self.master.bind_all("<Command-t>", lambda a: self.makeTarget() )
-		self.master.bind_all("<Command-k>", lambda a: self.makeComponents() )
-		self.master.bind_all("<Command-r>", lambda a: self.setupMESMER() )
-		self.master.bind_all("<Command-y>", lambda a: self.openAnalysis() )
-
+	
+		# menu accelerator behavior is inconsistent, attach key bindings as well
+		if sys.platform == 'darwin':
+			self.master.bind_all("<Command-q>", lambda a: sys.exit(0) )
+			self.master.bind_all("<Command-t>", lambda a: self.makeTarget() )
+			self.master.bind_all("<Command-k>", lambda a: self.makeComponents() )
+			self.master.bind_all("<Command-r>", lambda a: self.setupMESMER() )
+			self.master.bind_all("<Command-y>", lambda a: self.openAnalysis() )
+		else:
+			self.master.bind_all("<Control-q>", lambda a: sys.exit(0) )
+			self.master.bind_all("<Control-t>", lambda a: self.makeTarget() )
+			self.master.bind_all("<Control-k>", lambda a: self.makeComponents() )
+			self.master.bind_all("<Control-r>", lambda a: self.setupMESMER() )
+			self.master.bind_all("<Control-y>", lambda a: self.openAnalysis() )
+		
 	def close(self, returncode=0):
 		self.master.destroy()
 		sys.exit(returncode)
