@@ -26,7 +26,7 @@ class plugin(guiCalcPlugin):
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'SAXS - FoXS'
-		self.version = '1.0.2'
+		self.version = '1.0.3'
 		self.types = ('SAXS',)
 
 		self.parser = argparse.ArgumentParser(prog=self.name)
@@ -38,7 +38,6 @@ class plugin(guiCalcPlugin):
 		
 		if IMP != None:
 			self.info = 'This plugin uses the Integrative Modeling Platform (see http://salilab.org/imp) to predict SAXS profiles from PDBs.'
-			self.parser.add_argument('-water',	action='store_true',	default=True,			help='Use hydration layer') # there's a bug in FoXS that may cause a crash with this option 
 		else:
 			self.info = 'This plugin uses the external program FoXS (see http://salilab.org/imp) to predict SAXS profiles from PDBs.'
 			self.path = 'foxs'
@@ -50,8 +49,12 @@ class plugin(guiCalcPlugin):
 		
 		# initialize some IMP objects
 		if IMP:
-			self.IMP_model	= IMP.kernel.Model()
-			self.IMP_sas	= IMP.saxs.SolventAccessibleSurface()
+			v = IMP.__version__
+			vv = v.split(".")
+			if vv[0] < 2 or (vv[0]==2 and vv[1] < 5):
+				raise mesPluginError("Installed version of IMP (%s) is incompatible with this plugin."%(v))
+			
+			self.IMP_model	= IMP.Model()
 		else:
 			try:
 				sub = subprocess.Popen([self.path,'--version'], stdout=subprocess.PIPE)
@@ -72,23 +75,15 @@ class plugin(guiCalcPlugin):
 			return self.calculate_FoXS(pdb)
 
 	def calculate_IMP(self, pdb):
-		mp = IMP.atom.read_pdb( pdb, self.IMP_model, IMP.atom.NonWaterNonHydrogenPDBSelector(), True, True )
+		mp = IMP.atom.read_pdb( pdb, self.IMP_model, IMP.atom.NonWaterNonHydrogenPDBSelector() )
 		
 		particles = IMP.atom.get_by_type(mp, IMP.atom.ATOM_TYPE )
-#		profile = IMP.saxs.Profile( self.args.qmin, self.args.qmax, (self.args.qmax - self.args.qmin) / self.args.qnum )
-		profile = IMP.saxs.Profile( 0.0, self.args.q, (self.args.q - 0.0) / self.args.s )
 		
-		if( self.args.water ):
-			ft = IMP.saxs.get_default_form_factor_table()
-			for i in range(0, len(particles) ):
-				radius = ft.get_radius(particles[i])
-				IMP.core.XYZR.setup_particle(particles[i], radius)
-			profile.calculate_profile_partial( particles, self.IMP_sas.get_solvent_accessibility(IMP.core.XYZRs(particles)) )
-		else:
-			profile.calculate_profile( particles )
+		profile = IMP.saxs.Profile( 0.0, self.args.q, self.args.q / self.args.s )
+		profile.calculate_profile( particles )
 		
 		out = os.path.join(self.outputpath, "%s.dat" % (os.path.splitext(os.path.basename(pdb))[0]))
-		profile.write_SAXS_file( out, self.args.qmax )
+		profile.write_SAXS_file( out )
 		
 		return True,(pdb,None)
 		
