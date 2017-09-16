@@ -293,40 +293,27 @@ class TransformationModel():
 
 class ModelEvaluator():
 
-	def __init__(self, model, clash_radius=3.6, CA_only=True, clash_cutoff=0):
+	def __init__(self, model, clash_radius=3.6, CA_only=True, clash_cutoff=0, KD_bucket_size=10):
 		self.model			= model.model
 		self.clash_radius	= clash_radius
 		self.clash_cutoff	= clash_cutoff
-
-		self.atoms = []
-		for a in self.model.get_atoms():
-			if CA_only and a.name=='CA':
-				self.atoms.append(a)
-			elif not CA_only:
-				self.atoms.append(a)
-
-		self.natoms = len(self.atoms)
-		return
-
+		self.CA_only		= CA_only
+		self.KD_bucket_size	= KD_bucket_size
+		
 	def check(self):
-		clash_counter = 0
-		for i in xrange(self.natoms):
-			for j in xrange(i+1,self.natoms):
-				if self.atoms[i]-self.atoms[j] < self.clash_radius:
-					clash_counter += 1
-				
-				if clash_counter > self.clash_cutoff:
-					return False
-
+		if self.count_clashes() > self.clash_cutoff:
+			return False
 		return True
 
 	def count_clashes(self):
-		c = 0
-		for i in xrange(self.natoms):
-			for j in xrange(i+1,self.natoms):
-				if self.atoms[i]-self.atoms[j] < self.clash_radius:
-					c+=1
-		return c
+		atoms = []
+		for a in self.model.get_atoms():
+			if self.CA_only and a.name=='CA':
+				atoms.append(a)
+			elif not self.CA_only:
+				atoms.append(a)
+		ns = NeighborSearch(atoms, bucket_size=self.KD_bucket_size)
+		return len(ns.search_all(self.clash_radius, level="A"))
 
 
 
