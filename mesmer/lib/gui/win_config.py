@@ -52,9 +52,9 @@ class ConfigWindow(tk.LabelFrame):
 		
 	def resetPrefs(self):
 		self.prefs = open_user_prefs( mode='c' )
-		set_default_prefs( self.prefs )		
-		self.mesmerPath.set( os.getcwd() )
+		set_default_prefs( self.prefs )
 		self.savePrefs()
+		self.setVars()
 
 	def setVars(self):
 		if(self.prefs.has_key('mesmer_base_dir')):
