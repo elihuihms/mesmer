@@ -40,7 +40,13 @@ def startRun( w ):
 	# fire up MESMER and get the process handle
 	cmd = ['mesmer']
 	if( w.prefs['mesmer_base_dir'] != '' ):
-		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'mesmer.py')]
+		if os.path.exists( os.path.join(w.prefs['mesmer_base_dir'],'mesmer_cli.pyc') ):
+			cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'mesmer_cli.pyc')]
+		elif os.path.exists( os.path.join(w.prefs['mesmer_base_dir'],'mesmer_cli.py') ):
+			cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'mesmer_cli.py')]
+		else:
+			tkMessageBox.showerror("Error","The MESMER command-line application was not found in the base directory.\n\nCheck your preferences in the configuration window.",parent=w)
+			return False
 	cmd.append("@%s" % argpath)
 
 	try:

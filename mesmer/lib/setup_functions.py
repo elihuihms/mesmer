@@ -170,7 +170,14 @@ def open_user_prefs( mode='w', reset=False ):
 	if vsplit(shelf['gui-version']) < vsplit(gui_version):
 		print_msg("INFO:\tUpdating MESMER preferences file.")
 		set_default_prefs( shelf )
-	
+		
+	if shelf['mesmer_base_dir'] != get_installation_dir():
+		if getattr(sys, 'frozen', False):
+			print_msg("INFO:\tRunning from a frozen bundle, updating MESMER preferences file.")
+		else:
+			print_msg("INFO:\tInstallation directory has changed, updating MESMER preferences file.")
+		set_default_prefs( shelf )
+		
 	return shelf
 	
 def set_default_prefs( shelf ):
@@ -186,17 +193,22 @@ def set_default_prefs( shelf ):
 	shelf['disabled_plugins'] = []
 	shelf['plugin_prefs'] = {}
 	shelf['last_open_dir'] = os.path.expanduser('~')
+	shelf['interpreter'] = get_interpreter()
 	shelf.sync()
 	
 def get_installation_dir():
-	# @TODO@ check for frozen status
+	if getattr(sys, 'frozen', False):
+		pass # nothing special at the moment
 
-	ret = os.path.abspath(os.path.dirname(__file__))
-	while True:
-		if os.access(os.path.join(ret,'mesmer.py'), os.R_OK) or os.access(os.path.join(ret,'mesmer.pyc'), os.R_OK):
-			return ret
-		else:
-			ret = os.path.dirname(ret)
+	ret = os.path.abspath(__file__) # setup_functions.py
+	ret = os.path.dirname(ret) # lib
+	ret = os.path.dirname(ret) # mesmer
+	if os.access(os.path.join(ret,'mesmer_cli.py'), os.R_OK) or os.access(os.path.join(ret,'mesmer_cli.pyc'), os.R_OK):
+		return ret
+	else:
+		raise mesSetupError("ERROR:\tCouldn't determine MESMER installation directory.")
+			
+def get_interpreter():
+	# doesn't do anything at the moment because it doesn't need to. We handle overwriting of the sys.executable prior
+	return sys.executable
 		
-		if ret == os.path.dirname(ret):
-			return None

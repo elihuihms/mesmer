@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # MESMER - Minimal Ensemble Solutions to Multiple Experimental Restraints
-# Copyright (C) 2015 SteelSnowflake Software LLC
+# Copyright (C) 2017 SteelSnowflake Software LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -46,10 +46,6 @@ def run():
 	except mesSetupError as e:
 		print "ERROR:\tCannot read or create MESMER preferences file: %s"%(e)
 		sys.exit(1)
-	
-	if prefs['mesmer_base_dir'] == '':
-		prefs['mesmer_base_dir'] = os.path.abspath(os.path.dirname(__file__))
-		prefs.sync()
 		
 	print "INFO:\tMESMER installation path is \"%s\"."%(prefs['mesmer_base_dir'])
 	
@@ -63,7 +59,7 @@ def run():
 			if ok:
 				plugins.append( module )
 			else:
-				print("WARNING:\tPlugin \"%s\" failed to load: (%s).")			
+				print("WARNING:\tPlugin \"%s\" failed to load: (%s)."%(id,msg))			
 	except mesPluginError as e:
 		print "%s\nPerhaps the MESMER preferences are misconfigured?"%(e)
 		
@@ -86,7 +82,7 @@ def run():
 
 	# print information about the MESMER environment to the log file
 	print_msg("Environment:")
-	print_msg("\tmesmer-base\t:\t%s"%(__version__))
+	print_msg("\tmesmer-cli\t:\t%s"%(__version__))
 	print_msg("\tmesmer-gui\t:\t%s"%(__gui_version__))
 	for p in plugins:
 		print_msg("\t%s\t:\t%s"%(p.name,p.version))
