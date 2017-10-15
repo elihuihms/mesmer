@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # MESMER - Minimal Ensemble Solutions to Multiple Experimental Restraints
-# Copyright (C) 2015 SteelSnowflake Software LLC
+# Copyright (C) 2017 SteelSnowflake Software LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,9 @@
 import os
 import sys
 
+from lib.exceptions			import *
+from lib.setup_functions	import open_user_prefs
+
 def run():
 	
 	try:
@@ -27,28 +30,26 @@ def run():
 		import tkMessageBox
 	except ImportError:
 		print "The MESMER GUI requires the Tk/Tcl library."
-		sys.exit()
+		sys.exit(1)
 
 	if( sys.version_info < (2,6) ):
 		tkMessageBox.showerror("Error","Python version must be 2.6 or greater")
-		sys.exit()
+		sys.exit(1)
 
-	if getattr(sys, 'frozen', False):
-		from lib.setup_functions import open_user_prefs,set_default_prefs
-		
-		try:
-			shelf = open_user_prefs( mode='c' )
-			shelf['mesmer_base_dir'] = os.path.abspath(os.path.dirname(__file__))
-			shelf.close()
-		except:
-			tkMessageBox.showerror("Error","Could not update MESMER preferences file. Perhaps your user folder is read-only?")
-			sys.exit()
+	try:
+		shelf = open_user_prefs( mode='c' )
+	except mesSetupError as e:
+		tkMessageBox.showerror("Error","Error loading MESMER preferences: %s"%(e))
+		sys.exit(1)
+	except:
+		tkMessageBox.showerror("Error","Could not update MESMER preferences file. Perhaps your user folder is read-only?")
+		sys.exit(1)
 		
 	try:
 		from lib.gui.win_main import MainWindow
 	except ImportError as e:
 		tkMessageBox.showerror("Error","Error loading MESMER: %s" % (e))
-		sys.exit()
+		sys.exit(1)
 
 	root = tk.Tk()
 	if sys.platform == 'darwin':
@@ -56,6 +57,8 @@ def run():
 	
 	app = MainWindow(root)	
 	app.mainloop()
+	
+	sys.exit(0)
 
 if( __name__ == "__main__" ):
 	run()
