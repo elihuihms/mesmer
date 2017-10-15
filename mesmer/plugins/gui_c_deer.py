@@ -4,9 +4,8 @@ import shutil
 import sys
 import Bio.PDB
 
-from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_plugin	import makeListFromOptions
-
+from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
+from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 from gui_c_deer_lib			import *
 
 class plugin(guiCalcPlugin):

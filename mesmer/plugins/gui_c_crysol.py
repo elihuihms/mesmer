@@ -7,9 +7,9 @@ import tempfile
 
 from threading import Timer
 
-from lib.exceptions			import *
-from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_plugin	import makeListFromOptions
+from mesmer.lib.exceptions			import *
+from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
+from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 _CRYSOL_TIMER = 10000 # time to wait for crysol to finish calculating (in ms)
 _CRYSOL_RETRY = 5 # crysol occasionally fails for unknown reasons, try again

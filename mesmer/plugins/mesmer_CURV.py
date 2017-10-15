@@ -8,8 +8,9 @@ import scipy.optimize as optimize
 
 from StringIO import StringIO
 
-from lib.plugin_objects import mesPluginError,mesPluginDB
-import lib.plugin_tools as tools
+from mesmer.lib.exceptions		import *
+from mesmer.lib.plugin_objects	import mesPluginError,mesPluginDB
+import mesmer.lib.plugin_tools	as tools
 
 class plugin( mesPluginDB ):
 

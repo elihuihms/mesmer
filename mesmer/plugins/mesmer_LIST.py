@@ -6,8 +6,9 @@ import sys
 from scipy import sqrt,mean,average,array,interpolate
 from scipy.stats import linregress
 
-from lib.plugin_objects import mesPluginError,mesPluginDB
-import lib.plugin_tools as tools
+from mesmer.lib.exceptions		import *
+from mesmer.lib.plugin_objects	import mesPluginError,mesPluginDB
+import mesmer.lib.plugin_tools	as tools
 
 class plugin( mesPluginDB ):
 

@@ -4,9 +4,9 @@ import tkFileDialog
 
 from subprocess				import Popen,PIPE
 
-from lib.exceptions			import *
-from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_plugin	import makeListFromOptions
+from mesmer.lib.exceptions			import *
+from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
+from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 class plugin(guiCalcPlugin):
 

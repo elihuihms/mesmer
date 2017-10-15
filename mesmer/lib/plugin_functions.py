@@ -3,7 +3,8 @@ import os
 import imp
 import glob
 
-from exceptions import *
+from exceptions			import *
+from setup_functions	import get_installation_dir
 
 def load_plugins( basedir, type, disabled=[], args=None ):
 	"""Find all plugin (plugin_*.py) files in the provided directory, and return dict
@@ -23,19 +24,22 @@ def load_plugins( basedir, type, disabled=[], args=None ):
 	Returns: dict of plugin tuples
 	"""
 
-	# add lib directory to the system path
-	path = os.path.abspath( basedir )
-	if not path in sys.path:
+	# add mesmer package discovery path to the system path
+	if getattr(sys, 'frozen', False): # mesmer package already added to sys.modules
+		pass 
+	else: # add mesmer directory to the system path
+		path = os.path.dirname( basedir )
+		if not os.path.exists( os.path.join(path,"mesmer") ):
+			raise mesPluginError("ERROR:\tCould not find MESMER directory at path \"%s\"." % path)
 		sys.path.append( path )
 
 	# add plugin directory to the system path, for plugin-specific libraries
 	path = os.path.abspath( os.path.join(basedir, 'plugins') )
 	if not os.path.exists( path ):
-		raise mesPluginError("ERROR:\tCould not find plugin directory at path \"%s\"." % path)
-	
+		raise mesPluginError("ERROR:\tCould not find plugin directory at path \"%s\"." % path)		
 	if not path in sys.path:
 		sys.path.append( path )
-	
+
 	# some plugins may need access to command line args
 	if args is None:
 		args = []

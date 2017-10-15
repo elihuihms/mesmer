@@ -16,8 +16,8 @@ except:
 
 from threading import Timer
 
-from lib.gui.plugin_objects import guiCalcPlugin
-from lib.gui.tools_plugin	import makeListFromOptions
+from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
+from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 _FOXS_TIMER = 10000 # time to wait for foxs to finish calculating (in ms)
 

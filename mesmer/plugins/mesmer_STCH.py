@@ -10,8 +10,9 @@ Component file arguments:
 import argparse
 import math
 
-from lib.plugin_objects import mesPluginError,mesPluginBasic
-import lib.plugin_tools as tools
+from mesmer.lib.exceptions		import *
+from mesmer.lib.plugin_objects	import mesPluginError,mesPluginBasic
+import mesmer.lib.plugin_tools	as tools
 
 class plugin( mesPluginBasic ):
 

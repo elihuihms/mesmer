@@ -4,9 +4,9 @@ import argparse
 
 from subprocess				import Popen
 
-from lib.exceptions			import *
-from lib.gui.plugin_objects import guiPlotPlugin
-from lib.gui.tools_plugin	import makeListFromOptions
+from mesmer.lib.exceptions			import *
+from mesmer.lib.gui.plugin_objects	import guiPlotPlugin
+from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 class plugin(guiPlotPlugin):
 
