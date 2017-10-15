@@ -25,7 +25,7 @@ setup(
 		'matplotlib>=1.3',
 		'numpy>=1.3',
 		'scipy>=0.11',
-		'Bio>=1.6',
+		'biopython>=1.6',
 	],
 
 	classifiers = [
@@ -42,7 +42,7 @@ setup(
 	
 	entry_points = {
 		'console_scripts': [
-			'mesmer = mesmer.mesmer:run',
+			'mesmer = mesmer.mesmer_cli:run',
 			'mesmer-gui = mesmer.mesmer_gui:run',
 			'get_ensemble_stats = mesmer.utilities.get_ensemble_stats:run',
 			'make_attribute_plot = mesmer.utilities.make_attribute_plot:run',

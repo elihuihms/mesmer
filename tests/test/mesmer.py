@@ -5,7 +5,7 @@ def tests():
 	def mesmer( paths, args):
 		return(
 			[
-				os.path.join(paths[0],'mesmer.py'),
+				os.path.join(paths[0],'mesmer_cli.py'),
 				'-threads',
 				'3',
 				'-dir',

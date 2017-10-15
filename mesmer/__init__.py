@@ -1,11 +1,3 @@
-__all__ = [
-	'lib',
-	'mesmer',
-	'mesmer_gui',
-	'plugins',
-	'utilities'
-]
-
 import lib			as lib
 import mesmer_gui	as gui
 
