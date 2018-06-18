@@ -8,8 +8,8 @@ import tempfile
 from threading import Timer
 
 from mesmer.lib.exceptions			import *
+from mesmer.lib.plugin_functions	import *
 from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
-from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 _CRYSOL_TIMER = 10000 # time to wait for crysol to finish calculating (in ms)
 _CRYSOL_RETRY = 5 # crysol occasionally fails for unknown reasons, try again
@@ -70,7 +70,7 @@ class plugin(guiCalcPlugin):
 			return False,(pdb,"Could not read file.")
 
 		cmd = [self.path]
-		cmd.extend( makeListFromOptions(self.options) )
+		cmd.extend( list_from_parser_dict(self.options) )
 		cmd.append( pdb )
 		
 		try:

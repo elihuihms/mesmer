@@ -8,9 +8,9 @@ import tkFileDialog
 from subprocess		import Popen,PIPE
 
 from .. ga_functions_output import _MESMER_ENSEMBLES_FILE_FORMAT,_MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
+from .. plugin_functions import dict_from_parser,list_from_parser_dict
 
 from tools_general	import askNewDirectory
-from tools_plugin	import convertParserToOptions,makeListFromOptions
 from win_options	import OptionsWindow
 
 def makePDBs( w ):
@@ -36,7 +36,7 @@ def makePDBs( w ):
 		parser.add_argument('-wAttr',	action='store_true',			default=False,			help='Write UCSF Chimera attribute files?')
 		parser.add_argument('-wPyMol',	action='store_true',			default=False,			help='Write PyMol coloration scripts?')
 		parser.add_argument('-best',	action='store_true',			default=False,			help='Save only the best ensemble?')
-		w.pluginOptions['pdbOutput'] = convertParserToOptions( parser )
+		w.pluginOptions['pdbOutput'] = dict_from_parser( parser )
 
 	w.newWindow = tk.Toplevel(w.master)
 	w.optWindow = OptionsWindow(w.newWindow, w.pluginOptions['pdbOutput'] )
@@ -66,7 +66,7 @@ def makePDBs( w ):
 		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_models.py')]
 	
 	cmd.extend(pdb_dirs) # append collected PDB sources
-	cmd.extend( makeListFromOptions(w.pluginOptions['pdbOutput']) ) # build the make_models argument string
+	cmd.extend( list_from_parser_dict(w.pluginOptions['pdbOutput']) ) # build the make_models argument string
 
 	# does the user want to get just the best ensemble, or components from all ensembles?
 	if w.pluginOptions['pdbOutput']['best']['value'] == 1:

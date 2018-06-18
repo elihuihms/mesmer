@@ -16,8 +16,8 @@ except:
 
 from threading import Timer
 
+from mesmer.lib.plugin_functions	import list_from_parser_dict
 from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
-from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 _FOXS_TIMER = 10000 # time to wait for foxs to finish calculating (in ms)
 
@@ -44,15 +44,14 @@ class plugin(guiCalcPlugin):
 
 	def setup(self, parent, options, outputpath):
 		self.options	= options
-		self.args		= self.parser.parse_args( makeListFromOptions(self.options) )
+		self.args		= self.parser.parse_args( list_from_parser_dict(self.options) )
 		self.outputpath	= outputpath
 		
 		# initialize some IMP objects
 		if IMP:
-			v = IMP.__version__
-			vv = v.split(".")
+			vv = IMP.__version__.split(".")
 			if vv[0] < 2 or (vv[0]==2 and vv[1] < 5):
-				raise mesPluginError("Installed version of IMP (%s) is incompatible with this plugin."%(v))
+				raise mesPluginError("Installed version of IMP (%s) is incompatible with this plugin."%(IMP.__version__))
 			
 			self.IMP_model	= IMP.Model()
 		else:
@@ -95,7 +94,7 @@ class plugin(guiCalcPlugin):
 			return False,(pdb,"Could not read file.")
 
 		cmd = [self.path]
-		cmd.extend( makeListFromOptions(self.options) )
+		cmd.extend( list_from_parser_dict(self.options) )
 		cmd.append( base )
 		
 		try:

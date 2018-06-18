@@ -1,6 +1,3 @@
-import lib			as lib
-import mesmer_gui	as gui
-
 __version__			= lib.__version__
 __license__			= lib.__license__
 __author__			= lib.__author__

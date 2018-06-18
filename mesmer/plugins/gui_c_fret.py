@@ -5,15 +5,15 @@ import tkFileDialog
 from subprocess				import Popen,PIPE
 
 from mesmer.lib.exceptions			import *
+from mesmer.lib.plugin_functions	import list_from_parser_dict
 from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
-from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 class plugin(guiCalcPlugin):
 
 	def __init__(self):
 		guiCalcPlugin.__init__(self)
 		self.name = 'FRET'
-		self.version = '0.9.0'
+		self.version = '1.1.0'
 		self.info = 'This plugin predicts fluorescence lifetime data from a PDB containing two labeling sites.'
 		self.types = ('CURV',)
 
@@ -51,7 +51,7 @@ class plugin(guiCalcPlugin):
 			return False,(pdb,"Failure reading \"%s\"."%pdb)
 
 		cmd = [self.prog]
-		cmd.extend( makeListFromOptions(self.options) )
+		cmd.extend( list_from_parser_dict(self.options) )
 		cmd.extend( ['-TAi','1.0','-irf',self.irf,'-pdb',pdb,'-out',out] )
 		pipe = Popen(cmd, cwd=self.outputpath, stdout=PIPE)
 		pipe.wait()

@@ -1,30 +1,8 @@
-#!/usr/bin/env python
-
-# MESMER - Minimal Ensemble Solutions to Multiple Experimental Restraints
-# Copyright (C) 2017 SteelSnowflake Software LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
 import sys
-import os
 
-from lib 						import __author__,__version__
-from lib.gui					import __version__ as __gui_version__
-
+from lib						import __version__,__author__
 from lib.exceptions				import *
-from lib.setup_functions		import parse_arguments,make_results_dir,open_user_prefs
+from lib.setup_functions		import *
 from lib.utility_functions		import print_msg
 from lib.plugin_functions		import load_plugins,unload_plugins
 from lib.target_functions		import load_targets
@@ -40,22 +18,27 @@ def run():
 		print "ERROR:\tPython version must be 2.6 or greater"
 		sys.exit(1)
 
+	# setup sys.path for plugins
+	try:
+		mesmer_path = set_module_paths()
+	except mesSetupError as e:
+		print e.msg
+		sys.exit(1)
+
 	# get mesmer user preferences
 	try:
 		prefs = open_user_prefs(mode='c')
 	except mesSetupError as e:
 		print "ERROR:\tCannot read or create MESMER preferences file: %s"%(e)
 		sys.exit(1)
-		
-	print "INFO:\tMESMER installation path is \"%s\"."%(prefs['mesmer_base_dir'])
-	
+			
 	# obtain the parameters for the run
 	args = parse_arguments(prefs=prefs)
 	
 	# attempt to load available plugin modules
 	plugins = []
 	try:
-		for id,ok,msg,module in load_plugins(prefs['mesmer_base_dir'], 'mesmer', args=args ):
+		for id,ok,msg,module in load_plugins(mesmer_path, 'mesmer', args=args ):
 			if ok:
 				plugins.append( module )
 			else:
@@ -81,9 +64,7 @@ def run():
 		sys.exit(1)
 
 	# print information about the MESMER environment to the log file
-	print_msg("Environment:")
-	print_msg("\tmesmer-cli\t:\t%s"%(__version__))
-	print_msg("\tmesmer-gui\t:\t%s"%(__gui_version__))
+	print_msg("\nPlugins:")
 	for p in plugins:
 		print_msg("\t%s\t:\t%s"%(p.name,p.version))
 
@@ -116,10 +97,3 @@ def run():
 	except mesPluginError as e:
 		print e.msg
 		sys.exit(1)
-
-if( __name__ == "__main__" ):
-	try:
-		run()
-	except KeyboardInterrupt:
-		print_msg( "\nINFO:\tUser forced quit, exiting.\n" )
-		sys.exit(0)

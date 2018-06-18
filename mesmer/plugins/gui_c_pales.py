@@ -8,8 +8,8 @@ import tempfile
 from threading import Timer
 
 from mesmer.lib.exceptions			import *
+from mesmer.lib.plugin_functions	import *
 from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
-from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 class plugin(guiCalcPlugin):
 
@@ -85,7 +85,7 @@ class plugin(guiCalcPlugin):
 
 		cmd = [self.path,'-pdb',pdb,'-inD',self.template,'-outD',"%s.out"%name]
 		cmd.extend( self.extra_args )
-		cmd.extend( makeListFromOptions(self.options) )
+		cmd.extend( list_from_parser_dict(self.options) )
 		print 'PALES arguments #1/2: %s'%(' '.join(cmd))
 
 		try:

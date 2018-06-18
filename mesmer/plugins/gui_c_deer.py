@@ -4,8 +4,9 @@ import shutil
 import sys
 import Bio.PDB
 
+from mesmer.lib.plugin_tools		import list_from_parser_dict
 from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
-from mesmer.lib.gui.tools_plugin	import makeListFromOptions
+
 from gui_c_deer_lib			import *
 
 class plugin(guiCalcPlugin):
@@ -31,7 +32,7 @@ class plugin(guiCalcPlugin):
 
 	def setup(self, parent, options, outputdir):
 		self.outputdir	= outputdir
-		self.args	= self.parser.parse_args( makeListFromOptions(options) )
+		self.args	= self.parser.parse_args( list_from_parser_dict(options) )
 		self.args.Dip = self.args.Dip*1000.0 # convert dipolar coupling to MHz/A**3
 		return True
 

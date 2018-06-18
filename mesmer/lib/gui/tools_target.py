@@ -4,6 +4,7 @@ import tkMessageBox
 import tkFileDialog
 
 from .. exceptions			import *
+from .. plugin_functions	import list_from_parser_dict
 from tools_plugin			import *
 
 def extractDataFromFile( file ):
@@ -41,7 +42,7 @@ def makeTargetFromWindow( w ):
 		try:
 			for (j,t) in enumerate(w.plugin_types):
 				if(type in t):
-					opts = ' '.join(makeListFromOptions( w.widgetRowOptions[i][j] ))
+					opts = ' '.join(list_from_parser_dict( w.widgetRowOptions[i][j] ))
 		except Exception as e:
 			tkMessageBox.showwarning("Missing Option","Error while saving options for \"%s\" data.\n\n%s" % (type,e))
 			return None

@@ -5,8 +5,8 @@ import argparse
 from subprocess				import Popen
 
 from mesmer.lib.exceptions			import *
+from mesmer.lib.plugin_functions	import list_from_parser_dict
 from mesmer.lib.gui.plugin_objects	import guiPlotPlugin
-from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 class plugin(guiPlotPlugin):
 
@@ -29,7 +29,7 @@ class plugin(guiPlotPlugin):
 
 	def plot(self, path, options, title):
 		try:
-			Popen([sys.executable, self.exe, path, '-title', title]+makeListFromOptions(options))
+			Popen([sys.executable, self.exe, path, '-title', title]+list_from_parser_dict(options))
 		except Exception as e:
 			if(e.errno == os.errno.ENOENT):
 				raise mesPluginError("Could not execute plotter utility. Perhaps the MESMER directory is set incorrectly?")

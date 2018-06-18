@@ -4,8 +4,8 @@ import tkFileDialog
 import Bio.PDB
 
 from mesmer.lib.exceptions			import *
+from mesmer.lib.plugin_functions	import list_from_parser_dict
 from mesmer.lib.gui.plugin_objects	import guiCalcPlugin
-from mesmer.lib.gui.tools_plugin	import makeListFromOptions
 
 from	pyParaTools.ParaParser	import *
 from	pyParaTools.CalcPara	import *
@@ -32,7 +32,7 @@ class plugin(guiCalcPlugin):
 
 	def setup(self, parent, options, outputpath):
 		self.outputpath	= outputpath
-		self.args		= self.parser.parse_args( makeListFromOptions(options) )
+		self.args		= self.parser.parse_args( list_from_parser_dict(options) )
 
 		if not os.access(self.args.template, os.R_OK):
 			raise mesPluginError("Could not read specified RDC table")

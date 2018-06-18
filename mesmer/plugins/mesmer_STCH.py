@@ -10,17 +10,17 @@ Component file arguments:
 import argparse
 import math
 
-from mesmer.lib.exceptions		import *
-from mesmer.lib.plugin_objects	import mesPluginError,mesPluginBasic
-import mesmer.lib.plugin_tools	as tools
+from lib.exceptions		import *
+from lib.plugin_objects	import *
+import lib.plugin_tools	as tools
 
-class plugin( mesPluginBasic ):
+class plugin( MESMERTargetPlugin ):
 
 	def __init__(self, args):
-		mesPluginBasic.__init__(self, args)
+		MESMERTargetPlugin.__init__(self, args)
 
 		self.name = 'default_STCH'
-		self.version = '1.0.0'
+		self.version = '1.1.0'
 		self.info = 'This plugin compares experimental and predicted stoichiometry of the components present in multicomponent mixtures.'
 		self.types = ('STCH','STCH0','STCH1','STCH2','STCH3','STCH4','STCH5','STCH6','STCH7','STCH8','STCH9')
 

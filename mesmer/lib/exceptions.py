@@ -10,6 +10,9 @@ class mesSetupError(mesError):
 class mesPluginError(mesError):
 	pass
 	
+class mesUtilityError(mesError):
+	pass
+	
 class mesTargetError(mesError):
 	pass
 

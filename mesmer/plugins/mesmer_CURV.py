@@ -1,26 +1,23 @@
 """Creates a MESMER restraint from a continuous 2D dataset (i.e. X/Y)"""
 
 import argparse
-import math
 import scipy
 import scipy.interpolate as interpolate
 import scipy.optimize as optimize
 
 from StringIO import StringIO
 
-from mesmer.lib.exceptions		import *
-from mesmer.lib.plugin_objects	import mesPluginError,mesPluginDB
-import mesmer.lib.plugin_tools	as tools
+from lib.exceptions import *
+from lib.plugin_objects import *
+from lib.plugin_tools import *
 
-class plugin( mesPluginDB ):
+class plugin( MESMERTargetPluginDB ):
 
 	def __init__(self, args):
+		MESMERTargetPluginDB.__init__(self, args)
 
-		# call parent constructor first
-		mesPluginDB.__init__(self, args)
-		
 		self.name = 'default_CURV'
-		self.version = '1.0.0'
+		self.version = '1.1.0'
 		self.info = 'This plugin compares two continuous datasets. Several goodness-of-fit metrics are available.'
 		self.types = (
 			'CURV','CURV0','CURV1','CURV2','CURV3','CURV4','CURV5','CURV6','CURV7','CURV8','CURV9',
@@ -28,7 +25,6 @@ class plugin( mesPluginDB ):
 			'DEER','DEER0','DEER1','DEER2','DEER3','DEER4','DEER5','DEER6','DEER7','DEER8','DEER9'
 			)
 
-		self.target_parser = argparse.ArgumentParser(prog=self.name)
 		self.target_parser.add_argument('-scale',	action='store_true',	help='Allow scaling of the calculated curve to improve fitting')
 		self.target_parser.add_argument('-offset',	action='store_true',	help='Allow the application of an offset to improve fitting')
 		self.target_parser.add_argument('-fitness',	metavar='Goodness of fit',	default='Chisq',	choices=['Chisq','SSE','Pearson','Poisson','Vr'],	required=True, help='Method used to calculate goodness-of-fit. Note that Chisq and Vr require a third column containing dY data')
@@ -38,7 +34,6 @@ class plugin( mesPluginDB ):
 		cli.add_argument('-plot',		action='store_true',	help='Create a plot window at each generation showing fit to data (requires matplotlib)')
 		cli.add_argument('-file',								help='Read an external file containing the predicted data')
 
-		self.component_parser = argparse.ArgumentParser(prog=self.name)
 		self.component_parser.add_argument('-file',	action='store',	help='An external whitespace-delimited file containing LIST parameters.')
 
 		self._plot_handles = {}
@@ -114,7 +109,7 @@ class plugin( mesPluginDB ):
 		f.write("#x\ty_exp\ty_fit\n" )
 
 		# print the fit for the best-scoring ensemble
-		y_fit = tools.interpolate_curve( restraint.data['x'], ensembles[0]['x'], ensembles[0]['y'] )
+		y_fit = interpolate_curve( restraint.data['x'], ensembles[0]['x'], ensembles[0]['y'] )
 
 		for (i,x) in enumerate(restraint.data['x']):
 			f.write( "%.3E\t%.3E\t%.3E\n" % (x,restraint.data['y'][i],y_fit[i]) )
@@ -176,7 +171,7 @@ class plugin( mesPluginDB ):
 			restraint.data['d'] = restraint.data['y']
 
 		elif( args.fitness == 'Poisson' ): # X^2 = ((Y - Y_fit) / sqrt(Y))^2
-			restraint.data['d'] = [ math.sqrt(y) for y in restraint.data['y'] ]
+			restraint.data['d'] = [ scipy.sqrt(y) for y in restraint.data['y'] ]
 
 		elif(len(values) != 3):
 			raise mesPluginError("Target data must be of the format: x y dy")
@@ -236,7 +231,7 @@ class plugin( mesPluginDB ):
 
 	def load_bootstrap( self, bootstrap, restraint, ensemble_data, target_data ):
 		bootstrap.data['x'] = restraint.data['x']
-		bootstrap.data['y'] = tools.make_interpolated_bootstrap_sample( restraint.data['x'], restraint.data['y'], ensemble_data['x'], ensemble_data['y'] )
+		bootstrap.data['y'] = make_interpolated_bootstrap_sample( restraint.data['x'], restraint.data['y'], ensemble_data['x'], ensemble_data['y'] )
 		bootstrap.data['d'] = restraint.data['d']
 
 		return []
@@ -250,13 +245,13 @@ class plugin( mesPluginDB ):
 
 		# determine the scaling and/or offset coefficients
 		if(target_data['args'].scale and target_data['args'].offset):
-			(ensemble_data['scale'],ensemble_data['offset']) = tools.get_curve_transforms( restraint.data['y'] , restraint.data['d'], ensemble_data['y'] )
+			(ensemble_data['scale'],ensemble_data['offset']) = get_curve_transforms( restraint.data['y'] , restraint.data['d'], ensemble_data['y'] )
 		elif(target_data['args'].scale):
-			ensemble_data['scale'] = tools.get_scale( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )
+			ensemble_data['scale'] = get_scale( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )
 			ensemble_data['offset'] = 0.0
 		elif(target_data['args'].offset):
 			ensemble_data['scale'] = 1.0
-			ensemble_data['offset'] = tools.get_offset( restraint.data['y'], ensemble_data['y'] )
+			ensemble_data['offset'] = get_offset( restraint.data['y'], ensemble_data['y'] )
 		else:
 			ensemble_data['scale'] = 1.0
 			ensemble_data['offset'] = 0.0
@@ -270,7 +265,7 @@ class plugin( mesPluginDB ):
 			def opt( l ):
 				for i in range(n):
 					tmp[i] = 1.0 -l +(l*ensemble_data['y'][i])
-				return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], scipy.array(tmp) )
+				return get_chisq_reduced( restraint.data['y'], restraint.data['d'], scipy.array(tmp) )
 			ensemble_data['lambda'] = optimize.brent( opt )
 
 			ensemble_data['y'] = scipy.array([ 1.0 -ensemble_data['lambda'] + (ensemble_data['lambda']*f) for f in ensemble_data['y'] ])
@@ -288,10 +283,10 @@ class plugin( mesPluginDB ):
 						target_data['saxs_offset_n'] = i
 						break
 
-			ensemble_data['saxs_offset'] = tools.get_offset( restraint.data['y'], ensemble_data['y'], target_data['saxs_offset_n'] )
+			ensemble_data['saxs_offset'] = get_offset( restraint.data['y'], ensemble_data['y'], target_data['saxs_offset_n'] )
 			ensemble_data['y'] += ensemble_data['saxs_offset']
 
 		if( target_data['args'].fitness == 'Vr' ):
-			return tools.get_volatility_ratio( restraint.data['y'], ensemble_data['y'] )
+			return get_volatility_ratio( restraint.data['y'], ensemble_data['y'] )
 
-		return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )
+		return get_chisq_reduced( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )

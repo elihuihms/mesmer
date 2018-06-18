@@ -3,7 +3,7 @@ import tkMessageBox
 import collections
 
 from .. exceptions			import *
-from .. plugin_functions	import load_plugins
+from .. plugin_functions	import load_plugins,dict_from_parser
 from .. setup_functions		import set_default_prefs
 
 def tryLoadPlugins( shelf, type, args=None, disabled_writeback=False ):
@@ -27,7 +27,7 @@ def getTargetPluginOptions( plugins, prefs ):
 		for t in p.types:
 			if( not t[0:4] in types[-1] ):
 				types[-1].append(t[0:4])
-		options.append( convertParserToOptions(p.target_parser) )
+		options.append( dict_from_parser(p.target_parser) )
 	return types,options
 
 def getPluginPrefs( shelf, name ):
@@ -54,43 +54,7 @@ def setPluginPrefs( shelf, name, **kwargs ):
 	except:
 		tkMessageBox.showerror("Error",'Failed to save preferences. Perhaps user folder is read only?')
 		raise
-		
-def convertParserToOptions( parser ):
-	"""Convert an argparse argument parser to a descriptive dict
-	
-	Args:
-		parser (argparse.ArgumentParser): Parser to construct dict from
-	
-	Returns: dict representation of parser"""
-	
-	options,savetypes = collections.OrderedDict([]),('help','option_strings','choices','type','dest','default','choices','required','nargs','metavar')
-	for action in [a.__dict__ for a in parser.__dict__['_actions']]:
-		if action['dest'] == 'help':
-			continue
-		options[ action['dest'] ] = {}
-		for key in savetypes:
-			options[ action['dest'] ][ key ] = action[ key ]
-		options[ action['dest'] ]['value'] = ''
-		options[ action['dest'] ]['group'] = action['container'].title
 
-	return options
-
-def makeListFromOptions( options ):
-	ret = []
-	for k,o in options.iteritems():
-		if(o['nargs'] == 0):
-			if o['value']:
-				ret.append( o['option_strings'][0] )
-		elif( o['value'] == None or o['value'] == 'None' or o['value'] == '' ):
-			if o['required']:
-				raise Exception("Encountered a required option without a value: %s" % o['dest'])
-		elif(o['nargs'] == None):
-			ret.append( o['option_strings'][0] )
-			ret.append( str(o['value']) )
-		else:
-			raise Exception("Encountered an option that could not be converted to a string properly: %s" % o['dest'])
-	return ret
-		
 def setOptionsFromBlock( options, block ):
 	for k,o in options.iteritems():
 

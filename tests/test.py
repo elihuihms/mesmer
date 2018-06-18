@@ -26,7 +26,7 @@ if(__name__ == "__main__"):
 	args	= parser.parse_args()
 
 	if args.path == None:
-		exe_dir = os.path.abspath( os.path.join(os.path.dirname(os.path.dirname(__file__)),'mesmer') )
+		exe_dir = os.path.abspath( os.path.join(os.path.dirname(os.path.dirname(__file__)),"..",'mesmer') )
 	else:
 		exe_dir = os.path.abspath( args.path )
 

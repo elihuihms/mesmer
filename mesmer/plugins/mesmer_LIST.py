@@ -6,25 +6,24 @@ import sys
 from scipy import sqrt,mean,average,array,interpolate
 from scipy.stats import linregress
 
-from mesmer.lib.exceptions		import *
-from mesmer.lib.plugin_objects	import mesPluginError,mesPluginDB
-import mesmer.lib.plugin_tools	as tools
+from lib.exceptions		import *
+from lib.plugin_objects	import *
+import lib.plugin_tools	as tools
 
-class plugin( mesPluginDB ):
+class plugin( MESMERTargetPluginDB ):
 
 	def __init__(self, args):
 
 		# call parent constructor first
-		mesPluginDB.__init__(self, args)
+		MESMERTargetPluginDB.__init__(self, args)
 
 		self.name = 'default_LIST'
-		self.version = '1.0.0'
+		self.version = '1.1.0'
 		self.info = 'This plugin compares two discretely sampled datasets. Several goodness-of-fit metrics are available.'
 		self.types = (
 			'LIST','LIST0','LIST1','LIST2','LIST3','LIST4','LIST5','LIST6','LIST7','LIST8','LIST9',
 			'TABL','TABL0','TABL1','TABL2','TABL3','TABL4','TABL5','TABL6','TABL7','TABL8','TABL9')
 
-		self.target_parser = argparse.ArgumentParser(prog=self.name)
 		self.target_parser.add_argument('-rCol', 	metavar='Restraint Column', action='store',	type=int,	required=True,	help='The column of data to use as the restraint')
 		self.target_parser.add_argument('-dCol',	metavar='Uncertainty Column', action='store', type=int,					help='The column of data to use as an uncertainty or interval column for some goodness-of-fit metrics')
 		self.target_parser.add_argument('-fitness',	metavar='Goodness of fit',	default='Chisq',	choices=['Chisq','SSE','Harmonic','Quality','Rsquare'], required=True, help='Method used to calculate goodness-of-fit')
@@ -33,7 +32,6 @@ class plugin( mesPluginDB ):
 		cli.add_argument('-file', 	action='store',			help='An external whitespace-delimited file containing LIST parameters.')
 		cli.add_argument('-plot', 	action='store_true',	help='Create a plot window at each generation showing fit to data')
 
-		self.component_parser = argparse.ArgumentParser(prog=self.name)
 		self.component_parser.add_argument('-file',	action='store',	help='An external whitespace-delimited file containing LIST parameters.')
 
 		self._plot_handles = {}

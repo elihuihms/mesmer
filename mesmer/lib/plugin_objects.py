@@ -1,13 +1,70 @@
 import os
+import sys
 import shelve
 import tempfile
 import uuid
 import argparse
+import re
 
 from exceptions import *
 
-class mesPluginBasic:
-	"""Basic data handling plugin for MESMER
+class MESMERPlugin(object):
+	"""A class primitive for all plugins and utilities used in MESMER
+	
+	Attributes:
+		name (string): (Required) Brief name of the plugin (inherited from MESMERPlugin)
+		version (string): (Required) Version string of the plugin (inherited from MESMERPlugin)
+		info (string): (Required) User-friendly information about the plugin (inherited from MESMERPlugin)
+		parser (Argparse parser): Argument parser for user-selectable options
+	"""
+	
+	def __init__(self):		
+		self.name = ''
+		self.version = ''
+		self.info = ''
+		self.parser = argparse.ArgumentParser()
+		
+	def get_argument_dict(self,parser=None,tag=None):
+		"""Convert an argparse argument parser to a dict
+	
+		Args:
+			parser (argparse.ArgumentParser): Parser to construct dict from. If None, return the plugin's arguments
+			tag (string): Only display arguments tagged with the specified tag (None for all arguments). This is useful for returning a subset of arguments when the plugin is used in different contexts.
+	
+		Returns: dict representation of parser's arguments"""
+	
+		if parser == None:
+			parser = self.parser
+	
+		options,savetypes = collections.OrderedDict([]),('help','option_strings','choices','type','dest','default','choices','required','nargs','metavar')
+		for action in parser._actions:
+			if action['dest'] == 'help':
+				continue
+
+			if tag != None:
+				if tag not in action['help']:
+					continue
+				else:
+					action['help'] = action['help'].replace(tag,'')	
+							
+			options[ action['dest'] ] = {}
+			for key in savetypes:
+				options[ action['dest'] ][ key ] = action[ key ]
+			options[ action['dest'] ]['value'] = ''
+			options[ action['dest'] ]['group'] = action['container'].title
+
+		return options
+		
+	def strip_parser_tags(self, parser=None, excludes=[] ):
+		if parser == None:
+			parser = self.parser
+		for action in parser._actions:
+			if action.__dict__['help'] == None:
+				continue
+			action.__dict__['help'] = re.sub(r' \#[a-zA-Z_]+', '', action.__dict__['help'])
+		
+class MESMERTargetPlugin(MESMERPlugin):
+	"""Basic MESMER target (restraint) data handling plugin
 	
 	Attributes:
 		name (string): (Required) Brief name of the plugin
@@ -25,12 +82,12 @@ class mesPluginBasic:
 		Args:
 			args (argparse namespace): Arguments used to call MESMER, can be used to pass info to the plugin		
 		"""
-		self.name = ''
-		self.version = ''
-		self.info = ''
+		super(MESMERTargetPlugin, self).__init__()
+		
 		self.path = None
 		self.types = ('NONE',)
 
+		del self.parser
 		self.target_parser = argparse.ArgumentParser(prog=self.types[0])
 		self.component_parser = argparse.ArgumentParser(prog=self.types[0])
 		
@@ -173,7 +230,7 @@ class mesPluginBasic:
 	def close( self ):
 		pass
 
-class mesPluginDB( mesPluginBasic ):
+class MESMERTargetPluginDB( MESMERTargetPlugin ):
 	"""An extended data-handling MESMER plugin that provides access to a persistent database"""
 	
 	def __init__( self, args ):
@@ -184,7 +241,7 @@ class mesPluginDB( mesPluginBasic ):
 		Raises:
 			mesPluginError on failure to make a db connection
 		"""
-		mesPluginBasic.__init__( self, args )
+		super(MESMERTargetPluginDB, self).__init__(args)
 		
 		# Use the provided scratch directory, or use system default temporary?
 		if( args.scratch ):

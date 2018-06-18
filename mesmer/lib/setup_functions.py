@@ -139,6 +139,35 @@ def make_results_dir( args ):
 	if(oWrite):
 		print_msg("INFO:\tOverwriting old result directory \"%s\"." % (args.dir))
 		
+def set_module_paths():
+	if getattr(sys, 'frozen', False):
+		pass # nothing special at the moment (no zip file support!)
+
+	path   = os.path.abspath(__file__) # setup_functions.py
+	path   = os.path.dirname(path) # lib
+	mesmer = os.path.dirname(path) # mesmer
+	plugin = os.path.abspath(os.path.join(mesmer, 'plugins'))
+	module = os.path.dirname(mesmer) # (directory containing mesmer module)
+
+#	if not (os.access(os.path.join(mesmer,'mesmer_cli.py'), os.R_OK) or os.access(os.path.join(mesmer,'mesmer_cli.pyc'), os.R_OK)):
+#		raise mesSetupError("ERROR:\tCouldn't determine MESMER installation directory.")
+
+	if getattr(sys, 'frozen', False): # mesmer package already added to sys.modules
+		pass
+	else: # add mesmer directory to the system path
+		if not os.path.exists( os.path.join(module,"mesmer") ):
+			raise mesSetupError("ERROR:\tCould not find mesmer module at path \"%s\"." % module)
+		if module not in sys.path:
+			sys.path.insert( 0, module )
+
+	# add plugin directory to the system path, for plugin-specific libraries
+	if not os.path.exists( plugin ):
+		raise mesPluginError("ERROR:\tCould not find plugin directory at path \"%s\"." % mesmer)		
+	if not plugin in sys.path:
+		sys.path.append( plugin )
+
+	return mesmer
+
 def open_user_prefs( mode='w', reset=False ):
 	from . import __version__ as base_version
 	from gui import __version__ as gui_version
@@ -171,13 +200,6 @@ def open_user_prefs( mode='w', reset=False ):
 		print_msg("INFO:\tUpdating MESMER preferences file.")
 		set_default_prefs( shelf )
 		
-	if shelf['mesmer_base_dir'] != get_installation_dir():
-		if getattr(sys, 'frozen', False):
-			print_msg("INFO:\tRunning from a frozen bundle, updating MESMER preferences file.")
-		else:
-			print_msg("INFO:\tInstallation directory has changed, updating MESMER preferences file.")
-		set_default_prefs( shelf )
-		
 	return shelf
 	
 def set_default_prefs( shelf ):
@@ -186,7 +208,6 @@ def set_default_prefs( shelf ):
 	
 	shelf['base-version'] = base_version
 	shelf['gui-version'] = gui_version
-	shelf['mesmer_base_dir'] = get_installation_dir()
 	shelf['mesmer_scratch'] = ''
 	shelf['cpu_count'] = multiprocessing.cpu_count()
 	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
@@ -195,18 +216,6 @@ def set_default_prefs( shelf ):
 	shelf['last_open_dir'] = os.path.expanduser('~')
 	shelf['interpreter'] = get_interpreter()
 	shelf.sync()
-	
-def get_installation_dir():
-	if getattr(sys, 'frozen', False):
-		pass # nothing special at the moment
-
-	ret = os.path.abspath(__file__) # setup_functions.py
-	ret = os.path.dirname(ret) # lib
-	ret = os.path.dirname(ret) # mesmer
-	if os.access(os.path.join(ret,'mesmer_cli.py'), os.R_OK) or os.access(os.path.join(ret,'mesmer_cli.pyc'), os.R_OK):
-		return ret
-	else:
-		raise mesSetupError("ERROR:\tCouldn't determine MESMER installation directory.")
 			
 def get_interpreter():
 	# doesn't do anything at the moment because it doesn't need to. We handle overwriting of the sys.executable prior

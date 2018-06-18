@@ -2,35 +2,33 @@ import argparse
 
 from multiprocessing import Process
 
-from exceptions import *
+from .. exceptions import *
+from .. plugin_objects import MESMERPlugin
 
-class guiCalcPlugin(Process):
+class guiCalcPlugin(MESMERPlugin,Process):
 	"""A class primitive for plugins used to calculate attributes from PDBs in the MESMER GUI
 
-	This class extends a Process, permitting multithreading of plugin methods
+	This class extends a Process, permitting multithreading of plugin methods, it also inherits the usual attributes and methods from MESMERPlugin
 	Since the plugin only needs to be set up once, after the setup() method is run on the parent plugin instance, the parent state is shared amongst the other plugin instances via connect()
 	
 	Attributes:
-		name (string): (Required) Brief name of the plugin
-		version (string): (Required) Version string of the plugin
-		info (string): (Required) User-friendly information about the plugin
+		name (string): (Required) Brief name of the plugin (inherited from MESMERPlugin)
+		version (string): (Required) Version string of the plugin (inherited from MESMERPlugin)
+		info (string): (Required) User-friendly information about the plugin (inherited from MESMERPlugin)
+		parser (Argparse parser): Argument parser for user-selectable options (inherited from MESMERPlugin)
 		types (tuple): (Required) Tuple of strings, e.g. "CURV" or "SAXS", etc.: the data types that this plugin will generate. Currently, only the first data type in the list is used.
-		parser (Argparse parser): Argument parser for user-selectable options
 		path (string): (Optional) Path to a required external executable or library
 
 	"""
 	
 	def __init__(self):
-		super(guiCalcPlugin, self).__init__()
+		MESMERPlugin.__init__(self)
+		Process.__init__(self)
 		self.daemon = True
 		self.iQ,self.oQ = None,None
 		
-		self.name = ''
-		self.version = ''
 		self.types = ('NONE',)
-		self.info = ''
 		self.path = None
-		self.parser = argparse.ArgumentParser(prog=self.name)
 
 	def setup(self, window, options, outputpath):
 		"""Set up the plugin, is called once before the plugin is then distributed for multithreading.
@@ -114,25 +112,22 @@ class guiCalcPlugin(Process):
 		"""
 		return True
 
-class guiPlotPlugin(object):
+class guiPlotPlugin(MESMERPlugin):
 	"""A class primitive for MESMER GUI plugins for generating figures depicting experimental data and MESMER's fits
 		
 	Attributes:
-		name (string): (Required) Brief name of the plugin
-		version (string): (Required) Version string of the plugin
-		info (string): (Required) User-friendly information about the plugin
+		name (string): (Required) Brief name of the plugin (inherited from MESMERPlugin)
+		version (string): (Required) Version string of the plugin (inherited from MESMERPlugin)
+		info (string): (Required) User-friendly information about the plugin (inherited from MESMERPlugin)
+		parser (Argparse parser): Argument parser for user-selectable options (inherited from MESMERPlugin)
 		types (tuple): (Required) Tuple of strings (e.g. "CURV", "SAXS") naming data types that this plugin can comprehend
-		parser (Argparse parser): Argument parser for user-selectable options
 		path (string): (Optional) Path to a required external executable or library
 	"""
 
 	def __init__(self):
-		self.name = ''
-		self.version = ''
+		MESMERPlugin.__init__(self)
 		self.types = ('NONE',)
-		self.info = ''
 		self.path = None #path to executable, if applicable
-		self.parser = argparse.ArgumentParser(prog=self.name)
 
 	def plot(self, path, options, title):
 		"""Generate a figure from the provided path to a MESMER restraint fit file

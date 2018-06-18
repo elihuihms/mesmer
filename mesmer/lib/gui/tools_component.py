@@ -79,7 +79,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	if savedpath != None: setattr(plugin,'path',savedpath)
 
 	# get user-specifiable options from the plugin argument parser object
-	options = convertParserToOptions( plugin.parser )
+	options = dict_from_parser( plugin.parser )
 	
 	# retrieve saved options from preferences
 	saved_options = getPluginPrefs( w.prefs, plugin.name )['options']
