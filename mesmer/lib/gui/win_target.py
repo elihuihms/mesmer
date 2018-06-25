@@ -5,8 +5,8 @@ import tkMessageBox
 import tkFileDialog
 import copy
 
-from .. utility_functions 	import get_input_blocks
-from .. setup_functions		import open_user_prefs,parse_arguments
+from mesmer.lib.utility_functions 	import get_input_blocks
+from mesmer.lib.setup_functions		import open_user_prefs,parse_arguments
 
 from tools_TkTooltip		import ToolTip
 from tools_plugin			import tryLoadPlugins,getTargetPluginOptions,setOptionsFromBlock

@@ -4,9 +4,9 @@ import shelve
 import Tkinter as tk
 import tkMessageBox
 
-from .. exceptions		import *
-from .. setup_functions	import *
-from __init__			import __version__
+from mesmer						import __version__
+from mesmer.lib.exceptions		import *
+from mesmer.lib.setup_functions	import *
 
 from tools_TkTooltip	import ToolTip
 from tools_general		import tryProgramCall
@@ -57,16 +57,6 @@ class MainWindow(tk.Frame):
 		except Exception as e:
 			tkMessageBox.showerror("Error",'Cannot read or create MESMER preferences file: %s' % (e),parent=self)
 			self.close(1)
-		
-		if( not self.prefs.has_key('mesmer_base_dir') ):
-			set_default_prefs(self.prefs)
-				
-		if( self.prefs['mesmer_base_dir'] == '' and not tryProgramCall('mesmer') ):
-			self.prefs['mesmer_base_dir'] = get_installation_dir()
-
-		if self.prefs['mesmer_base_dir'] == None:
-			tkMessageBox.showerror("Error","Could not determine MESMER installation path.\n\nYou will need to set this manually in the MESMER configuration panel.",parent=self)
-			self.Ready = False
 			
 		self.prefs.close()
 

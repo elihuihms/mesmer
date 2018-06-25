@@ -5,7 +5,7 @@ import tkMessageBox
 import shelve
 import multiprocessing
 
-from .. setup_functions	import open_user_prefs,set_default_prefs
+from mesmer.lib.setup_functions	import open_user_prefs,set_default_prefs
 
 from tools_TkTooltip	import ToolTip
 from tools_general		import tryProgramCall
@@ -35,7 +35,7 @@ class ConfigWindow(tk.LabelFrame):
 			self.master.destroy()
 
 	def savePrefs(self):
-		self.prefs['mesmer_base_dir']	= self.mesmerPath.get()
+#		self.prefs['mesmer_base_dir']	= self.mesmerPath.get()
 		self.prefs['mesmer_scratch']	= self.scratchPath.get()
 		self.prefs['cpu_count']			= self.numCores.get()
 
@@ -57,10 +57,10 @@ class ConfigWindow(tk.LabelFrame):
 		self.setVars()
 
 	def setVars(self):
-		if(self.prefs.has_key('mesmer_base_dir')):
-			self.mesmerPath.set( self.prefs['mesmer_base_dir'] )
-		else:
-			self.mesmerPath.set( os.getcwd() )
+#		if(self.prefs.has_key('mesmer_base_dir')):
+#			self.mesmerPath.set( self.prefs['mesmer_base_dir'] )
+#		else:
+#			self.mesmerPath.set( os.getcwd() )
 
 		if(self.prefs.has_key('mesmer_scratch')):
 			self.scratchPath.set( self.prefs['mesmer_scratch'] )
@@ -72,9 +72,9 @@ class ConfigWindow(tk.LabelFrame):
 		else:
 			self.numCores.set( multiprocessing.cpu_count() )
 
-	def setMESMERPath(self):
-		tmp = tkFileDialog.askdirectory(title='Select directory containing MESMER executables, or cancel to leave as default:',mustexist=True,parent=self)
-		self.mesmerPath.set(tmp)
+#	def setMESMERPath(self):
+#		tmp = tkFileDialog.askdirectory(title='Select directory containing MESMER executables, or cancel to leave as default:',mustexist=True,parent=self)
+#		self.mesmerPath.set(tmp)
 
 	def setScratchPath(self):
 		tmp = tkFileDialog.askdirectory(title='Select directory to use as scratch space, or cancel to use default.',mustexist=True,parent=self)
@@ -82,13 +82,13 @@ class ConfigWindow(tk.LabelFrame):
 
 	def checkPaths(self):
 		ok = True
-		if(self.mesmerPath.get() == ''):
-			if(not tryProgramCall('mesmer')):
-				tkMessageBox.showwarning("Warning","The MESMER executables are not available on the system path.\nTry resetting the MESMER preferences, or setting the MESMER installation path manually.",parent=self)
-				ok = False
-		elif(not os.access(os.path.join(self.mesmerPath.get(),'mesmer.py'), os.R_OK)):
-			tkMessageBox.showwarning("Warning","MESMER executables are not installed in this directory.",parent=self)
-			ok = False
+#		if(self.mesmerPath.get() == ''):
+#			if(not tryProgramCall('mesmer')):
+#				tkMessageBox.showwarning("Warning","The MESMER executables are not available on the system path.\nTry resetting the MESMER preferences, or setting the MESMER installation path manually.",parent=self)
+#				ok = False
+#		elif(not os.access(os.path.join(self.mesmerPath.get(),'mesmer.py'), os.R_OK)):
+#			tkMessageBox.showwarning("Warning","MESMER executables are not installed in this directory.",parent=self)
+#			ok = False
 		
 		if(self.scratchPath.get() != '' and not os.access(self.scratchPath.get(), os.W_OK)):
 			tkMessageBox.showwarning("Warning","The MESMER scratch path is not writable.",parent=self)
@@ -108,13 +108,13 @@ class ConfigWindow(tk.LabelFrame):
 		self.container = tk.Frame(self,borderwidth=0)
 		self.container.pack()
 		
-		self.mesmerPath = tk.StringVar()
-		self.mesmerPathLabel = tk.Label(self.container, text='Explicit path to MESMER installation:')
-		self.mesmerPathLabel.grid(column=0,row=0,columnspan=3,sticky=tk.W)
-		self.mesmerPathEntry = tk.Entry(self.container,width=40,textvariable=self.mesmerPath)
-		self.mesmerPathEntry.grid(column=0,columnspan=2,row=1,sticky=tk.E)
-		self.mesmerPathButton = tk.Button(self.container, text='Set...',command=self.setMESMERPath)
-		self.mesmerPathButton.grid(column=2,columnspan=2,row=1,sticky=tk.W)
+#		self.mesmerPath = tk.StringVar()
+#		self.mesmerPathLabel = tk.Label(self.container, text='Explicit path to MESMER installation:')
+#		self.mesmerPathLabel.grid(column=0,row=0,columnspan=3,sticky=tk.W)
+#		self.mesmerPathEntry = tk.Entry(self.container,width=40,textvariable=self.mesmerPath)
+#		self.mesmerPathEntry.grid(column=0,columnspan=2,row=1,sticky=tk.E)
+#		self.mesmerPathButton = tk.Button(self.container, text='Set...',command=self.setMESMERPath)
+#		self.mesmerPathButton.grid(column=2,columnspan=2,row=1,sticky=tk.W)
 
 		self.scratchPath = tk.StringVar()
 		self.mesmerScratchLabel = tk.Label(self.container, text='Directory to use as scratch space:')

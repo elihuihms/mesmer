@@ -7,9 +7,10 @@ import tkFileDialog
 
 from datetime import datetime
 
-from .. exceptions				import *
-from .. component_generation	import *
-from .. plugin_functions		import *
+from mesmer.lib.exceptions				import *
+from mesmer.lib.component_generation	import *
+from mesmer.lib.plugin_functions		import *
+
 from win_options				import *
 from win_status					import *
 from tools_plugin				import *
@@ -79,7 +80,7 @@ def calcDataFromWindow( w, pdbs, pluginName ):
 	if savedpath != None: setattr(plugin,'path',savedpath)
 
 	# get user-specifiable options from the plugin argument parser object
-	options = dict_from_parser( plugin.parser )
+	options = plugin.get_argument_dict()
 	
 	# retrieve saved options from preferences
 	saved_options = getPluginPrefs( w.prefs, plugin.name )['options']

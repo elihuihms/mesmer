@@ -4,8 +4,8 @@ import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
 
-from .. utility_functions 	import get_input_blocks
-from .. setup_functions		import open_user_prefs,parse_arguments
+from mesmer.lib.utility_functions 	import get_input_blocks
+from mesmer.lib.setup_functions		import open_user_prefs,parse_arguments
 
 from tools_TkTooltip		import ToolTip
 from tools_component		import makeComponentsFromWindow,calcDataFromWindow

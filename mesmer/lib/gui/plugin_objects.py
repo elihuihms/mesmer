@@ -2,8 +2,8 @@ import argparse
 
 from multiprocessing import Process
 
-from .. exceptions import *
-from .. plugin_objects import MESMERPlugin
+from mesmer.lib.exceptions import *
+from mesmer.lib.plugin_objects import MESMERPlugin
 
 class guiCalcPlugin(MESMERPlugin,Process):
 	"""A class primitive for plugins used to calculate attributes from PDBs in the MESMER GUI

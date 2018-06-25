@@ -5,10 +5,8 @@ import Tkinter as tk
 import tkFileDialog
 import tkMessageBox
 
-from .. setup_functions	import parse_arguments
-from .. setup_functions	import open_user_prefs
-
-from __init__			import __version__
+from mesmer import __version__
+from mesmer.lib.setup_functions	import parse_arguments,open_user_prefs
 
 from tools_TkTooltip	import ToolTip
 from tools_setup		import *

@@ -7,8 +7,7 @@ import tkFileDialog
 
 from subprocess		import Popen,PIPE
 
-from .. ga_functions_output import _MESMER_ENSEMBLES_FILE_FORMAT,_MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
-from .. plugin_functions import dict_from_parser,list_from_parser_dict
+from mesmer.lib.ga_functions_output import _MESMER_ENSEMBLES_FILE_FORMAT,_MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
 
 from tools_general	import askNewDirectory
 from win_options	import OptionsWindow
@@ -60,10 +59,10 @@ def makePDBs( w ):
 			return
 	w.prefs['last_open_dir'] = os.path.dirname(output)
 	
-	if( w.prefs['mesmer_base_dir'] == '' ):
-		cmd = ['make_models']
-	else:
-		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_models.py')]
+#	if( w.prefs['mesmer_base_dir'] == '' ):
+#		cmd = ['make_models']
+#	else:
+#		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_models.py')]
 	
 	cmd.extend(pdb_dirs) # append collected PDB sources
 	cmd.extend( list_from_parser_dict(w.pluginOptions['pdbOutput']) ) # build the make_models argument string

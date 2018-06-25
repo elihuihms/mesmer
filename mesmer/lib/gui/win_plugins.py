@@ -5,8 +5,8 @@ import Tkinter as tk
 import tkMessageBox
 import tkFileDialog
 
-from .. plugin_functions	import load_plugins
-from .. setup_functions		import parse_arguments,open_user_prefs
+from mesmer.lib.setup_functions		import *
+from mesmer.lib.plugin_functions	import load_plugins
 
 from tools_TkTooltip		import ToolTip
 from tools_general			import revealDirectory
@@ -214,6 +214,8 @@ class PluginWindow(tk.Frame):
 		self.pluginApplyButton.configure(state=tk.DISABLED)	
 	
 	def loadPlugins(self):
+		mesmer_path = set_module_paths()
+
 		def _apply( id, ok, msg, module, container ):
 			self.plugin_ids.append( id )
 
@@ -232,11 +234,11 @@ class PluginWindow(tk.Frame):
 				self.plugin_info.append( msg )
 				self.createPluginRow( container, id, module=None, error=True, disabled=None )
 
-		for id,ok,msg,module in load_plugins( self.prefs['mesmer_base_dir'], 'mesmer', args=parse_arguments([],self.prefs) ):
+		for id,ok,msg,module in load_plugins( mesmer_path, 'mesmer', args=parse_arguments([],self.prefs) ):
 			_apply(id,ok,msg,module,self.f_mesmerplugins)
 
-		for id,ok,msg,module in load_plugins( self.prefs['mesmer_base_dir'], 'gui_c' ):
+		for id,ok,msg,module in load_plugins( mesmer_path, 'gui_c' ):
 			_apply(id,ok,msg,module,self.f_calcplugins)
 					
-		for id,ok,msg,module in load_plugins( self.prefs['mesmer_base_dir'], 'gui_p' ):
+		for id,ok,msg,module in load_plugins( mesmer_path, 'gui_p' ):
 			_apply(id,ok,msg,module,self.f_plotplugins)

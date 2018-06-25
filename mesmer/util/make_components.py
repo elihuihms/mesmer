@@ -1,4 +1,4 @@
-from lib.utility_objects import MESMERUtility
+from mesmer.lib.utility_objects import MESMERUtility
 
 class MakeComponents(MESMERUtility):
 	def __init__(self):

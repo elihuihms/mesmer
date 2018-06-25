@@ -1,8 +1,8 @@
 import scipy
 
-from lib.utility_objects import MESMERUtility
-from lib.utility_functions import mean_stdv
-from lib.output_parsers import get_ensembles_from_state
+from mesmer.lib.utility_objects import MESMERUtility
+from mesmer.lib.utility_functions import mean_stdv
+from mesmer.lib.output_parsers import get_ensembles_from_state
 
 class GetEnsembleStats(MESMERUtility):
 	def __init__(self):

@@ -1,6 +1,6 @@
 import scipy
 
-from lib.utility_objects import MESMERUtility
+from mesmer.lib.utility_objects import MESMERUtility
 
 class MakeAttributeSpec(MESMERUtility):
 	def __init__(self):

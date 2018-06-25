@@ -2,7 +2,8 @@ import scipy
 import matplotlib as mpl
 
 from colorsys import hsv_to_rgb
-from lib.utility_objects import MESMERUtility
+
+from mesmer.lib.utility_objects import MESMERUtility
 
 class MakeCorrelationPlot(MESMERUtility):
 	def __init__(self):

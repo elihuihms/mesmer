@@ -2,8 +2,8 @@ import os
 import Tkinter as tk
 import codecs
 
-from __init__ import __version__
-from .. __init__ import __copyright__
+from mesmer import __version__
+from mesmer import __copyright__
 
 __acknowledgements__ = codecs.decode("""Fcrpvny gunaxf gb:
 

@@ -17,10 +17,10 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import mesmer_cli
-import mesmer_gui
+import lib.cli
+import lib.gui
+import util
 
-from lib.util.get_ensemble_stats import GetEnsembleStats
 #from lib.util.make_attribute_plot import MakeAttributePlot
 #from lib.util.make_attribute_spec import MakeAttributeSpec
 #from lib.util.make_components import MakeComponents
@@ -33,13 +33,13 @@ from lib.util.get_ensemble_stats import GetEnsembleStats
 #from lib.util.make_synthetic_target import MakeSyntheticTarget
 
 def cli():
-	mesmer_cli.run()
+	lib.cli.run()
 
 def gui():
-	mesmer_gui.run()
+	lib.gui.run()
 
 def get_ensemble_stats():
-	GetEnsembleStats().exe()
+	util.make_attribute_plot.GetEnsembleStats().exe()
 
 def make_attribute_plot():
 	MakeAttributePlot().exe()
@@ -72,4 +72,4 @@ def make_synthetic_target():
 	MakeSyntheticTarget().exe()
 
 if __name__ == '__main__':
-	cli()
+	gui()

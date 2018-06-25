@@ -5,6 +5,7 @@ import tempfile
 import uuid
 import argparse
 import re
+import collections
 
 from exceptions import *
 
@@ -38,20 +39,20 @@ class MESMERPlugin(object):
 	
 		options,savetypes = collections.OrderedDict([]),('help','option_strings','choices','type','dest','default','choices','required','nargs','metavar')
 		for action in parser._actions:
-			if action['dest'] == 'help':
+			if action.dest == 'help':
 				continue
 
 			if tag != None:
-				if tag not in action['help']:
+				if tag not in action.help:
 					continue
 				else:
-					action['help'] = action['help'].replace(tag,'')	
+					action.help = action.help.replace(tag,'')	
 							
-			options[ action['dest'] ] = {}
+			options[ action.dest ] = {}
 			for key in savetypes:
-				options[ action['dest'] ][ key ] = action[ key ]
-			options[ action['dest'] ]['value'] = ''
-			options[ action['dest'] ]['group'] = action['container'].title
+				options[ action.dest ][ key ] = getattr(action,key,None)
+			options[ action.dest ]['value'] = ''
+			options[ action.dest ]['group'] = action.container.title
 
 		return options
 		

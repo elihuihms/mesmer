@@ -1,7 +1,7 @@
 import os
 import scipy
 
-from lib.utility_objects import MESMERUtility
+from mesmer.lib.utility_objects import MESMERUtility
 
 class MakeSyntheticTarget(MESMERUtility):
 	def __init__(self):

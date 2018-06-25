@@ -1,11 +1,11 @@
 import os
-
 import tkMessageBox
 import tkFileDialog
 
-from .. exceptions			import *
-from .. plugin_functions	import list_from_parser_dict
-from tools_plugin			import *
+from mesmer.lib.exceptions			import *
+from mesmer.lib.plugin_functions	import list_from_parser_dict
+
+from tools_plugin	import *
 
 def extractDataFromFile( file ):
 	if( file == '' ):

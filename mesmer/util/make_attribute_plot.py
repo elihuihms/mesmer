@@ -2,7 +2,7 @@ import scipy
 import matplotlib as mpl
 import random
 
-from lib.utility_objects import MESMERUtility
+from mesmer.lib.utility_objects import MESMERUtility
 
 class MakeAttributePlot(MESMERUtility):
 	def __init__(self):

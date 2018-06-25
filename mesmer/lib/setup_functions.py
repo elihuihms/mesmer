@@ -1,9 +1,12 @@
 import os
 import sys
+import anydbm
 import shutil
 import argparse
 import shelve
 import multiprocessing
+
+from mesmer import __version__
 
 from exceptions				import *
 from utility_functions		import *
@@ -168,11 +171,7 @@ def set_module_paths():
 
 	return mesmer
 
-def open_user_prefs( mode='w', reset=False ):
-	from . import __version__ as base_version
-	from gui import __version__ as gui_version
-	import anydbm
-	
+def open_user_prefs( mode='w', reset=False ):	
 	home = os.path.expanduser("~")
 	path = os.path.join( home, ".mesmer_prefs" )
 	try:
@@ -184,7 +183,7 @@ def open_user_prefs( mode='w', reset=False ):
 		set_default_prefs( shelf )	
 		shelf.sync()
 	
-	if 'base-version' not in shelf or 'gui-version' not in shelf:
+	if 'mesmer_version' not in shelf:
 		print_msg("INFO:\tCreating MESMER preferences file at \"%s\"."%path)
 		set_default_prefs( shelf )
 	
@@ -192,22 +191,14 @@ def open_user_prefs( mode='w', reset=False ):
 	def vsplit(v):
 		return tuple(map(int,(v.split('.'))))
 	
-	if vsplit(shelf['base-version']) < vsplit(base_version):
-		print_msg("INFO:\tUpdating MESMER preferences file.")
-		set_default_prefs( shelf )
-		
-	if vsplit(shelf['gui-version']) < vsplit(gui_version):
+	if vsplit(shelf['mesmer_version']) < vsplit(__version__):
 		print_msg("INFO:\tUpdating MESMER preferences file.")
 		set_default_prefs( shelf )
 		
 	return shelf
 	
 def set_default_prefs( shelf ):
-	from . import __version__ as base_version
-	from gui import __version__ as gui_version
-	
-	shelf['base-version'] = base_version
-	shelf['gui-version'] = gui_version
+	shelf['mesmer_version'] = __version__
 	shelf['mesmer_scratch'] = ''
 	shelf['cpu_count'] = multiprocessing.cpu_count()
 	shelf['run_arguments'] = {'threads':shelf['cpu_count']}

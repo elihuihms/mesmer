@@ -1,7 +1,7 @@
 import os
 import tarfile
 
-from lib.utility_objects import MESMERUtility
+from mesmer.lib.utility_objects import MESMERUtility
 
 class MakeModels(MESMERUtility):
 	def __init__(self):

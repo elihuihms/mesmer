@@ -5,9 +5,9 @@ import tkFont
 import tkFileDialog
 import tkMessageBox
 
-from __init__ import __version__
-from .. setup_functions	import open_user_prefs
-from .. plugin_functions import try_load_plugins
+from mesmer import __version__
+from mesmer.lib.setup_functions	import open_user_prefs
+from mesmer.lib.plugin_functions import load_plugins
 
 import tools_run # to avoid circular import of AnalysisWindow
 
@@ -51,7 +51,7 @@ class AnalysisWindow(tk.Frame):
 			tkMessageBox.showerror("Error",'Cannot read MESMER preferences file: %s' % (e),parent=self)
 			self.master.destroy()
 
-		self.plot_plugins = try_load_plugins(self.prefs, 'gui_p', disabled_writeback=True )
+		self.plot_plugins = load_plugins(self.prefs, 'gui_p', disabled_writeback=True )
 
 	def close(self):
 		if( self.pHandle and self.pHandle.poll() == None):

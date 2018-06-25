@@ -2,14 +2,15 @@ import inspect
 import tkMessageBox
 import collections
 
-from .. exceptions			import *
-from .. plugin_functions	import load_plugins,dict_from_parser
-from .. setup_functions		import set_default_prefs
+from mesmer.lib.exceptions			import *
+from mesmer.lib.setup_functions		import *
+from mesmer.lib.plugin_functions	import load_plugins
 
 def tryLoadPlugins( shelf, type, args=None, disabled_writeback=False ):
+	mesmer_path = set_module_paths()
 
 	plugins,disabled = [],shelf['disabled_plugins'][:] # (copy slicing isn't necessary if shelf is actually a shelf)
-	for id,ok,msg,module in load_plugins( shelf['mesmer_base_dir'], type, disabled=disabled, args=args ):
+	for id,ok,msg,module in load_plugins( mesmer_path, type, disabled=disabled, args=args ):
 		if ok:
 			plugins.append( module )
 		else:
@@ -27,7 +28,7 @@ def getTargetPluginOptions( plugins, prefs ):
 		for t in p.types:
 			if( not t[0:4] in types[-1] ):
 				types[-1].append(t[0:4])
-		options.append( dict_from_parser(p.target_parser) )
+		options.append( p.get_argument_dict(p.target_parser) )
 	return types,options
 
 def getPluginPrefs( shelf, name ):

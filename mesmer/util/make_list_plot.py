@@ -1,7 +1,7 @@
 import scipy
 import matplotlib as mpl
 
-from lib.utility_objects import MESMERUtility
+from mesmer.lib.utility_objects import MESMERUtility
 
 class MakeLISTPlot(MESMERUtility):
 	def __init__(self):

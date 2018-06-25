@@ -7,11 +7,11 @@ import tkFileDialog
 
 from subprocess		import Popen,PIPE
 
-from ... utilities import MakeAttributePlot
+from mesmer.lib.exceptions import *
+from mesmer.lib.ga_functions_output import _MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
+from mesmer.lib.plugin_functions import list_from_parser_dict
 
-from .. exceptions import *
-from .. ga_functions_output import _MESMER_CORRELATION_FILE_FORMAT,_MESMER_STATISTICS_FILE_FORMAT,_MESMER_RESTRAINTS_FILE_FORMAT
-from .. plugin_functions import dict_from_parser,list_from_parser_dict
+from mesmer.util.make_attribute_plot import MakeAttributePlot
 
 from tools_general	import getColumnNames
 from win_options	import OptionsWindow
@@ -23,8 +23,8 @@ def makeCorrelationPlot( w ):
 	p2 = os.path.join(w.activeDir.get(), _MESMER_STATISTICS_FILE_FORMAT%(target_name,generation_count) )
 	
 	cmd = ['make_correlation_plot']
-	if( w.prefs['mesmer_base_dir'] != '' ):
-		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_correlation_plot.py')]
+#	if( w.prefs['mesmer_base_dir'] != '' ):
+#		cmd = [sys.executable,os.path.join(w.prefs['mesmer_base_dir'],'utilities','make_correlation_plot.py')]
 	
 	if( os.access( p1, os.R_OK ) and os.access( p2, os.R_OK ) ):
 		cmd.extend( [p1,p2,'-size','20'] )
@@ -56,7 +56,7 @@ def plotRestraint( w ):
 				if( p.name in w.pluginOptions ):
 					options = w.pluginOptions[ p.name ]
 				else:
-					w.pluginOptions[ p.name ] = dict_from_parser( p.parser )
+					w.pluginOptions[ p.name ] = p.get_argument_dict()
 				w.optWindowMaster = tk.Toplevel(w.master)
 				w.optWindow = OptionsWindow(w.optWindowMaster, w.pluginOptions[ p.name ] )
 				w.optWindowMaster.focus_set()
@@ -94,7 +94,7 @@ def plotAttributes( w ):
 		return
 
 	plotter = MakeAttributePlot()
-	w.pluginOptions['attributePlotter'] = dict_from_parser( plotter.get_argument_parser(), tag="#GUI" )
+	w.pluginOptions['attributePlotter'] = plotter.get_argument_dict(tag="#GUI")
 	print w.pluginOptions
 		
 	w.newWindow = tk.Toplevel(w.master)
