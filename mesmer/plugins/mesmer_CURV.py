@@ -1,20 +1,20 @@
 """Creates a MESMER restraint from a continuous 2D dataset (i.e. X/Y)"""
 
-import argparse
 import scipy
 import scipy.interpolate as interpolate
 import scipy.optimize as optimize
 
+from argparse import ArgumentError
 from StringIO import StringIO
 
-from lib.exceptions import *
-from lib.plugin_objects import *
-from lib.plugin_tools import *
+from mesmer.errors import *
+from mesmer.lib.plugin import *
+from mesmer.lib.fitting import *
 
-class plugin( MESMERTargetPluginDB ):
+class plugin( TargetPluginDB ):
 
-	def __init__(self, args):
-		MESMERTargetPluginDB.__init__(self, args)
+	def __init__(self, *args, **kwargs):
+		super(plugin, self).__init__(*args, **kwargs)
 
 		self.name = 'default_CURV'
 		self.version = '1.1.0'
@@ -131,7 +131,7 @@ class plugin( MESMERTargetPluginDB ):
 
 		try:
 			args = self.target_parser.parse_args(block['header'][2:])
-		except argparse.ArgumentError, exc:
+		except ArgumentError, exc:
 			raise mesPluginError("Argument error: %s" % exc.message())
 		
 		if(args.file == None):
@@ -200,7 +200,7 @@ class plugin( MESMERTargetPluginDB ):
 
 		try:
 			args = self.component_parser.parse_args(block['header'][1:])
-		except argparse.ArgumentError, exc:
+		except ArgumentError, exc:
 			raise mesPluginError("Argument error: %s" % exc.message())
 
 		if(args.file == None):

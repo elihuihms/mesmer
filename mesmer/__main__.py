@@ -17,9 +17,9 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import lib.cli
-import lib.gui
-import util
+import cli
+#import gui
+#import util
 
 #from lib.util.make_attribute_plot import MakeAttributePlot
 #from lib.util.make_attribute_spec import MakeAttributeSpec
@@ -32,11 +32,8 @@ import util
 #from lib.util.make_spec_models import MakeSpecModels
 #from lib.util.make_synthetic_target import MakeSyntheticTarget
 
-def cli():
-	lib.cli.run()
-
 def gui():
-	lib.gui.run()
+	gui.run()
 
 def get_ensemble_stats():
 	util.make_attribute_plot.GetEnsembleStats().exe()
@@ -72,4 +69,4 @@ def make_synthetic_target():
 	MakeSyntheticTarget().exe()
 
 if __name__ == '__main__':
-	gui()
+	cli.run()

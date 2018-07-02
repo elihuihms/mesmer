@@ -1,21 +1,20 @@
 """Creates a MESMER restraint from a general list of data (NOEs, Pseudocontact shifts, etc.)"""
 
-import argparse
 import sys
 
 from scipy import sqrt,mean,average,array,interpolate
 from scipy.stats import linregress
+from argparse import ArgumentError
+from StringIO import StringIO
 
-from lib.exceptions		import *
-from lib.plugin_objects	import *
-import lib.plugin_tools	as tools
+from mesmer.errors import *
+from mesmer.lib.plugin import *
+from mesmer.lib.fitting import *
 
-class plugin( MESMERTargetPluginDB ):
+class plugin( TargetPluginDB ):
 
 	def __init__(self, args):
-
-		# call parent constructor first
-		MESMERTargetPluginDB.__init__(self, args)
+		super(plugin, self).__init__(args)
 
 		self.name = 'default_LIST'
 		self.version = '1.1.0'
@@ -98,7 +97,7 @@ class plugin( MESMERTargetPluginDB ):
 
 		try:
 			args = self.target_parser.parse_args(block['header'][2:])
-		except argparse.ArgumentError, exc:
+		except ArgumentError, exc:
 			raise mesPluginError("Argument error: %s" % exc.message())
 
 		restraint.data['args'] = args
@@ -160,7 +159,7 @@ class plugin( MESMERTargetPluginDB ):
 
 		try:
 			args = self.component_parser.parse_args(block['header'][1:])
-		except argparse.ArgumentError, exc:
+		except ArgumentError, exc:
 			raise mesPluginError("Argument error: %s" % exc.message())
 
 		if(args.file):
@@ -206,7 +205,7 @@ class plugin( MESMERTargetPluginDB ):
 
 	def load_bootstrap( self, bootstrap, restraint, ensemble_data, target_data ):
 		bootstrap.data['x'] = restraint.data['x']
-		bootstrap.data['y'] = tools.make_bootstrap_sample( restraint.data['y'], ensemble_data['y'] )
+		bootstrap.data['y'] = make_bootstrap_sample( restraint.data['y'], ensemble_data['y'] )
 		bootstrap.data['d'] = restraint.data['d']
 
 		return []
@@ -222,7 +221,7 @@ class plugin( MESMERTargetPluginDB ):
 
 		elif( restraint.data['args'].fitness=='Harmonic' ):
 			n = len(restraint.data['x'])
-			return sum([tools.get_flat_harmonic(restraint.data['y'][i],restraint.data['d'][i],ensemble_data['y'][i]) for i in range(n)])
+			return sum([get_flat_harmonic(restraint.data['y'][i],restraint.data['d'][i],ensemble_data['y'][i]) for i in range(n)])
 
 		elif( restraint.data['args'].fitness=='Quality' ):
 			# Calculate quality (Q) factor
@@ -230,11 +229,11 @@ class plugin( MESMERTargetPluginDB ):
 
 			# calculate the RMS of the experimental data, cache if not already present
 			if(not 'rms' in restraint.data):
-				restraint.data['rms'] = tools.get_rms(array(restraint.data['y']))
+				restraint.data['rms'] = get_rms(array(restraint.data['y']))
 
-			return tools.get_rms(restraint.data['y'] - ensemble_data['y']) / restraint.data['rms']
+			return get_rms(restraint.data['y'] - ensemble_data['y']) / restraint.data['rms']
 		elif( restraint.data['args'].fitness=='Rsquared' ):
 			(slope,intercept,r,p,stderr) = linregress( restraint.data['y'], ensemble_data['y'] )
 			return 1.0/(r**2)
 		else:
-			return tools.get_chisq_reduced( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )
+			return get_chisq_reduced( restraint.data['y'], restraint.data['d'], ensemble_data['y'] )

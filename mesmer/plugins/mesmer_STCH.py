@@ -7,57 +7,57 @@ Component file arguments:
 -component <name> <# of component>
 """
 
-import argparse
-import math
+import scipy
 
-from lib.exceptions		import *
-from lib.plugin_objects	import *
-import lib.plugin_tools	as tools
+from argparse import ArgumentError
+from StringIO import StringIO
 
-class plugin( MESMERTargetPlugin ):
+from mesmer.errors import *
+from mesmer.lib.plugin import *
+from mesmer.lib.fitting import *
 
-	def __init__(self, args):
-		MESMERTargetPlugin.__init__(self, args)
+class plugin( TargetPlugin ):
+
+	def __init__(self, *args, **kwargs):
+		super(plugin, self).__init__()
 
 		self.name = 'default_STCH'
 		self.version = '1.1.0'
 		self.info = 'This plugin compares experimental and predicted stoichiometry of the components present in multicomponent mixtures.'
 		self.types = ('STCH','STCH0','STCH1','STCH2','STCH3','STCH4','STCH5','STCH6','STCH7','STCH8','STCH9')
 
-	def load_restraint( self, restraint, block, target_data ):
-		parser = argparse.ArgumentParser(prog=self.type[0])
-		parser.add_argument('-scale',		default=1.0, type=float, metavar='1.0', help='')
-		parser.add_argument('-component', nargs='+', metavar='NAME, #', action='append', help='')
+		self.target_parser.add_argument('-scale',	default=1.0, type=float, metavar='1.0', help='')
+		self.target_parser.add_argument('-component', nargs='+', metavar='NAME, #', action='append', help='')
 
+		self.component_parser.add_argument('-component', nargs='+', metavar='NAME, #', action='append', help='')
+
+	def load_restraint( self, restraint, block, target_data ):
 		try:
-			args = parser.parse_args(block['header'][2:])
-		except argparse.ArgumentError, exc:
+			args = self.target_parser.parse_args(block['header'][2:])
+		except ArgumentError, exc:
 			raise mesPluginError("Argument error: %s" % exc.message())
 
-		sum = 0.0
-		restraint.data['components']	= {}
+		total = 0.0
+		restraint.data['components'] = {}
 		for component in args.component:
 			restraint.data['components'][component[0]] = float(component[1])
-			sum += float(component[1])
+			total += float(component[1])
 
 		# normalize the components to ratios
 		for component in args.component:
-			restraint.data['components'][component[0]] /= sum
+			restraint.data['components'][component[0]] /= total
 
 		target_data['args'] = args
 
 		return []
 
 	def load_attribute( self, attribute, block, ensemble_data ):
-		parser = argparse.ArgumentParser(prog=self.name)
-		parser.add_argument('-component', nargs='+', metavar='NAME, #', action='append', help='')
-
 		try:
-			args = parser.parse_args(block['header'][1:])
-		except argparse.ArgumentError, exc:
+			args = self.component_parser.parse_args(block['header'][1:])
+		except ArgumentError, exc:
 			raise mesPluginError("Argument error: %s" % exc.message())
 
-		attribute.data['components']	= {}
+		attribute.data['components'] = {}
 		for component in args.component:
 			attribute.data['components'][component[0]] = float(component[1])
 
@@ -74,7 +74,7 @@ class plugin( MESMERTargetPlugin ):
 		assert(len(attributes) == len(ratios))
 
 		# convert component count to ratios
-		sum = 0.0
+		total = 0.0
 		ensemble_data['components'] = {}
 		for name in restraint.data['components']:
 			ensemble_data['components'][name] = 0.0
@@ -82,22 +82,22 @@ class plugin( MESMERTargetPlugin ):
 			for (i,a) in enumerate(attributes):
 				if(name in a.data['components']):
 					ensemble_data['components'][name] += (a.data['components'][name] * ratios[i])
-					sum += (a.data['components'][name] * ratios[i])
+					total += (a.data['components'][name] * ratios[i])
 
 		fitness = 0.0
 
 		# create score from flat harmonic
 		for name in restraint.data['components']:
-			if( sum == 0.0 ):
+			if( total == 0.0 ):
 				ensemble_data['components'][name] = 0.0
 			else:
-				ensemble_data['components'][name] /= sum
+				ensemble_data['components'][name] /= total
 
 			#fitness += tools.get_flat_harmonic( restraint.data['components'][name], restraint.data['components'][name], ensemble_data['components'][name] )
 
 			# Wolfgang Rieping, Michael Habeck, and Michael Nilges, JACS 11/01/2005
 			if( ensemble_data['components'][name] ) > 0:
-				fitness += math.fabs( target_data['args'].scale * math.log(restraint.data['components'][name] / ensemble_data['components'][name]) )
+				fitness += scipy.fabs( target_data['args'].scale * scipy.log(restraint.data['components'][name] / ensemble_data['components'][name]) )
 			else:
 				fitness += 1.0
 

@@ -1,7 +1,7 @@
 import glob
 import os
 
-from exceptions import *
+from mesmer.errors import *
 
 def get_component_values( path ):
 	try:

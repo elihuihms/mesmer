@@ -1,0 +1,155 @@
+import os
+import sys
+import anydbm
+import shutil
+import argparse
+import shelve
+import multiprocessing
+
+from mesmer import __version__
+from mesmer.errors import *
+
+def parse_arguments(arguments=None):
+	"""Parses the command-line parameters (or those provided in a configuration file)"""
+
+	class _Parser(argparse.ArgumentParser):
+		# default behavior of argparse is to split on newlines in argument list files
+		# this allows for both the argument and value to be on the same line
+		def convert_arg_line_to_args(self, line):
+			line = line.strip()
+			if not line:
+				return []
+			if line[0] == '#':
+				return []
+			return line.split(' ',1)
+
+	# argument groups are just used for more attractive formatting when help is invoked
+	parser = _Parser(fromfile_prefix_chars='@')
+
+	group0 = parser.add_argument_group('Target and component files')
+	group0.add_argument('-target',		action='append',	default=[],						metavar='FILE.target',			help='MESMER target file')
+	group0.add_argument('-components',	action='append',	default=[],		nargs='*',		metavar='FILE.component/DIR',	help='MESMER component files or directory ')
+	group0.add_argument('-resume',															metavar='STATE.tbl',			help='Resume from a provided ensemble state')
+
+	group1 = parser.add_argument_group('Simulation size and convergence parameters')
+	group1.add_argument('-name',		action='store',		default='MESMER_Results',		metavar='NAME',	help='Name of this run - a directory will be created with this name to contain all MESMER output')
+	group1.add_argument('-dir',			action='store',		default='./',					metavar='DIR',	help='Directory in which to create results folder')
+	group1.add_argument('-ensembles',	action='store',		default=1000,	type=int,		metavar='1000',	help='Number of ensembles to use in the algorithm')
+	group1.add_argument('-size',		action='store',		default=3,		type=int,		metavar='3',	help='Number of components per ensemble')
+	group1.add_argument('-Fmin',		action='store',		default=0.00,	type=float,		metavar='0.00',	help='Maximum ensemble fitness to stop algorithm')
+	group1.add_argument('-Smin',		action='store',		default=0.00,	type=float,		metavar='0.01',	help='Minimum ensemble fitness stdev to stop algorithm')
+
+	group2 = parser.add_argument_group('Genetic algorithm coefficients')
+	group2.add_argument('-Gmax',		action='store',		default=-1,		type=int,		metavar='Inf',	help='Maximum number of generations, set to -1 to run indefinitely')
+	group2.add_argument('-Gcross',		action='store',		default=0.8,	type=float,		metavar='0.8',	help='Ensemble component crossing frequency')
+	group2.add_argument('-Gmutate',		action='store',		default=1.0,	type=float,		metavar='1.0',	help='Ensemble component mutation frequency')
+	group2.add_argument('-Gsource',		action='store',		default=0.1,	type=float,		metavar='0.1',	help='Ensemble component mutation source frequency')
+	group2.add_argument('-Gtolerance',	action='store',		default=0.0,	type=float,		metavar='0.0',	help='Tolerance in ensemble fitness to use during down-selection')
+
+	group3 = parser.add_argument_group('Variable component ratio parameters')
+	group3.add_argument('-Rforce'	,	action='store_true',default=False,									help='Force ensemble ratio reoptimization at every generation.')
+	group3.add_argument('-Ralgorithm',	action='store',		default=3,	type=int,	choices=[0,1,2,3,4,5,6],	metavar='6',	help='Algorithm to use for optimal component ratios (0-6), 0=no ratio optimization. Consult the mesmer docs for more information.')
+	group3.add_argument('-Rprecision',	action='store',		default=0.01,	type=float,		metavar='0.01',	help='Precision of weighting algorithm')
+	group3.add_argument('-Rn',			action='store',		default=-1,		type=int,		metavar='10*size',	help='Number of weighting algorithm iterations. Defaults to ensemble size x10')
+	group3.add_argument('-boots',		action='store',		default=200,	type=int,		metavar='200',	help='The number of bootstrap samples for component weighting error analysis. 0=no error analysis')
+
+	group4 = parser.add_argument_group('Output options')
+	group4.add_argument('-Pstats',		action='store_true',default=True,									help='Print ensemble information at each generation. NOTE: always enabled')
+	group4.add_argument('-Pbest',		action='store_true',default=True,									help='Print best ensemble information at each generation.')
+	group4.add_argument('-Pstate',		action='store_true',default=True,									help='Print ensemble ratio state at each generation')
+	group4.add_argument('-Popt',		action='store_true',default=False,									help='Print optimization convergence status for all ensembles.')
+	group4.add_argument('-Pextra',		action='store_true',default=False,									help='Print extra restraint-specific information.')
+	group4.add_argument('-Pmin',		action='store',		default=1.0,	type=float,		metavar='1.0',	help='Print conformer statistics only if they exist in this percentage of ensembles or greater.')
+	group4.add_argument('-Pcorr',		action='store',		default=1.0,	type=float,		metavar='1.0',	help='Print conformer correlations only if they exist in this percentage of ensembles or greater.')
+
+	group5 = parser.add_argument_group('Miscellaneous options')
+	group5.add_argument('-seed',		action='store',		default=1,		type=int,		metavar='N',	help='Random number generator seed value to use.')
+	group5.add_argument('-uniform',		action='store_true',default=False,									help='Load ensembles uniformly from available components instead of randomly')
+	group5.add_argument('-force',		action='store_true',default=False,									help='Enable overwriting of previous output directories.')
+	group5.add_argument('-threads',		action='store',		default=multiprocessing.cpu_count(),		type=int,		metavar='N',	help='Number of multiprocessing threads to use.')
+	group5.add_argument('-scratch',		action='store',		default=None,					metavar='DIR',	help='Scratch directory in which to save temporary files.')
+	group5.add_argument('-plugin',		action='store',										metavar='NAME',	help='Print information about the specified plugin and exit.')
+	group5.add_argument('-reset',		action='store_true',default=False,									help='Reset saved MESMER preferences.')
+	
+	if arguments != None:
+		ret = parser.parse_args(arguments)
+	else:
+		ret = parser.parse_args() # get from sys.argv
+
+	# argument error checking and defaults
+	if (ret.Rn < 0):
+		ret.Rn = ret.size * 10
+		
+	#if (ret.Gtolerance > ret.Smin):
+	#	print "INFO:\tGtolerance is greater than Smin, setting to Smin."
+	#	ret.Gtolerance = ret.Smin
+
+	return ret
+
+def set_module_paths():
+	if getattr(sys, 'frozen', False):
+		pass # nothing special at the moment (no zip file support anyway)
+
+	path   = os.path.abspath(__file__) # setup_functions.py
+	mesmer = os.path.dirname(path) # mesmer
+	plugin = os.path.abspath(os.path.join(mesmer, 'plugins'))
+	module = os.path.dirname(mesmer) # (directory containing mesmer module)
+
+	if getattr(sys, 'frozen', False): # mesmer package already added to sys.modules
+		pass
+	else: # add mesmer directory to the system path
+		if not os.path.exists( os.path.join(module,"mesmer") ):
+			raise mesSetupError("Could not find mesmer module at path \"%s\"." % module)
+		if module not in sys.path:
+			sys.path.insert( 0, module )
+
+	# add plugin directory to the system path, for plugin-specific libraries
+	if not os.path.exists( plugin ):
+		raise mesSetupError("Could not find plugin directory at path \"%s\"." % mesmer)		
+	
+	if not plugin in sys.path:
+		sys.path.append( plugin )
+
+	return mesmer
+
+def open_user_prefs( mode='w', reset=False ):	
+	home = os.path.expanduser("~")
+	path = os.path.join( home, ".mesmer_prefs" )
+	try:
+		shelf = shelve.open( path, mode )
+	except anydbm.error as e:
+		raise mesSetupError(str(e))
+	
+	if reset:
+		set_default_prefs( shelf )	
+		shelf.sync()
+	
+	if 'mesmer_version' not in shelf:
+		print_msg("INFO:\tCreating MESMER preferences file at \"%s\"."%path)
+		set_default_prefs( shelf )
+	
+	# don't use prefs from old installation
+	def vsplit(v):
+		return tuple(map(int,(v.split('.'))))
+	
+	if vsplit(shelf['mesmer_version']) < vsplit(__version__):
+		print_msg("INFO:\tUpdating MESMER preferences file.")
+		set_default_prefs( shelf )
+		
+	return shelf
+	
+def set_default_prefs( shelf ):
+	shelf['mesmer_version'] = __version__
+	shelf['mesmer_scratch'] = ''
+	shelf['cpu_count'] = multiprocessing.cpu_count()
+	shelf['run_arguments'] = {'threads':shelf['cpu_count']}
+	shelf['disabled_plugins'] = []
+	shelf['plugin_prefs'] = {}
+	shelf['last_open_dir'] = os.path.expanduser('~')
+	shelf['interpreter'] = get_interpreter()
+	shelf.sync()
+			
+def get_interpreter():
+	# doesn't do anything at the moment because it doesn't need to. We handle overwriting of the sys.executable prior
+	return sys.executable
+		

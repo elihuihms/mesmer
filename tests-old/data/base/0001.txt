@@ -1,0 +1,23 @@
+-boots 200
+-Pmin 1.000000
+-seed 1
+-Smin 0.010000
+-Rn 30
+-Ralgorithm 3
+-size 3
+-ensembles 1000
+-Gmutate 1.000000
+-Pbest
+-Rprecision 0.010000
+-Gsource 0.100000
+-Pstate
+-Pextra
+-Fmin 0.000000
+-Pstats
+-target calmodulin.target
+-name MESMER_Results
+-Pcorr 1.000000
+-components components
+-threads 4
+-dir /Users/elihuihms/Dropbox/mesmer/docs/tutorial/calmodulin
+-Gcross 0.800000
