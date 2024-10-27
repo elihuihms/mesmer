@@ -1,3 +1,22 @@
+THIS PROJECT IS DEPRECATED
+
+Please don't use this project - There's nothing wrong with it per se, but MESMER was something I wrote to learn Python and Python GUIs while satisfying a scientific need I had in graduate school. As such, it contains a lot of dumb choices that you'd expect (and plenty of ones you might not expect) a novice python programmer to make. When I started writing MESMER, for example, Pandas was barely existent, and numpy/scipy documentation was still spotty, so there's lots of painfully slow manipulation of base Python datatypes instead of the fast vector math I should have used.
+
+I did learn some valuable lessons that I'd like future programmers to be aware of, especially with regards to using HPC systems:
+1. Leverage the ability of the argparse module to initiate runs from a text file.
+2. Your GUI should work in tandem with a CLI, which allows you to configure your run on a desktop, and then copy the relevant files (including your run config text file) to a HPC system for execution.
+
+Both of these lessons are demonstrated really well in Schrodinger's structural bioengineering suite of software. There was also a bit of a boom for a while in building GUI tools for Rosetta until AlphaFold ate their lunch. As an aside, Python GUI toolkits still suck even a dozen years later, and don't get me started on Electron.
+
+I'll keep this project available but archived, as it was an important step in my journey as a scientific developer and definitely assisted me in making sense of the really confusing data I was getting from my experiments on TRAP + Anti-TRAP. Due to its shortcomings, it never really caught on as a replacement to Svergun's EOM (Sorry NMRBox). In fact, it could probably be replaced by a couple of jupyter notebooks that leverage the absolute powerhouse Pandas has become anyway. Minimal ensemble analysis approaches are such a niche need that a software package whose only claim to fame was possessing a GUI wasn't going to have a wide userbase anyway.
+
+In closing, I'd like to encourage all scientists, especially those in grad school, to not blackbox the software they use. Reinventing the wheel a bit (when it comes to analyzing empirical data) can bring you closer to understanding nuances that are lost when you simply use a COTS package or adapt a coworker's existing code.
+
+Be good to one another, and do good science.
+
+Elihu Ihms, October 27th, 2024
+
+
 Introduction
 ------------
 MESMER (Minimal Ensemble Solutions to Multiple Experimental Restraints) is set of tools that enable structural biologists to identify and analyze characteristic structures or components from bulk-average data obtained from heterogenous solutions.
